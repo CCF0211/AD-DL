@@ -22,6 +22,8 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
 
         results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode)
         print("%s level balanced accuracy is %f" % (model_options.mode, metrics['balanced_accuracy']))
+        print('result_df:{}'.format(results_df))
+        print('metrics:{}'.format(metrics))
 
         mode_level_to_tsvs(output_dir, results_df, metrics, split, selection, model_options.mode, dataset=subset_name)
 
