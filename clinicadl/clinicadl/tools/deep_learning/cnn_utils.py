@@ -33,6 +33,7 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
     """
     from tensorboardX import SummaryWriter
     from time import time
+    import wandb
 
     if not resume:
         check_and_clean(model_dir)
@@ -101,6 +102,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                     writer_train.add_scalar('loss', mean_loss_train, global_step)
                     writer_valid.add_scalar('balanced_accuracy', results_valid["balanced_accuracy"], global_step)
                     writer_valid.add_scalar('loss', mean_loss_valid, global_step)
+                    wandb.log(
+                        {'train_balanced_accuracy': results_train["balanced_accuracy"], 'train_loss': mean_loss_train,
+                         'valid_balanced_accuracy': results_valid["balanced_accuracy"], 'valid_loss': mean_loss_valid,
+                         'global_step': global_step})
                     print("%s level training accuracy is %f at the end of iteration %d"
                           % (options.mode, results_train["balanced_accuracy"], i))
                     print("%s level validation accuracy is %f at the end of iteration %d"
@@ -134,6 +139,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         writer_train.add_scalar('loss', mean_loss_train, global_step)
         writer_valid.add_scalar('balanced_accuracy', results_valid["balanced_accuracy"], global_step)
         writer_valid.add_scalar('loss', mean_loss_valid, global_step)
+        wandb.log(
+            {'train_balanced_accuracy': results_train["balanced_accuracy"], 'train_loss': mean_loss_train,
+             'valid_balanced_accuracy': results_valid["balanced_accuracy"], 'valid_loss': mean_loss_valid,
+             'global_step': global_step})
         print("%s level training accuracy is %f at the end of iteration %d"
               % (options.mode, results_train["balanced_accuracy"], len(train_loader)))
         print("%s level validation accuracy is %f at the end of iteration %d"
@@ -318,8 +327,9 @@ def mode_level_to_tsvs(output_dir, results_df, metrics, fold, selection, mode, d
                       sep='\t')
 
     if isinstance(metrics, dict):
-        pd.DataFrame(metrics, index=[0]).to_csv(os.path.join(performance_dir, '%s_%s_level_metrics.tsv' % (dataset, mode)),
-                                                index=False, sep='\t')
+        pd.DataFrame(metrics, index=[0]).to_csv(
+            os.path.join(performance_dir, '%s_%s_level_metrics.tsv' % (dataset, mode)),
+            index=False, sep='\t')
     elif isinstance(metrics, pd.DataFrame):
         metrics.to_csv(os.path.join(performance_dir, '%s_%s_level_metrics.tsv' % (dataset, mode)),
                        index=False, sep='\t')
