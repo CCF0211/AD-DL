@@ -70,7 +70,10 @@ class Conv4_FC3(nn.Module):
         self.flattened_shape = [-1, 50, 2, 2, 2]
 
     def forward(self, x):
+        print('input:{}'.format(x))
         x = self.features(x)
+        print('feature:{}'.format(x))
         x = self.classifier(x)
+        print('output:{}'.format(x))
 
         return x
