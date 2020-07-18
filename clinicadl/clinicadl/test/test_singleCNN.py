@@ -10,10 +10,10 @@ from torch.utils.data import DataLoader
 from clinicadl.tools.deep_learning.data import return_dataset, get_transforms, load_data_test
 from clinicadl.tools.deep_learning import read_json, create_model, load_model
 from clinicadl.tools.deep_learning.cnn_utils import test, mode_level_to_tsvs, soft_voting_to_tsvs
+import wandb
 
 
 def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_options, gpu=False):
-
     for selection in ["best_balanced_accuracy", "best_loss"]:
         # load the best trained model during the training
         model = create_model(model_options.model, gpu, dropout=model_options.dropout)
@@ -24,6 +24,14 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
         print("%s level balanced accuracy is %f" % (model_options.mode, metrics['balanced_accuracy']))
         print('result_df:{}'.format(results_df))
         print('metrics:{}'.format(metrics))
+        wandb.log({'{}_accuracy_{}_singel_model'.format(subset_name, selection): metrics['accuracy'],
+                   '{}_balanced_accuracy_{}_singel_model'.format(subset_name, selection): metrics['balanced_accuracy'],
+                   '{}_sensitivity_{}_singel_model'.format(subset_name, selection): metrics['sensitivity'],
+                   '{}_specificity_{}_singel_model'.format(subset_name, selection): metrics['specificity'],
+                   '{}_ppv_{}_singel_model'.format(subset_name, selection): metrics['ppv'],
+                   '{}_npv_{}_singel_model'.format(subset_name, selection): metrics['npv'],
+                   '{}_total_loss_{}_singel_model'.format(subset_name, selection): metrics['total_loss'],
+                   })
 
         mode_level_to_tsvs(output_dir, results_df, metrics, split, selection, model_options.mode, dataset=subset_name)
 
@@ -56,7 +64,6 @@ parser.add_argument("--num_workers", '-w', default=8, type=int,
                     help='the number of batch being loaded in parallel')
 parser.add_argument("--gpu", action="store_true", default=False,
                     help="if True computes the visualization on GPU")
-
 
 if __name__ == "__main__":
     ret = parser.parse_known_args()
