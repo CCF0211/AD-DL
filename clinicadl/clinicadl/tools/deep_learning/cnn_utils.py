@@ -15,7 +15,8 @@ from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
 # CNN train / test  #
 #####################
 
-def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_dir, model_dir, options, cnn_index=None):
+def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_dir, model_dir, options, cnn_index=None,
+          num_cnn=None):
     """
     Function used to train a CNN.
     The best model and checkpoint will be found in the 'best_model_dir' of options.output_dir.
@@ -126,10 +127,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              '{}_model_valid_balanced_accuracy'.format(cnn_index): results_valid["balanced_accuracy"],
                              '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
                              'global_step': global_step})
-                        print("%s model %s level training accuracy is %f at the end of iteration %d"
-                              % (cnn_index, options.mode, results_train["balanced_accuracy"], i))
-                        print("%s model %s level validation accuracy is %f at the end of iteration %d"
-                              % (cnn_index, options.mode, results_valid["balanced_accuracy"], i))
+                        print("(%s/%s) model %s level training accuracy is %f at the end of iteration %d"
+                              % (cnn_index, num_cnn, options.mode, results_train["balanced_accuracy"], i))
+                        print("(%s/%s) model %s level validation accuracy is %f at the end of iteration %d"
+                              % (cnn_index, num_cnn, options.mode, results_valid["balanced_accuracy"], i))
 
             tend = time()
         print('Mean time per batch loading (train):', total_time / len(train_loader) * train_loader.batch_size)
