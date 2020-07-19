@@ -22,8 +22,8 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
 
         results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode)
         print("%s level balanced accuracy is %f" % (model_options.mode, metrics['balanced_accuracy']))
-        print('result_df:{}'.format(results_df))
-        print('metrics:{}'.format(metrics))
+        print('{}_{}_result_df:\n{}'.format(subset_name, selection, results_df))
+        print('{}_{}_metrics:\n{}'.format(subset_name, selection, metrics))
         wandb.log({'{}_accuracy_{}_singel_model'.format(subset_name, selection): metrics['accuracy'],
                    '{}_balanced_accuracy_{}_singel_model'.format(subset_name, selection): metrics['balanced_accuracy'],
                    '{}_sensitivity_{}_singel_model'.format(subset_name, selection): metrics['sensitivity'],
