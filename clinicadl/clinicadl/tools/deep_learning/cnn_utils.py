@@ -131,10 +131,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              '{}_model_valid_balanced_accuracy'.format(cnn_index): results_valid["balanced_accuracy"],
                              '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
                              'global_step': global_step})
-                        print("(%s/%s) model %s level training accuracy is %f at the end of iteration %d"
-                              % (cnn_index, num_cnn, options.mode, results_train["balanced_accuracy"], i))
-                        print("(%s/%s) model %s level validation accuracy is %f at the end of iteration %d"
-                              % (cnn_index, num_cnn, options.mode, results_valid["balanced_accuracy"], i))
+                        print("({}/{}) model {} level training accuracy is {} at the end of iteration {}"
+                              .format(cnn_index, num_cnn, options.mode, results_train["balanced_accuracy"], i))
+                        print("({}/{}) model {} level validation accuracy is {} at the end of iteration {}"
+                              .format(cnn_index, num_cnn, options.mode, results_valid["balanced_accuracy"], i))
 
             tend = time()
         print('Mean time per batch loading (train):', total_time / len(train_loader) * train_loader.batch_size)
