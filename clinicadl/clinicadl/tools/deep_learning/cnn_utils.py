@@ -59,7 +59,7 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         if fi is not None and options.n_splits is not None:
             print("At (%d/%d) fold (%d/%d) epoch." % (fi, options.n_splits, epoch, options.epochs))
         else:
-            print("At fold (%d/%d) epoch." % (epoch, options.epochs))
+            print("At (%d/%d) epoch." % (epoch, options.epochs))
 
         model.zero_grad()
         evaluation_flag = True
