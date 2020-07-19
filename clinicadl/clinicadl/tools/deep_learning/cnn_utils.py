@@ -15,7 +15,7 @@ from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
 # CNN train / test  #
 #####################
 
-def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_dir, model_dir, options):
+def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_dir, model_dir, options, cnn_index=None):
     """
     Function used to train a CNN.
     The best model and checkpoint will be found in the 'best_model_dir' of options.output_dir.
@@ -98,18 +98,38 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                     model.train()
 
                     global_step = i + epoch * len(train_loader)
-                    writer_train.add_scalar('balanced_accuracy', results_train["balanced_accuracy"], global_step)
-                    writer_train.add_scalar('loss', mean_loss_train, global_step)
-                    writer_valid.add_scalar('balanced_accuracy', results_valid["balanced_accuracy"], global_step)
-                    writer_valid.add_scalar('loss', mean_loss_valid, global_step)
-                    wandb.log(
-                        {'train_balanced_accuracy': results_train["balanced_accuracy"], 'train_loss': mean_loss_train,
-                         'valid_balanced_accuracy': results_valid["balanced_accuracy"], 'valid_loss': mean_loss_valid,
-                         'global_step': global_step})
-                    print("%s level training accuracy is %f at the end of iteration %d"
-                          % (options.mode, results_train["balanced_accuracy"], i))
-                    print("%s level validation accuracy is %f at the end of iteration %d"
-                          % (options.mode, results_valid["balanced_accuracy"], i))
+                    if cnn_index is None:
+                        writer_train.add_scalar('balanced_accuracy', results_train["balanced_accuracy"], global_step)
+                        writer_train.add_scalar('loss', mean_loss_train, global_step)
+                        writer_valid.add_scalar('balanced_accuracy', results_valid["balanced_accuracy"], global_step)
+                        writer_valid.add_scalar('loss', mean_loss_valid, global_step)
+                        wandb.log(
+                            {'train_balanced_accuracy': results_train["balanced_accuracy"],
+                             'train_loss': mean_loss_train,
+                             'valid_balanced_accuracy': results_valid["balanced_accuracy"],
+                             'valid_loss': mean_loss_valid,
+                             'global_step': global_step})
+                        print("%s level training accuracy is %f at the end of iteration %d"
+                              % (options.mode, results_train["balanced_accuracy"], i))
+                        print("%s level validation accuracy is %f at the end of iteration %d"
+                              % (options.mode, results_valid["balanced_accuracy"], i))
+                    else:
+                        writer_train.add_scalar('{}_model_balanced_accuracy'.format(cnn_index),
+                                                results_train["balanced_accuracy"], global_step)
+                        writer_train.add_scalar('{}_model_loss'.format(cnn_index), mean_loss_train, global_step)
+                        writer_valid.add_scalar('{}_model_balanced_accuracy'.format(cnn_index),
+                                                results_valid["balanced_accuracy"], global_step)
+                        writer_valid.add_scalar('{}_model_loss'.format(cnn_index), mean_loss_valid, global_step)
+                        wandb.log(
+                            {'{}_model_train_balanced_accuracy'.format(cnn_index): results_train["balanced_accuracy"],
+                             '{}_model_train_loss'.format(cnn_index): mean_loss_train,
+                             '{}_model_valid_balanced_accuracy'.format(cnn_index): results_valid["balanced_accuracy"],
+                             '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
+                             'global_step': global_step})
+                        print("%s model %s level training accuracy is %f at the end of iteration %d"
+                              % (cnn_index, options.mode, results_train["balanced_accuracy"], i))
+                        print("%s model %s level validation accuracy is %f at the end of iteration %d"
+                              % (cnn_index, options.mode, results_valid["balanced_accuracy"], i))
 
             tend = time()
         print('Mean time per batch loading (train):', total_time / len(train_loader) * train_loader.batch_size)
@@ -135,18 +155,38 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         model.train()
 
         global_step = (epoch + 1) * len(train_loader)
-        writer_train.add_scalar('balanced_accuracy', results_train["balanced_accuracy"], global_step)
-        writer_train.add_scalar('loss', mean_loss_train, global_step)
-        writer_valid.add_scalar('balanced_accuracy', results_valid["balanced_accuracy"], global_step)
-        writer_valid.add_scalar('loss', mean_loss_valid, global_step)
-        wandb.log(
-            {'train_balanced_accuracy': results_train["balanced_accuracy"], 'train_loss': mean_loss_train,
-             'valid_balanced_accuracy': results_valid["balanced_accuracy"], 'valid_loss': mean_loss_valid,
-             'global_step': global_step})
-        print("%s level training accuracy is %f at the end of iteration %d"
-              % (options.mode, results_train["balanced_accuracy"], len(train_loader)))
-        print("%s level validation accuracy is %f at the end of iteration %d"
-              % (options.mode, results_valid["balanced_accuracy"], len(train_loader)))
+        if cnn_index is None:
+            writer_train.add_scalar('balanced_accuracy', results_train["balanced_accuracy"], global_step)
+            writer_train.add_scalar('loss', mean_loss_train, global_step)
+            writer_valid.add_scalar('balanced_accuracy', results_valid["balanced_accuracy"], global_step)
+            writer_valid.add_scalar('loss', mean_loss_valid, global_step)
+            wandb.log(
+                {'train_balanced_accuracy': results_train["balanced_accuracy"],
+                 'train_loss': mean_loss_train,
+                 'valid_balanced_accuracy': results_valid["balanced_accuracy"],
+                 'valid_loss': mean_loss_valid,
+                 'global_step': global_step})
+            print("%s level training accuracy is %f at the end of iteration %d"
+                  % (options.mode, results_train["balanced_accuracy"], i))
+            print("%s level validation accuracy is %f at the end of iteration %d"
+                  % (options.mode, results_valid["balanced_accuracy"], i))
+        else:
+            writer_train.add_scalar('{}_model_balanced_accuracy'.format(cnn_index),
+                                    results_train["balanced_accuracy"], global_step)
+            writer_train.add_scalar('{}_model_loss'.format(cnn_index), mean_loss_train, global_step)
+            writer_valid.add_scalar('{}_model_balanced_accuracy'.format(cnn_index),
+                                    results_valid["balanced_accuracy"], global_step)
+            writer_valid.add_scalar('{}_model_loss'.format(cnn_index), mean_loss_valid, global_step)
+            wandb.log(
+                {'{}_model_train_balanced_accuracy'.format(cnn_index): results_train["balanced_accuracy"],
+                 '{}_model_train_loss'.format(cnn_index): mean_loss_train,
+                 '{}_model_valid_balanced_accuracy'.format(cnn_index): results_valid["balanced_accuracy"],
+                 '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
+                 'global_step': global_step})
+            print("%s model %s level training accuracy is %f at the end of iteration %d"
+                  % (cnn_index, options.mode, results_train["balanced_accuracy"], i))
+            print("%s model %s level validation accuracy is %f at the end of iteration %d"
+                  % (cnn_index, options.mode, results_valid["balanced_accuracy"], i))
 
         accuracy_is_best = results_valid["balanced_accuracy"] > best_valid_accuracy
         loss_is_best = mean_loss_valid < best_valid_loss
