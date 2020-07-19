@@ -191,8 +191,6 @@ def visualize_image(decoder, dataloader, visualization_path, nb_images=1):
         image = data["image"].unsqueeze(0)
         decoder.cuda()
         image = image.cuda()
-        print(image)
-        print(decoder)
         output = decoder(image)
 
         output_np = output.squeeze(0).squeeze(0).cpu().detach().numpy()
