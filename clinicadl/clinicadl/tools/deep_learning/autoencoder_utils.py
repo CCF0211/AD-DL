@@ -11,7 +11,7 @@ from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
 #############################
 
 def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
-          log_dir, model_dir, options):
+          log_dir, model_dir, options, fi=None, cnn_index=None, num_cnn=None):
     """
     Function used to train an autoencoder.
     The best autoencoder will be found in the 'best_model_dir' of options.output_dir.
@@ -28,6 +28,7 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
         options: (Namespace) ensemble of other options given to the main script.
     """
     from tensorboardX import SummaryWriter
+    import wandb
 
     if not resume:
         check_and_clean(model_dir)
@@ -53,7 +54,10 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
 
     print("Beginning training")
     while epoch < options.epochs and not early_stopping.step(loss_valid):
-        print("At %d-th epoch." % epoch)
+        if fi is not None and options.n_splits is not None:
+            print("At (%d/%d) fold (%d/%d) epoch." % (fi, options.n_splits, epoch, options.epochs))
+        else:
+            print("At (%d/%d) epoch." % (epoch, options.epochs))
 
         decoder.zero_grad()
         evaluation_flag = True
@@ -111,6 +115,8 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
 
         writer_train.add_scalar('loss', mean_loss_train, i + epoch * len(train_loader))
         writer_valid.add_scalar('loss', mean_loss_valid, i + epoch * len(train_loader))
+        wandb.log({'train_loss': mean_loss_train, 'valid_loss': mean_loss_valid,
+                   'global_step': i + epoch * len(train_loader)})
         print("Scan level validation loss is %f at the end of iteration %d" % (loss_valid, i))
 
         is_best = loss_valid < best_loss_valid
