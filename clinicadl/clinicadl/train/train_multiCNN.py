@@ -90,7 +90,7 @@ def train_multi_cnn(params):
             model_dir = os.path.join(params.output_dir, 'fold-%i' % fi, 'models', "cnn-%i" % cnn_index)
 
             print('Beginning the training task')
-            train(model, train_loader, valid_loader, criterion, optimizer, False, log_dir, model_dir, params, cnn_index, num_cnn)
+            train(model, train_loader, valid_loader, criterion, optimizer, False, log_dir, model_dir, params, fi, cnn_index, num_cnn)
 
             test_cnn(params.output_dir, train_loader, "train", fi, criterion, cnn_index, params, gpu=params.gpu)
             test_cnn(params.output_dir, valid_loader, "validation", fi, criterion, cnn_index, params, gpu=params.gpu)
