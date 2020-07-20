@@ -78,7 +78,7 @@ def train_autoencoder(params):
                                                             weight_decay=params.weight_decay)
 
         train(decoder, train_loader, valid_loader, criterion, optimizer, False,
-              log_dir, model_dir, params)
+              log_dir, model_dir, params, fi=fi)
 
         if params.visualization:
             print("Visualization of autoencoder reconstruction")
