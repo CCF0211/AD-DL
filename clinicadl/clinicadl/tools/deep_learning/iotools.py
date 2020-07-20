@@ -198,7 +198,8 @@ def read_json(options, json_path=None, test=False, read_all_para=False):
     with open(json_path, "r") as f:
         json_data = json.load(f)
     if read_all_para:
-        setattr(options, key, item)
+        for key, item in json_data.items():
+            setattr(options, key, item)
     else:
         for key, item in json_data.items():
             # We do not change computational options
