@@ -155,17 +155,17 @@ def commandline_to_json(commandline):
         os.makedirs(output_dir)
 
     # remove these entries from the commandline log file
-    if 'func' in commandline_arg_dic:
-        del commandline_arg_dic['func']
+    # if 'func' in commandline_arg_dic:
+    #     del commandline_arg_dic['func']
 
-    if 'caps_dir' in commandline_arg_dic:
-        del commandline_arg_dic['caps_dir']
+    # if 'caps_dir' in commandline_arg_dic:
+    #     del commandline_arg_dic['caps_dir']
 
-    if 'tsv_path' in commandline_arg_dic:
-        del commandline_arg_dic['tsv_path']
+    # if 'tsv_path' in commandline_arg_dic:
+    #     del commandline_arg_dic['tsv_path']
 
-    if 'output_dir' in commandline_arg_dic:
-        del commandline_arg_dic['output_dir']
+    # if 'output_dir' in commandline_arg_dic:
+    #     del commandline_arg_dic['output_dir']
 
     # save to json file
     json = json.dumps(commandline_arg_dic, skipkeys=True, indent=4)
@@ -175,7 +175,7 @@ def commandline_to_json(commandline):
     f.close()
 
 
-def read_json(options, json_path=None, test=False):
+def read_json(options, json_path=None, test=False, read_all_para=False):
     """
     Read a json file to update python argparse Namespace.
 
@@ -197,16 +197,18 @@ def read_json(options, json_path=None, test=False):
 
     with open(json_path, "r") as f:
         json_data = json.load(f)
-
-    for key, item in json_data.items():
-        # We do not change computational options
-        if key in ['gpu', 'device', 'num_workers', 'num_threads']:
-            pass
-        # If used for evaluation, some parameters were already given
-        if test and key in evaluation_parameters:
-            pass
-        else:
-            setattr(options, key, item)
+    if read_all_para:
+        setattr(options, key, item)
+    else:
+        for key, item in json_data.items():
+            # We do not change computational options
+            if key in ['gpu', 'device', 'num_workers', 'num_threads']:
+                pass
+            # If used for evaluation, some parameters were already given
+            if test and key in evaluation_parameters:
+                pass
+            else:
+                setattr(options, key, item)
 
     # Retro-compatibility with runs of previous versions
     if not hasattr(options, "model"):
