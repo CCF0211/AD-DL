@@ -136,7 +136,8 @@ def train_func(args):
                 batch_size=args.batch_size,
                 evaluation_steps=args.evaluation_steps,
                 num_workers=args.nproc,
-                visualization=args.visualization
+                visualization=args.visualization,
+                device=args.device
             )
             train_autoencoder(train_params_autoencoder)
         else:
@@ -167,7 +168,8 @@ def train_func(args):
                 evaluation_steps=args.evaluation_steps,
                 num_workers=args.nproc,
                 transfer_learning_path=args.transfer_learning_path,
-                transfer_learning_selection=args.transfer_learning_selection
+                transfer_learning_selection=args.transfer_learning_selection,
+                device=args.device
             )
             train_single_cnn(train_params_cnn)
     elif args.mode == 'slice':
@@ -200,7 +202,8 @@ def train_func(args):
             num_workers=args.nproc,
             selection_threshold=args.selection_threshold,
             prepare_dl=args.use_extracted_slices,
-            discarded_slices=args.discarded_slices
+            discarded_slices=args.discarded_slices,
+            device=args.device
         )
         train_single_cnn(train_params_slice)
     elif args.mode == 'patch':
@@ -234,7 +237,8 @@ def train_func(args):
                 stride_size=args.stride_size,
                 hippocampus_roi=False,
                 visualization=args.visualization,
-                prepare_dl=args.use_extracted_patches
+                prepare_dl=args.use_extracted_patches,
+                device=args.device
             )
             train_autoencoder(train_params_autoencoder)
         elif args.mode_task == "cnn":
@@ -270,7 +274,8 @@ def train_func(args):
                 stride_size=args.stride_size,
                 hippocampus_roi=False,
                 selection_threshold=args.selection_threshold,
-                prepare_dl=args.use_extracted_patches
+                prepare_dl=args.use_extracted_patches,
+                device=args.device
             )
             train_single_cnn(train_params_patch)
         else:
@@ -306,7 +311,8 @@ def train_func(args):
                 stride_size=args.stride_size,
                 hippocampus_roi=False,
                 selection_threshold=args.selection_threshold,
-                prepare_dl=args.use_extracted_patches
+                prepare_dl=args.use_extracted_patches,
+                device=args.device
             )
             train_multi_cnn(train_params_patch)
     elif args.mode == 'roi':
@@ -338,6 +344,7 @@ def train_func(args):
                 num_workers=args.nproc,
                 hippocampus_roi=True,
                 visualization=args.visualization,
+                device=args.device
             )
             train_autoencoder(train_params_autoencoder)
         else:
@@ -371,6 +378,7 @@ def train_func(args):
                 transfer_learning_selection=args.transfer_learning_selection,
                 hippocampus_roi=True,
                 selection_threshold=args.selection_threshold,
+                device=args.device
             )
             train_single_cnn(train_params_patch)
 

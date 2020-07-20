@@ -53,7 +53,8 @@ class Parameters:
             mri_plane: int = 0,
             discarded_slices: int = 20,
             prepare_dl: bool = False,
-            visualization: bool = False
+            visualization: bool = False,
+            device: int = 0
     ):
         """
         Optional parameters used for training CNN.
@@ -121,6 +122,7 @@ class Parameters:
         self.prepare_dl = prepare_dl
         self.visualization = visualization
         self.selection_threshold = selection_threshold
+        self.device = device
 
 
 def check_and_clean(d):
@@ -198,7 +200,7 @@ def read_json(options, json_path=None, test=False):
 
     for key, item in json_data.items():
         # We do not change computational options
-        if key in ['gpu', 'num_workers', 'num_threads']:
+        if key in ['gpu', 'device', 'num_workers', 'num_threads']:
             pass
         # If used for evaluation, some parameters were already given
         if test and key in evaluation_parameters:

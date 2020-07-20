@@ -19,7 +19,8 @@ def classify(caps_dir,
              prefix_output='prefix_DB',
              no_labels=False,
              gpu=True,
-             prepare_dl=True):
+             prepare_dl=True,
+             device=0):
     """
     This function verify the input folders, and the existance of the json file
     then it launch the inference stage from a specific model.
@@ -73,7 +74,8 @@ def classify(caps_dir,
         prefix_output,
         no_labels,
         gpu,
-        prepare_dl)
+        prepare_dl,
+        device_index=device)
 
 
 def inference_from_model(caps_dir,
@@ -83,7 +85,8 @@ def inference_from_model(caps_dir,
                          prefix=None,
                          no_labels=False,
                          gpu=True,
-                         prepare_dl=False):
+                         prepare_dl=False,
+                         device_index=0):
     """
     Inference from previously trained model.
 
@@ -131,6 +134,7 @@ def inference_from_model(caps_dir,
 
     # Overwrite options with user input
     options.use_cpu = not gpu
+    options.device = device_index
     options.prepare_dl = prepare_dl
     # Define the path
     currentDirectory = pathlib.Path(model_path)
