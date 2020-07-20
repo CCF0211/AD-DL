@@ -54,7 +54,7 @@ def create_autoencoder(model_name, gpu=False, transfer_learning_path=None, diffe
     return decoder
 
 
-def init_model(model_name, autoencoder=False, gpu=False, device_index=0 **kwargs):
+def init_model(model_name, autoencoder=False, gpu=False, device_index=0, **kwargs):
 
     model = create_model(model_name, gpu=gpu, device_index=device_index, **kwargs)
     if autoencoder:
