@@ -37,7 +37,7 @@ def train_multi_cnn(params):
         else:
             fold_iterator = range(params.n_splits)
     else:
-        fold_iterator = params.split
+        fold_iterator = [params.split]
 
     # Loop on folds
     for fi in fold_iterator:
