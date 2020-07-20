@@ -134,7 +134,7 @@ def check_and_clean(d):
     os.makedirs(d)
 
 
-def commandline_to_json(commandline):
+def commandline_to_json(commandline, is_args=False):
     """
     This is a function to write the python argparse object into a json file.
     This helps for DL when searching for hyperparameters
@@ -146,9 +146,11 @@ def commandline_to_json(commandline):
     """
     import json
     import os
-
-    commandline_arg_dic = vars(commandline[0])
-    commandline_arg_dic['unknown_arg'] = commandline[1]
+    if is_args:
+        commandline_arg_dic = vars(commandline)
+    else:
+        commandline_arg_dic = vars(commandline[0])
+        commandline_arg_dic['unknown_arg'] = commandline[1]
 
     output_dir = commandline_arg_dic['output_dir']
     if not os.path.exists(output_dir):
