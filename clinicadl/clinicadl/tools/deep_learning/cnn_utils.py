@@ -272,7 +272,7 @@ def evaluate_prediction(y, y_pred):
     return results
 
 
-def test(model, dataloader, use_cuda, criterion, mode="image", , device_index=0):
+def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0):
     """
     Computes the predictions and evaluation metrics.
 
