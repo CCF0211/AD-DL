@@ -40,7 +40,7 @@ def test_cnn(data_loader, subset_name, split, criterion, options):
                                        gpu=options.gpu, filename='model_best.pth.tar', device_index=options.device)
 
         results_df, metrics = test(
-            model, data_loader, options.gpu, criterion, options.mode, , device_index=options.device)
+            model, data_loader, options.gpu, criterion, options.mode, device_index=options.device)
         print(
             "Slice level balanced accuracy is %f" %
             metrics['balanced_accuracy'])
