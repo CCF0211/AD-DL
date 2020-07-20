@@ -71,7 +71,8 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
             t0 = time()
             total_time = total_time + t0 - tend
             if options.gpu:
-                imgs, labels = data['image'].cuda(), data['label'].cuda()
+                device = torch.device("cuda:{}".format(options.device))
+                imgs, labels = data['image'].to(device), data['label'].to(device)
             else:
                 imgs, labels = data['image'], data['label']
             train_output = model(imgs)
@@ -95,10 +96,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                     evaluation_flag = False
                     print('Iteration %d' % i)
 
-                    _, results_train = test(model, train_loader, options.gpu, criterion)
+                    _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device)
                     mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
 
-                    _, results_valid = test(model, valid_loader, options.gpu, criterion)
+                    _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device)
                     mean_loss_valid = results_valid["total_loss"] / (len(valid_loader) * valid_loader.batch_size)
                     model.train()
 
@@ -152,10 +153,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         model.zero_grad()
         print('Last checkpoint at the end of the epoch %d' % epoch)
 
-        _, results_train = test(model, train_loader, options.gpu, criterion)
+        _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device)
         mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
 
-        _, results_valid = test(model, valid_loader, options.gpu, criterion)
+        _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device)
         mean_loss_valid = results_valid["total_loss"] / (len(valid_loader) * valid_loader.batch_size)
         model.train()
 
@@ -271,7 +272,7 @@ def evaluate_prediction(y, y_pred):
     return results
 
 
-def test(model, dataloader, use_cuda, criterion, mode="image"):
+def test(model, dataloader, use_cuda, criterion, mode="image", , device_index=0):
     """
     Computes the predictions and evaluation metrics.
 
@@ -304,7 +305,8 @@ def test(model, dataloader, use_cuda, criterion, mode="image"):
             t0 = time()
             total_time = total_time + t0 - tend
             if use_cuda:
-                inputs, labels = data['image'].cuda(), data['label'].cuda()
+                device = torch.device("cuda:{}".format(device_index))
+                inputs, labels = data['image'].to(device), data['label'].to(device)
             else:
                 inputs, labels = data['image'], data['label']
             outputs = model(inputs)

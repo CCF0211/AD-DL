@@ -3,9 +3,10 @@ from .iotools import load_model, load_optimizer, save_checkpoint
 from .image_level import Conv5_FC3, Conv5_FC3_mni
 from .patch_level import Conv4_FC3
 from .slice_level import resnet18
+import torch
 
 
-def create_model(model_name, gpu=False, **kwargs):
+def create_model(model_name, gpu=False, device_index=0, **kwargs):
     """
     Creates model object from the model_name.
 
@@ -21,14 +22,15 @@ def create_model(model_name, gpu=False, **kwargs):
             'The model wanted %s has not been implemented.' % model_name)
 
     if gpu:
-        model.cuda()
+        device = torch.device("cuda:{}".format(device_index))
+        model.to(device)
     else:
         model.cpu()
 
     return model
 
 
-def create_autoencoder(model_name, gpu=False, transfer_learning_path=None, difference=0):
+def create_autoencoder(model_name, gpu=False, transfer_learning_path=None, difference=0, device_index=0):
     """
     Creates an autoencoder object from the model_name.
 
@@ -41,7 +43,7 @@ def create_autoencoder(model_name, gpu=False, transfer_learning_path=None, diffe
     from .autoencoder import AutoEncoder, initialize_other_autoencoder
     from os import path
 
-    model = create_model(model_name, gpu)
+    model = create_model(model_name, gpu, device_index=device_index)
     decoder = AutoEncoder(model)
 
     if transfer_learning_path is not None:
@@ -52,9 +54,9 @@ def create_autoencoder(model_name, gpu=False, transfer_learning_path=None, diffe
     return decoder
 
 
-def init_model(model_name, autoencoder=False, gpu=False, **kwargs):
+def init_model(model_name, autoencoder=False, gpu=False, device_index=0 **kwargs):
 
-    model = create_model(model_name, gpu=gpu, **kwargs)
+    model = create_model(model_name, gpu=gpu, device_index=device_index, **kwargs)
     if autoencoder:
         model = AutoEncoder(model)
 

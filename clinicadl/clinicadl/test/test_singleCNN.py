@@ -16,11 +16,11 @@ import wandb
 def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_options, gpu=False):
     for selection in ["best_balanced_accuracy", "best_loss"]:
         # load the best trained model during the training
-        model = create_model(model_options.model, gpu, dropout=model_options.dropout)
+        model = create_model(model_options.model, gpu, device_index=model_options.device, dropout=model_options.dropout)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
-                                       gpu=gpu, filename='model_best.pth.tar')
+                                       gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
 
-        results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode)
+        results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode, device_index=model_options.device)
         print("%s level balanced accuracy is %f" % (model_options.mode, metrics['balanced_accuracy']))
         print('{}_{}_result_df:\n{}'.format(subset_name, selection, results_df))
         print('{}_{}_metrics:\n{}'.format(subset_name, selection, metrics))

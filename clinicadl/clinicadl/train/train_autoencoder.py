@@ -72,7 +72,7 @@ def train_autoencoder(params):
         model_dir = os.path.join(params.output_dir, 'fold-%i' % fi, 'models')
         visualization_dir = os.path.join(params.output_dir, 'fold-%i' % fi, 'autoencoder_reconstruction')
 
-        decoder = init_model(params.model, gpu=params.gpu, autoencoder=True, dropout=params.dropout)
+        decoder = init_model(params.model, gpu=params.gpu, autoencoder=True, dropout=params.dropout, device_index=params.device)
         optimizer = eval("torch.optim." + params.optimizer)(filter(lambda x: x.requires_grad, decoder.parameters()),
                                                             lr=params.learning_rate,
                                                             weight_decay=params.weight_decay)
@@ -83,13 +83,13 @@ def train_autoencoder(params):
         if params.visualization:
             print("Visualization of autoencoder reconstruction")
             best_decoder, _ = load_model(decoder, os.path.join(model_dir, "best_loss"),
-                                         params.gpu, filename='model_best.pth.tar')
+                                         params.gpu, filename='model_best.pth.tar', device_index=params.device)
             nb_images = train_loader.dataset.elem_per_image
             if nb_images <= 2:
                 nb_images *= 3
             visualize_image(best_decoder, valid_loader, os.path.join(visualization_dir, "validation"),
-                            nb_images=nb_images)
+                            nb_images=nb_images, device_index=params.device)
             visualize_image(best_decoder, train_loader, os.path.join(visualization_dir, "train"),
-                            nb_images=nb_images)
+                            nb_images=nb_images, device_index=params.device)
         del decoder
         torch.cuda.empty_cache()

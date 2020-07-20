@@ -12,7 +12,7 @@ from clinicadl.tools.inputs.input import fetch_file
 from clinicadl.tools.inputs.input import RemoteFileStructure
 
 
-def quality_check(caps_dir, tsv_path, output_path, threshold=0.5, batch_size=1, num_workers=0, gpu=True):
+def quality_check(caps_dir, tsv_path, output_path, threshold=0.5, batch_size=1, num_workers=0, gpu=True, device_index=0):
     if splitext(output_path)[1] != ".tsv":
         raise ValueError("Please provide an output path to a tsv file")
 
@@ -38,7 +38,8 @@ def quality_check(caps_dir, tsv_path, output_path, threshold=0.5, batch_size=1, 
     model.load_state_dict(torch.load(model_file))
     model.eval()
     if gpu:
-        model.cuda()
+        device = torch.device('cuda:{}'.format(device_index))
+        model.to(device)
 
     # Load DataFrame
     df = pd.read_csv(tsv_path, sep='\t')
@@ -61,7 +62,7 @@ def quality_check(caps_dir, tsv_path, output_path, threshold=0.5, batch_size=1, 
     for data in dataloader:
         inputs = data['image']
         if gpu:
-            inputs = inputs.cuda()
+            inputs = inputs.to(device)
         outputs = softmax.forward(model(inputs))
 
         for idx, sub in enumerate(data['participant_id']):

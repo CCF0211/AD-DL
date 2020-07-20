@@ -65,9 +65,9 @@ def main(options):
 
     # Initialize the model
     print('Initialization of the model')
-    model = create_model(options.model, options.gpu, dropout=options.dropout)
+    model = create_model(options.model, options.gpu, dropout=options.dropout, device_index=options.device)
     model_dir = path.join(options.model_path, "best_model_dir", "CNN", "fold_" + str(options.split))
-    model, current_epoch = load_model(model, model_dir, options.gpu, 'checkpoint.pth.tar')
+    model, current_epoch = load_model(model, model_dir, options.gpu, 'checkpoint.pth.tar', device_index=options.device)
 
     options.beginning_epoch = current_epoch + 1
 

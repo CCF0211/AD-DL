@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import warnings
+import torch
 
 from clinicadl.tools.deep_learning.iotools import check_and_clean
 from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
@@ -43,7 +44,8 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
     print(decoder)
 
     if options.gpu:
-        decoder.cuda()
+        device = torch.device("cuda:{}".format(options.device))
+        decoder.to(device)
 
     # Initialize variables
     best_loss_valid = np.inf
@@ -64,7 +66,7 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
         step_flag = True
         for i, data in enumerate(train_loader):
             if options.gpu:
-                imgs = data['image'].cuda()
+                imgs = data['image'].to(device)
             else:
                 imgs = data['image']
 
@@ -83,10 +85,10 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
                 if options.evaluation_steps != 0 and (i + 1) % options.evaluation_steps == 0:
                     evaluation_flag = False
                     print('Iteration %d' % i)
-                    loss_train = test_ae(decoder, train_loader, options.gpu, criterion)
+                    loss_train = test_ae(decoder, train_loader, options.gpu, criterion, device_index=options.device)
                     mean_loss_train = loss_train / (len(train_loader) * train_loader.batch_size)
 
-                    loss_valid = test_ae(decoder, valid_loader, options.gpu, criterion)
+                    loss_valid = test_ae(decoder, valid_loader, options.gpu, criterion, device_index=options.device)
                     mean_loss_valid = loss_valid / (len(valid_loader) * valid_loader.batch_size)
                     decoder.train()
 
@@ -106,10 +108,10 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
         # Always test the results and save them once at the end of the epoch
         print('Last checkpoint at the end of the epoch %d' % epoch)
 
-        loss_train = test_ae(decoder, train_loader, options.gpu, criterion)
+        loss_train = test_ae(decoder, train_loader, options.gpu, criterion, device_index=options.device)
         mean_loss_train = loss_train / (len(train_loader) * train_loader.batch_size)
 
-        loss_valid = test_ae(decoder, valid_loader, options.gpu, criterion)
+        loss_valid = test_ae(decoder, valid_loader, options.gpu, criterion, device_index=options.device)
         mean_loss_valid = loss_valid / (len(valid_loader) * valid_loader.batch_size)
         decoder.train()
 
@@ -142,7 +144,7 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
     os.remove(os.path.join(model_dir, "checkpoint.pth.tar"))
 
 
-def test_ae(decoder, dataloader, use_cuda, criterion):
+def test_ae(decoder, dataloader, use_cuda, criterion, device_index=0):
     """
     Computes the total loss of a given autoencoder and dataset wrapped by DataLoader.
 
@@ -160,7 +162,8 @@ def test_ae(decoder, dataloader, use_cuda, criterion):
     total_loss = 0
     for i, data in enumerate(dataloader, 0):
         if use_cuda:
-            inputs = data['image'].cuda()
+            device = torch.device("cuda:{}".format(device_index))
+            inputs = data['image'].to(device)
         else:
             inputs = data['image']
 
@@ -173,7 +176,7 @@ def test_ae(decoder, dataloader, use_cuda, criterion):
     return total_loss
 
 
-def visualize_image(decoder, dataloader, visualization_path, nb_images=1):
+def visualize_image(decoder, dataloader, visualization_path, nb_images=1, device_index=0):
     """
     Writes the nifti files of images and their reconstructions by an autoencoder.
 
@@ -195,8 +198,9 @@ def visualize_image(decoder, dataloader, visualization_path, nb_images=1):
     for image_index in range(nb_images):
         data = dataset[image_index]
         image = data["image"].unsqueeze(0)
-        decoder.cuda()
-        image = image.cuda()
+        device = torch.device("cuda:{}".format(device_index))
+        decoder.to(device)
+        image = image.to(device)
         output = decoder(image)
 
         output_np = output.squeeze(0).squeeze(0).cpu().detach().numpy()

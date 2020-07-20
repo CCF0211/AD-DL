@@ -33,13 +33,14 @@ def test_cnn(data_loader, subset_name, split, criterion, options):
         model = init_model(
             options.model,
             gpu=options.gpu,
-            dropout=options.dropout)
+            dropout=options.dropout,
+            device_index=options.device)
         model, best_epoch = load_model(model, os.path.join(options.output_dir, 'best_model_dir', "fold_%i" % split,
                                                            'CNN', selection),
-                                       gpu=options.gpu, filename='model_best.pth.tar')
+                                       gpu=options.gpu, filename='model_best.pth.tar', device_index=options.device)
 
         results_df, metrics = test(
-            model, data_loader, options.gpu, criterion, options.mode)
+            model, data_loader, options.gpu, criterion, options.mode, , device_index=options.device)
         print(
             "Slice level balanced accuracy is %f" %
             metrics['balanced_accuracy'])
@@ -274,7 +275,8 @@ def train_CNN_bad_data_split(params):
         model = init_model(
             params.model,
             gpu=params.gpu,
-            dropout=params.dropout)
+            dropout=params.dropout,
+            device_index=params.device)
 
         # Define criterion and optimizer
         criterion = torch.nn.CrossEntropyLoss()

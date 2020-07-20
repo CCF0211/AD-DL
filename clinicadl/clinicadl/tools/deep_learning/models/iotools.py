@@ -28,7 +28,7 @@ def save_checkpoint(state, accuracy_is_best, loss_is_best, checkpoint_dir, filen
         shutil.copyfile(os.path.join(checkpoint_dir, filename), os.path.join(best_loss_path, 'model_best.pth.tar'))
 
 
-def load_model(model, checkpoint_dir, gpu, filename='model_best.pth.tar'):
+def load_model(model, checkpoint_dir, gpu, filename='model_best.pth.tar', device_index=0):
     """
     Load the weights written in checkpoint_dir in the model object.
 
@@ -47,7 +47,8 @@ def load_model(model, checkpoint_dir, gpu, filename='model_best.pth.tar'):
     best_model.load_state_dict(param_dict['model'])
 
     if gpu:
-        best_model = best_model.cuda()
+        device = torch.device('cuda:{}'.format(device_index))
+        best_model = best_model.to(device)
 
     return best_model, param_dict['epoch']
 

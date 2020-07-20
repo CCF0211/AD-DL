@@ -74,9 +74,9 @@ def train_multi_cnn(params):
 
             # Initialize the model
             print('Initialization of the model %i' % cnn_index)
-            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout)
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device)
             model = transfer_learning(model, fi, source_path=params.transfer_learning_path,
-                                      gpu=params.gpu, selection=params.transfer_learning_selection)
+                                      gpu=params.gpu, selection=params.transfer_learning_selection, device_index=params.device)
 
             # Define criterion and optimizer
             criterion = torch.nn.CrossEntropyLoss()

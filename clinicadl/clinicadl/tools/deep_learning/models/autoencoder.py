@@ -121,7 +121,7 @@ class AutoEncoder(nn.Module):
 
 
 def transfer_learning(model, split, source_path=None, gpu=False,
-                      selection="best_balanced_accuracy", cnn_index=None):
+                      selection="best_balanced_accuracy", cnn_index=None, device_index=0):
     """
     Allows transfer learning from a CNN or an autoencoder to a CNN
 
@@ -152,7 +152,8 @@ def transfer_learning(model, split, source_path=None, gpu=False,
         print("The model is trained from scratch.")
 
     if gpu:
-        model.cuda()
+        device = torch.device('cuda:{}'.format(device_index))
+        model.to(device)
     else:
         model.cpu()
 

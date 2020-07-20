@@ -74,7 +74,8 @@ def qc_func(args):
         threshold=args.threshold,
         batch_size=args.batch_size,
         num_workers=args.nproc,
-        gpu=not args.use_cpu
+        gpu=not args.use_cpu,
+        device_index=args.device
     )
 
 

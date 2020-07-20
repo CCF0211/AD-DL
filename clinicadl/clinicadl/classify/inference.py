@@ -218,7 +218,7 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
     # Recreate the model with the network described in the json file
     # Initialize the model
     model = create_model(model_options.model,
-                         gpu, dropout=model_options.dropout)
+                         gpu, device_index=model_options.device, dropout=model_options.dropout)
     transformations = get_transforms(model_options.mode,
                                      model_options.minmaxnormalization)
 
@@ -253,14 +253,16 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
                 model,
                 join(model_path, 'cnn-%i' % n, selection),
                 gpu,
-                filename='model_best.pth.tar')
+                filename='model_best.pth.tar',
+                device_index=model_options.device)
 
             cnn_df, cnn_metrics = test(
                 model,
                 test_loader,
                 gpu,
                 criterion,
-                mode=model_options.mode)
+                mode=model_options.mode,
+                device_index=model_options.device)
 
             predictions_df = pd.concat([predictions_df, cnn_df])
             metrics_df = pd.concat([metrics_df, pd.DataFrame(cnn_metrics, index=[0])])
@@ -298,7 +300,8 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
             test_loader,
             gpu,
             criterion,
-            mode=model_options.mode)
+            mode=model_options.mode,
+            device_index=model_options.device)
 
         metrics_df = pd.DataFrame(metrics, index=[0])
 

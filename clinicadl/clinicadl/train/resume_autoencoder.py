@@ -68,9 +68,10 @@ def main(options):
     print('Initialization of the model')
     decoder = create_autoencoder(options.model)
 
-    decoder, current_epoch = load_model(decoder, options.model_path, options.gpu, 'checkpoint.pth.tar')
+    decoder, current_epoch = load_model(decoder, options.model_path, options.gpu, 'checkpoint.pth.tar', device_index=options.device)
     if options.gpu:
-        decoder = decoder.cuda()
+        device = torch.device('cuda:{}'.format(options.device))
+        decoder = decoder.to(device)
 
     options.beginning_epoch = current_epoch + 1
 
@@ -91,9 +92,9 @@ def main(options):
     if options.visualization:
         print("Visualization of autoencoder reconstruction")
         best_decoder, _ = load_model(decoder, path.join(model_dir, "best_loss"),
-                                     options.gpu, filename='model_best.pth.tar')
-        visualize_image(best_decoder, valid_loader, path.join(visualization_dir, "validation"), nb_images=3)
-        visualize_image(best_decoder, train_loader, path.join(visualization_dir, "train"), nb_images=3)
+                                     options.gpu, filename='model_best.pth.tar', device_index=options.device)
+        visualize_image(best_decoder, valid_loader, path.join(visualization_dir, "validation"), nb_images=3, device_index=options.device)
+        visualize_image(best_decoder, train_loader, path.join(visualization_dir, "train"), nb_images=3, device_index=options.device)
     del decoder
     torch.cuda.empty_cache()
 
