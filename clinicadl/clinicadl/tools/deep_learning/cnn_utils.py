@@ -98,10 +98,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                     evaluation_flag = False
                     print('Iteration %d' % i)
 
-                    _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device)
+                    _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device, train_begin_time=train_begin_time)
                     mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
 
-                    _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device)
+                    _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device, train_begin_time=train_begin_time)
                     mean_loss_valid = results_valid["total_loss"] / (len(valid_loader) * valid_loader.batch_size)
                     model.train()
 
@@ -155,10 +155,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         model.zero_grad()
         print('[%s]: Last checkpoint at the end of the epoch %d' % (timeSince(train_begin_time), epoch))
 
-        _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device)
+        _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device, train_begin_time=train_begin_time)
         mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
 
-        _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device)
+        _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device, train_begin_time=train_begin_time)
         mean_loss_valid = results_valid["total_loss"] / (len(valid_loader) * valid_loader.batch_size)
         model.train()
 

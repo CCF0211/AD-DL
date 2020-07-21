@@ -24,7 +24,7 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, cnn_index, 
                                                            'cnn-%i' % cnn_index, selection),
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
 
-        results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode, device_index=model_options.device)
+        results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode, device_index=model_options.device, train_begin_time=train_begin_time)
         print("[%s]: %s level balanced accuracy is %f" % (timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
 
         mode_level_to_tsvs(output_dir, results_df, metrics, split, selection, model_options.mode,
