@@ -2,6 +2,7 @@
 
 import torch
 import os
+import time
 from torch.utils.data import DataLoader
 
 from ..tools.deep_learning.utils import timeSince
