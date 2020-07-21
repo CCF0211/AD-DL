@@ -7,6 +7,7 @@ import warnings
 import pandas as pd
 from time import time
 
+from clinicadl.tools.deep_learning.utils import timeSince
 from clinicadl.tools.deep_learning.iotools import check_and_clean
 from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
 
@@ -17,7 +18,8 @@ from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
 
 def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_dir, model_dir, options, fi=None,
           cnn_index=None,
-          num_cnn=None):
+          num_cnn=None,
+          train_begin_time=None):
     """
     Function used to train a CNN.
     The best model and checkpoint will be found in the 'best_model_dir' of options.output_dir.
@@ -115,10 +117,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              'valid_balanced_accuracy': results_valid["balanced_accuracy"],
                              'valid_loss': mean_loss_valid,
                              'global_step': global_step})
-                        print("%s level training accuracy is %f at the end of iteration %d"
-                              % (options.mode, results_train["balanced_accuracy"], i))
-                        print("%s level validation accuracy is %f at the end of iteration %d"
-                              % (options.mode, results_valid["balanced_accuracy"], i))
+                        print("[%s]: %s level training accuracy is %f at the end of iteration %d"
+                              % (timeSince(train_begin_time), options.mode, results_train["balanced_accuracy"], i))
+                        print("[%s]: %s level validation accuracy is %f at the end of iteration %d"
+                              % (timeSince(train_begin_time), options.mode, results_valid["balanced_accuracy"], i))
                     else:
                         writer_train.add_scalar('{}_model_balanced_accuracy'.format(cnn_index),
                                                 results_train["balanced_accuracy"], global_step)
@@ -132,13 +134,13 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              '{}_model_valid_balanced_accuracy'.format(cnn_index): results_valid["balanced_accuracy"],
                              '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
                              'global_step': global_step})
-                        print("({}/{}) model {} level training accuracy is {} at the end of iteration {}"
-                              .format(cnn_index, num_cnn, options.mode, results_train["balanced_accuracy"], i))
-                        print("({}/{}) model {} level validation accuracy is {} at the end of iteration {}"
-                              .format(cnn_index, num_cnn, options.mode, results_valid["balanced_accuracy"], i))
+                        print("[{}]: ({}/{}) model {} level training accuracy is {} at the end of iteration {}"
+                              .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode, results_train["balanced_accuracy"], i))
+                        print("[{}]: ({}/{}) model {} level validation accuracy is {} at the end of iteration {}"
+                              .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode, results_valid["balanced_accuracy"], i))
 
             tend = time()
-        print('Mean time per batch loading (train):', total_time / len(train_loader) * train_loader.batch_size)
+        print('[{}]: Mean time per batch loading (train):'.format(timeSince(train_begin_time)), total_time / len(train_loader) * train_loader.batch_size)
 
         # If no step has been performed, raise Exception
         if step_flag:
@@ -151,7 +153,7 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
 
         # Always test the results and save them once at the end of the epoch
         model.zero_grad()
-        print('Last checkpoint at the end of the epoch %d' % epoch)
+        print('[{}]: Last checkpoint at the end of the epoch %d' % (timeSince(train_begin_time), epoch))
 
         _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device)
         mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
@@ -172,10 +174,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                  'valid_balanced_accuracy': results_valid["balanced_accuracy"],
                  'valid_loss': mean_loss_valid,
                  'global_step': global_step})
-            print("%s level training accuracy is %f at the end of iteration %d"
-                  % (options.mode, results_train["balanced_accuracy"], i))
-            print("%s level validation accuracy is %f at the end of iteration %d"
-                  % (options.mode, results_valid["balanced_accuracy"], i))
+            print("[%s]: %s level training accuracy is %f at the end of iteration %d"
+                  % (timeSince(train_begin_time), options.mode, results_train["balanced_accuracy"], i))
+            print("[%s]: %s level validation accuracy is %f at the end of iteration %d"
+                  % (timeSince(train_begin_time), options.mode, results_valid["balanced_accuracy"], i))
         else:
             writer_train.add_scalar('{}_model_balanced_accuracy'.format(cnn_index),
                                     results_train["balanced_accuracy"], global_step)
@@ -189,10 +191,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                  '{}_model_valid_balanced_accuracy'.format(cnn_index): results_valid["balanced_accuracy"],
                  '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
                  'global_step': global_step})
-            print("%s model %s level training accuracy is %f at the end of iteration %d"
-                  % (cnn_index, options.mode, results_train["balanced_accuracy"], i))
-            print("%s model %s level validation accuracy is %f at the end of iteration %d"
-                  % (cnn_index, options.mode, results_valid["balanced_accuracy"], i))
+            print("[%s]: %s model %s level training accuracy is %f at the end of iteration %d"
+                  % (timeSince(train_begin_time), cnn_index, options.mode, results_train["balanced_accuracy"], i))
+            print("[%s]: %s model %s level validation accuracy is %f at the end of iteration %d"
+                  % (timeSince(train_begin_time), cnn_index, options.mode, results_valid["balanced_accuracy"], i))
 
         accuracy_is_best = results_valid["balanced_accuracy"] > best_valid_accuracy
         loss_is_best = mean_loss_valid < best_valid_loss
@@ -272,7 +274,7 @@ def evaluate_prediction(y, y_pred):
     return results
 
 
-def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0):
+def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, train_begin_time=None):
     """
     Computes the predictions and evaluation metrics.
 
@@ -329,7 +331,7 @@ def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0):
 
             del inputs, outputs, labels, loss
             tend = time()
-        print('Mean time per batch loading (test):', total_time / len(dataloader) * dataloader.batch_size)
+        print('[{}]: Mean time per batch loading (test):'.format(timeSince(train_begin_time)), total_time / len(dataloader) * dataloader.batch_size)
         results_df.reset_index(inplace=True, drop=True)
 
         # calculate the balanced accuracy

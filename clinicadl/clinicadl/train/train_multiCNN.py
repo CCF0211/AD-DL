@@ -2,8 +2,10 @@
 
 import os
 import torch
+import time
 from torch.utils.data import DataLoader
 
+from ..tools.deep_learning.utils import timeSince
 from ..tools.deep_learning.models import transfer_learning, init_model
 from ..tools.deep_learning.data import (get_transforms,
                                         load_data,
@@ -28,6 +30,7 @@ def train_multi_cnn(params):
     """
 
     transformations = get_transforms(params.mode, params.minmaxnormalization)
+    train_begin_time = time.time()
 
     num_cnn = compute_num_cnn(params.input_dir, params.tsv_path, params, data="train")
 
@@ -90,10 +93,10 @@ def train_multi_cnn(params):
             model_dir = os.path.join(params.output_dir, 'fold-%i' % fi, 'models', "cnn-%i" % cnn_index)
 
             print('Beginning the training task')
-            train(model, train_loader, valid_loader, criterion, optimizer, False, log_dir, model_dir, params, fi, cnn_index, num_cnn)
+            train(model, train_loader, valid_loader, criterion, optimizer, False, log_dir, model_dir, params, fi, cnn_index, num_cnn, train_begin_time=train_begin_time)
 
-            test_cnn(params.output_dir, train_loader, "train", fi, criterion, cnn_index, params, gpu=params.gpu)
-            test_cnn(params.output_dir, valid_loader, "validation", fi, criterion, cnn_index, params, gpu=params.gpu)
+            test_cnn(params.output_dir, train_loader, "train", fi, criterion, cnn_index, params, gpu=params.gpu, train_begin_time=train_begin_time)
+            test_cnn(params.output_dir, valid_loader, "validation", fi, criterion, cnn_index, params, gpu=params.gpu, train_begin_time=train_begin_time)
 
         for selection in ['best_balanced_accuracy', 'best_loss']:
             soft_voting_to_tsvs(

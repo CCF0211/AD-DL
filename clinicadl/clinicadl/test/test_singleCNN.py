@@ -7,23 +7,24 @@ from os import path
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+from clinicadl.tools.deep_learning.utils import timeSince
 from clinicadl.tools.deep_learning.data import return_dataset, get_transforms, load_data_test
 from clinicadl.tools.deep_learning import read_json, create_model, load_model
 from clinicadl.tools.deep_learning.cnn_utils import test, mode_level_to_tsvs, soft_voting_to_tsvs
 import wandb
 
 
-def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_options, gpu=False):
+def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_options, gpu=False, train_begin_time=None):
     for selection in ["best_balanced_accuracy", "best_loss"]:
         # load the best trained model during the training
         model = create_model(model_options.model, gpu, device_index=model_options.device, dropout=model_options.dropout)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
 
-        results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode, device_index=model_options.device)
-        print("%s level balanced accuracy is %f" % (model_options.mode, metrics['balanced_accuracy']))
-        print('{}_{}_result_df:\n{}'.format(subset_name, selection, results_df))
-        print('{}_{}_metrics:\n{}'.format(subset_name, selection, metrics))
+        results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode, device_index=model_options.device, train_begin_time=train_begin_time)
+        print("[%s]: %s level balanced accuracy is %f" % (timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
+        print('[{}}]: {}_{}_result_df:\n{}'.format(timeSince(train_begin_time), subset_name, selection, results_df))
+        print('[{}}]: {}_{}_metrics:\n{}'.format(timeSince(train_begin_time), subset_name, selection, metrics))
         wandb.log({'{}_accuracy_{}_singel_model'.format(subset_name, selection): metrics['accuracy'],
                    '{}_balanced_accuracy_{}_singel_model'.format(subset_name, selection): metrics['balanced_accuracy'],
                    '{}_sensitivity_{}_singel_model'.format(subset_name, selection): metrics['sensitivity'],

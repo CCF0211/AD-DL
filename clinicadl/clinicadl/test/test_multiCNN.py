@@ -6,6 +6,7 @@ from os import path
 import torch
 from torch.utils.data import DataLoader
 
+from clinicadl.tools.deep_learning.utils import timeSince
 from clinicadl.tools.deep_learning import read_json
 from clinicadl.tools.deep_learning.models import create_model, load_model
 from clinicadl.tools.deep_learning.data import (get_transforms,
@@ -15,7 +16,7 @@ from clinicadl.tools.deep_learning.data import (get_transforms,
 from clinicadl.tools.deep_learning.cnn_utils import test, mode_level_to_tsvs, soft_voting_to_tsvs
 
 
-def test_cnn(output_dir, data_loader, subset_name, split, criterion, cnn_index, model_options, gpu=False):
+def test_cnn(output_dir, data_loader, subset_name, split, criterion, cnn_index, model_options, gpu=False, train_begin_time=None):
     for selection in ["best_balanced_accuracy", "best_loss"]:
         # load the best trained model during the training
         model = create_model(model_options.model, gpu, device_index=model_options.device, dropout=model_options.dropout)
@@ -24,7 +25,7 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, cnn_index, 
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
 
         results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode, device_index=model_options.device)
-        print("%s level balanced accuracy is %f" % (model_options.mode, metrics['balanced_accuracy']))
+        print("[%s]: %s level balanced accuracy is %f" % (timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
 
         mode_level_to_tsvs(output_dir, results_df, metrics, split, selection, model_options.mode,
                            dataset=subset_name, cnn_index=cnn_index)
