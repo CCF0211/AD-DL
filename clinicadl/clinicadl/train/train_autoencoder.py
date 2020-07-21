@@ -47,7 +47,7 @@ def train_autoencoder(params):
                 baseline=params.baseline
                 )
 
-        print("[%s]: Running for the %d-th fold" % (train_begin_time = time.time(), fi))
+        print("[%s]: Running for the %d-th fold" % (timeSince(train_begin_time), fi))
 
         data_train = return_dataset(params.mode, params.input_dir, training_df, params.preprocessing,
                                     transformations, params)
