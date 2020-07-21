@@ -3,6 +3,7 @@ import os
 import warnings
 import torch
 
+from clinicadl.tools.deep_learning.utils import timeSince
 from clinicadl.tools.deep_learning.iotools import check_and_clean
 from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
 
@@ -12,7 +13,7 @@ from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
 #############################
 
 def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
-          log_dir, model_dir, options, fi=None, cnn_index=None, num_cnn=None):
+          log_dir, model_dir, options, fi=None, cnn_index=None, num_cnn=None, train_begin_time=None):
     """
     Function used to train an autoencoder.
     The best autoencoder will be found in the 'best_model_dir' of options.output_dir.
@@ -57,9 +58,9 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
     print("Beginning training")
     while epoch < options.epochs and not early_stopping.step(loss_valid):
         if fi is not None and options.n_splits is not None:
-            print("At (%d/%d) fold (%d/%d) epoch." % (fi, options.n_splits, epoch, options.epochs))
+            print("[%s]: At (%d/%d) fold (%d/%d) epoch." % (timeSince(train_begin_time), fi, options.n_splits, epoch, options.epochs))
         else:
-            print("At (%d/%d) epoch." % (epoch, options.epochs))
+            print("[%s]: At (%d/%d) epoch." % (timeSince(train_begin_time), epoch, options.epochs))
 
         decoder.zero_grad()
         evaluation_flag = True
@@ -94,7 +95,7 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
 
                     writer_train.add_scalar('loss', mean_loss_train, i + epoch * len(train_loader))
                     writer_valid.add_scalar('loss', mean_loss_valid, i + epoch * len(train_loader))
-                    print("Scan level validation loss is %f at the end of iteration %d" % (loss_valid, i))
+                    print("[%s]: Scan level validation loss is %f at the end of iteration %d" % (timeSince(train_begin_time), loss_valid, i))
 
         # If no step has been performed, raise Exception
         if step_flag:
@@ -106,7 +107,7 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
                           'The model is evaluated only once at the end of the epoch')
 
         # Always test the results and save them once at the end of the epoch
-        print('Last checkpoint at the end of the epoch %d' % epoch)
+        print('[%s]: Last checkpoint at the end of the epoch %d' % (timeSince(train_begin_time), epoch))
 
         loss_train = test_ae(decoder, train_loader, options.gpu, criterion, device_index=options.device)
         mean_loss_train = loss_train / (len(train_loader) * train_loader.batch_size)
@@ -119,7 +120,7 @@ def train(decoder, train_loader, valid_loader, criterion, optimizer, resume,
         writer_valid.add_scalar('loss', mean_loss_valid, i + epoch * len(train_loader))
         wandb.log({'train_loss': mean_loss_train, 'valid_loss': mean_loss_valid,
                    'global_step': i + epoch * len(train_loader)})
-        print("Scan level validation loss is %f at the end of iteration %d" % (loss_valid, i))
+        print("[%s]: Scan level validation loss is %f at the end of iteration %d" % (timeSince(train_begin_time), loss_valid, i))
 
         is_best = loss_valid < best_loss_valid
         best_loss_valid = min(best_loss_valid, loss_valid)

@@ -4,6 +4,7 @@ import torch
 import os
 from torch.utils.data import DataLoader
 
+from ..tools.deep_learning.utils import timeSince
 from ..tools.deep_learning.autoencoder_utils import train, visualize_image
 from ..tools.deep_learning.models import init_model, load_model
 from ..tools.deep_learning.data import (load_data,
@@ -26,6 +27,7 @@ def train_autoencoder(params):
 
     transformations = get_transforms(params.mode, params.minmaxnormalization)
     criterion = torch.nn.MSELoss()
+    train_begin_time = time.time()
 
     if params.split is None:
         if params.n_splits is None:
@@ -45,7 +47,7 @@ def train_autoencoder(params):
                 baseline=params.baseline
                 )
 
-        print("Running for the %d-th fold" % fi)
+        print("[%s]: Running for the %d-th fold" % (train_begin_time = time.time(), fi))
 
         data_train = return_dataset(params.mode, params.input_dir, training_df, params.preprocessing,
                                     transformations, params)
@@ -78,10 +80,10 @@ def train_autoencoder(params):
                                                             weight_decay=params.weight_decay)
 
         train(decoder, train_loader, valid_loader, criterion, optimizer, False,
-              log_dir, model_dir, params, fi=fi)
+              log_dir, model_dir, params, fi=fi, train_begin_time=train_begin_time)
 
         if params.visualization:
-            print("Visualization of autoencoder reconstruction")
+            print("[{}]Visualization of autoencoder reconstruction".format(timeSince(train_begin_time)))
             best_decoder, _ = load_model(decoder, os.path.join(model_dir, "best_loss"),
                                          params.gpu, filename='model_best.pth.tar', device_index=params.device)
             nb_images = train_loader.dataset.elem_per_image
