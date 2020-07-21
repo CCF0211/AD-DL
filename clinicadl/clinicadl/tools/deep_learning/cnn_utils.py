@@ -153,7 +153,7 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
 
         # Always test the results and save them once at the end of the epoch
         model.zero_grad()
-        print('[{}]: Last checkpoint at the end of the epoch %d' % (timeSince(train_begin_time), epoch))
+        print('[%s]: Last checkpoint at the end of the epoch %d' % (timeSince(train_begin_time), epoch))
 
         _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device)
         mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
