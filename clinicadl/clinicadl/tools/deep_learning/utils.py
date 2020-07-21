@@ -9,4 +9,4 @@ def timeSince(since):
         s -= m * 60
         return '%dm %ds' % (m, s)
     else:
-        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
