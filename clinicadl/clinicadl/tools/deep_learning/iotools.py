@@ -204,7 +204,9 @@ def read_json(options, json_path=None, test=False, read_all_para=False):
             # We do not change json to save the true json path
             if key in ['json']:
                 pass
-            setattr(options, key, item)
+            else:
+                setattr(options, key, item)
+            
     else:
         for key, item in json_data.items():
             # We do not change computational options
