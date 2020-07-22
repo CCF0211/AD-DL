@@ -23,7 +23,8 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
 
         results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode, device_index=model_options.device, train_begin_time=train_begin_time)
         print("[%s]: %s level balanced accuracy is %f" % (timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
-        print('[{}]: {}_{}_result_df:\n{}'.format(timeSince(train_begin_time), subset_name, selection, results_df))
+        print('[{}]: {}_{}_result_df:'.format(timeSince(train_begin_time), subset_name, selection))
+        print(results_df)
         print('[{}]: {}_{}_metrics:\n{}'.format(timeSince(train_begin_time), subset_name, selection, metrics))
         wandb.log({'{}_accuracy_{}_singel_model'.format(subset_name, selection): metrics['accuracy'],
                    '{}_balanced_accuracy_{}_singel_model'.format(subset_name, selection): metrics['balanced_accuracy'],
