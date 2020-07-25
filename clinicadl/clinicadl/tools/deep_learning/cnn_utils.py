@@ -6,6 +6,7 @@ import os
 import warnings
 import pandas as pd
 from time import time
+import wandb
 
 from clinicadl.tools.deep_learning.utils import timeSince
 from clinicadl.tools.deep_learning.iotools import check_and_clean
@@ -464,6 +465,15 @@ def soft_voting_to_tsvs(output_dir, fold, selection, mode, dataset='test', num_c
 
     pd.DataFrame(metrics, index=[0]).to_csv(os.path.join(performance_path, '%s_image_level_metrics.tsv' % dataset),
                                             index=False, sep='\t')
+    wandb.log({'image_level_{}_accuracy_{}_singel_model'.format(validation_dataset, selection): metrics['accuracy'],
+               'image_level_{}_balanced_accuracy_{}_singel_model'.format(validation_dataset, selection): metrics['balanced_accuracy'],
+               'image_level_{}_sensitivity_{}_singel_model'.format(validation_dataset, selection): metrics['sensitivity'],
+               'image_level_{}_specificity_{}_singel_model'.format(validation_dataset, selection): metrics['specificity'],
+               'image_level_{}_ppv_{}_singel_model'.format(validation_dataset, selection): metrics['ppv'],
+               'image_level_{}_npv_{}_singel_model'.format(validation_dataset, selection): metrics['npv'],
+               })
+    print('{}_fold_image_level_result:'.format(fold))
+    print('{}_accuracy_{}_singel_model:\n{}'.format(validation_dataset, selection, metrics))
 
 
 def soft_voting(performance_df, validation_df, mode, selection_threshold=None):
