@@ -91,25 +91,25 @@ class Conv5_FC3_DAM_all_layer(nn.Module):
             nn.Conv3d(8, 16, 3, padding=1),
             nn.BatchNorm3d(16),
             nn.ReLU(),
-            DAM_3d(8, 8, Sagittal_plane=85, Coronal_plane=104, Axial_plane=90),
+            DAM_3d(16, 16, Sagittal_plane=85, Coronal_plane=104, Axial_plane=90),
             PadMaxPool3d(2, 2),
 
             nn.Conv3d(16, 32, 3, padding=1),
             nn.BatchNorm3d(32),
             nn.ReLU(),
-            DAM_3d(8, 8, Sagittal_plane=43, Coronal_plane=52, Axial_plane=45),
+            DAM_3d(32, 32, Sagittal_plane=43, Coronal_plane=52, Axial_plane=45),
             PadMaxPool3d(2, 2),
 
             nn.Conv3d(32, 64, 3, padding=1),
             nn.BatchNorm3d(64),
             nn.ReLU(),
-            DAM_3d(8, 8, Sagittal_plane=22, Coronal_plane=26, Axial_plane=23),
+            DAM_3d(64, 64, Sagittal_plane=22, Coronal_plane=26, Axial_plane=23),
             PadMaxPool3d(2, 2),
 
             nn.Conv3d(64, 128, 3, padding=1),
             nn.BatchNorm3d(128),
             nn.ReLU(),
-            DAM_3d(8, 8, Sagittal_plane=11, Coronal_plane=13, Axial_plane=12),
+            DAM_3d(128, 128, Sagittal_plane=11, Coronal_plane=13, Axial_plane=12),
             PadMaxPool3d(2, 2),
 
         )
