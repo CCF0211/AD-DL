@@ -19,7 +19,7 @@ class Conv5_FC3_DAM(nn.Module):
     """
 
     def __init__(self, dropout=0.5):
-        super(Conv5_FC3, self).__init__()
+        super(Conv5_FC3_DAM, self).__init__()
         self.DAM = DAM_3d(1, 1)
         self.features = nn.Sequential(
             nn.Conv3d(1, 8, 3, padding=1),
