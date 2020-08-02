@@ -210,7 +210,7 @@ def read_json(options, json_path=None, test=False, read_all_para=False):
     else:
         for key, item in json_data.items():
             # We do not change computational options
-            if key in ['gpu', 'num_workers', 'num_threads']:
+            if key in ['gpu', 'device', 'num_workers', 'num_threads']:
                 pass
             # If used for evaluation, some parameters were already given
             if test and key in evaluation_parameters:
