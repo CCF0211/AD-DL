@@ -60,7 +60,8 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
 
     while epoch < options.epochs and not early_stopping.step(mean_loss_valid):
         if fi is not None and options.n_splits is not None:
-            print("[%s]: At (%d/%d) fold (%d/%d) epoch." % (timeSince(train_begin_time), fi, options.n_splits, epoch, options.epochs))
+            print("[%s]: At (%d/%d) fold (%d/%d) epoch." % (
+            timeSince(train_begin_time), fi, options.n_splits, epoch, options.epochs))
         else:
             print("[%s]: At (%d/%d) epoch." % (timeSince(train_begin_time), epoch, options.epochs))
 
@@ -99,10 +100,12 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                     evaluation_flag = False
                     print('Iteration %d' % i)
 
-                    _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device, train_begin_time=train_begin_time)
+                    _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device,
+                                            train_begin_time=train_begin_time)
                     mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
 
-                    _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device, train_begin_time=train_begin_time)
+                    _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device,
+                                            train_begin_time=train_begin_time)
                     mean_loss_valid = results_valid["total_loss"] / (len(valid_loader) * valid_loader.batch_size)
                     model.train()
 
@@ -136,12 +139,15 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
                              'global_step': global_step})
                         print("[{}]: ({}/{}) model {} level training accuracy is {} at the end of iteration {}"
-                              .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode, results_train["balanced_accuracy"], i))
+                              .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode,
+                                      results_train["balanced_accuracy"], i))
                         print("[{}]: ({}/{}) model {} level validation accuracy is {} at the end of iteration {}"
-                              .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode, results_valid["balanced_accuracy"], i))
+                              .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode,
+                                      results_valid["balanced_accuracy"], i))
 
             tend = time()
-        print('[{}]: Mean time per batch loading (train):'.format(timeSince(train_begin_time)), total_time / len(train_loader) * train_loader.batch_size)
+        print('[{}]: Mean time per batch loading (train):'.format(timeSince(train_begin_time)),
+              total_time / len(train_loader) * train_loader.batch_size)
 
         # If no step has been performed, raise Exception
         if step_flag:
@@ -156,10 +162,12 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         model.zero_grad()
         print('[%s]: Last checkpoint at the end of the epoch %d' % (timeSince(train_begin_time), epoch))
 
-        _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device, train_begin_time=train_begin_time)
+        _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device,
+                                train_begin_time=train_begin_time)
         mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
 
-        _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device, train_begin_time=train_begin_time)
+        _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device,
+                                train_begin_time=train_begin_time)
         mean_loss_valid = results_valid["total_loss"] / (len(valid_loader) * valid_loader.batch_size)
         model.train()
 
@@ -332,7 +340,8 @@ def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, t
 
             del inputs, outputs, labels, loss
             tend = time()
-        print('[{}]: Mean time per batch loading (test):'.format(timeSince(train_begin_time)), total_time / len(dataloader) * dataloader.batch_size)
+        print('[{}]: Mean time per batch loading (test):'.format(timeSince(train_begin_time)),
+              total_time / len(dataloader) * dataloader.batch_size)
         results_df.reset_index(inplace=True, drop=True)
 
         # calculate the balanced accuracy
@@ -467,15 +476,15 @@ def soft_voting_to_tsvs(output_dir, fold, selection, mode, dataset='test', num_c
                                             index=False, sep='\t')
     try:
         wandb.log({'image_level_{}_accuracy_{}_singel_model'.format(dataset, selection): metrics['accuracy'],
-                'image_level_{}_balanced_accuracy_{}_singel_model'.format(dataset, selection): metrics['balanced_accuracy'],
-                'image_level_{}_sensitivity_{}_singel_model'.format(dataset, selection): metrics['sensitivity'],
-                'image_level_{}_specificity_{}_singel_model'.format(dataset, selection): metrics['specificity'],
-                'image_level_{}_ppv_{}_singel_model'.format(dataset, selection): metrics['ppv'],
-                'image_level_{}_npv_{}_singel_model'.format(dataset, selection): metrics['npv'],
-                })
-    else:
-        print('Wandb has not init, do not log matric')
-
+                   'image_level_{}_balanced_accuracy_{}_singel_model'.format(dataset, selection): metrics[
+                       'balanced_accuracy'],
+                   'image_level_{}_sensitivity_{}_singel_model'.format(dataset, selection): metrics['sensitivity'],
+                   'image_level_{}_specificity_{}_singel_model'.format(dataset, selection): metrics['specificity'],
+                   'image_level_{}_ppv_{}_singel_model'.format(dataset, selection): metrics['ppv'],
+                   'image_level_{}_npv_{}_singel_model'.format(dataset, selection): metrics['npv'],
+                   })
+    except:
+        print('Wandb has not init, do not log matrics')
     print('{}_fold_image_level_result:'.format(fold))
     print('{}_accuracy_{}_singel_model:\n{}'.format(dataset, selection, metrics))
 
