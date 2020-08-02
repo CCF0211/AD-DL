@@ -1070,6 +1070,10 @@ def parse_command_line():
         '-cpu', '--use_cpu', action='store_true',
         help='Uses CPU instead of GPU.',
         default=False)
+    classify_parser.add_argument(
+        '-device', '--device',
+        help='Index of GPU.', type=int,
+        default=0)
     classify_parser.set_defaults(func=classify_func)
 
     tsv_parser = subparser.add_parser(
