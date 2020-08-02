@@ -134,7 +134,7 @@ def inference_from_model(caps_dir,
 
     # Overwrite options with user input
     options.use_cpu = not gpu
-    options.device = device_index
+    # options.device = device_index
     options.prepare_dl = prepare_dl
     # Define the path
     currentDirectory = pathlib.Path(model_path)
