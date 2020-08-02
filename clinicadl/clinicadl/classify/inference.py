@@ -279,7 +279,8 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
         # Load model from path
         best_model, best_epoch = load_model(
             model, join(model_path, selection),
-            gpu, filename='model_best.pth.tar')
+            gpu, filename='model_best.pth.tar',
+            device_index=model_options.device)
 
         # Read/localize the data
         data_to_test = return_dataset(
