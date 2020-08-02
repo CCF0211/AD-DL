@@ -473,6 +473,9 @@ def soft_voting_to_tsvs(output_dir, fold, selection, mode, dataset='test', num_c
                 'image_level_{}_ppv_{}_singel_model'.format(dataset, selection): metrics['ppv'],
                 'image_level_{}_npv_{}_singel_model'.format(dataset, selection): metrics['npv'],
                 })
+    else:
+        print('Wandb has not init, do not log matric')
+
     print('{}_fold_image_level_result:'.format(fold))
     print('{}_accuracy_{}_singel_model:\n{}'.format(dataset, selection, metrics))
 
