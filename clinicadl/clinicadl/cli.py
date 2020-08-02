@@ -400,7 +400,8 @@ def classify_func(args):
         args.prefix_output,
         no_labels=args.no_labels,
         gpu=not args.use_cpu,
-        prepare_dl=args.use_extracted_features
+        prepare_dl=args.use_extracted_features,
+        device=args.device
     )
 
 # Functions to dispatch command line options from tsvtool to corresponding
