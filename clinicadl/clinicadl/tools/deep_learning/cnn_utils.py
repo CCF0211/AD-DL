@@ -312,6 +312,8 @@ def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, t
                 inputs, labels = data['image'].to(device), data['label'].to(device)
             else:
                 inputs, labels = data['image'], data['label']
+            print(inputs.device)
+            print(model.device)
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             total_loss += loss.item()
