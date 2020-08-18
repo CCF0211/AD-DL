@@ -6,10 +6,31 @@ import sys
 
 sys.path.append('/root/fanchenchen/fanchenchen/MRI/code/paper')
 from networks import DAM_3d
+from resnet50_3d import i3_res50, i3_res50_nl
 
 """
 All the architectures are built here
 """
+
+
+class resnet50_3d(nn.Module):
+    def __init__(self):
+        super(resnet50_3d, self).__init__()
+        self.net = i3_res50()
+
+    def forward(self, x):
+        x = self.net(x)
+        return x
+
+class resnet50_3d_nl(nn.Module):
+    def __init__(self):
+        super(resnet50_3d_nl, self).__init__()
+        self.net = i3_res50_nl()
+
+    def forward(self, x):
+        x = self.net(x)
+        return x
+
 
 class Conv5_FC3_DAM(nn.Module):
     """
@@ -71,6 +92,7 @@ class Conv5_FC3_DAM(nn.Module):
         x = self.classifier(x)
 
         return x
+
 
 class Conv5_FC3_DAM_all_layer(nn.Module):
     """
@@ -135,6 +157,7 @@ class Conv5_FC3_DAM_all_layer(nn.Module):
         x = self.classifier(x)
 
         return x
+
 
 class Conv5_FC3_DAM_last(nn.Module):
     """
