@@ -14,18 +14,18 @@ All the architectures are built here
 
 
 class resnet50_3d(nn.Module):
-    def __init__(self):
+    def __init__(self, dropout=0.5):
         super(resnet50_3d, self).__init__()
-        self.net = i3_res50()
+        self.net = i3_res50(dropout=dropout)
 
     def forward(self, x):
         x = self.net(x)
         return x
 
 class resnet50_3d_nl(nn.Module):
-    def __init__(self):
+    def __init__(self, dropout=0.5):
         super(resnet50_3d_nl, self).__init__()
-        self.net = i3_res50_nl()
+        self.net = i3_res50_nl(dropout=dropout)
 
     def forward(self, x):
         x = self.net(x)
