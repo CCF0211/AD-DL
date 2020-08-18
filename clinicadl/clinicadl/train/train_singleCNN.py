@@ -4,6 +4,8 @@ import os
 import torch
 import time
 from torch.utils.data import DataLoader
+import wandb
+import numpy as np
 
 from ..tools.deep_learning.utils import timeSince
 from ..tools.deep_learning.models import transfer_learning, init_model
@@ -38,6 +40,7 @@ def train_single_cnn(params):
     else:
         fold_iterator = [params.split]
 
+    mean_matric_dict={}
     for fi in fold_iterator:
 
         training_df, valid_df = load_data(
@@ -95,5 +98,14 @@ def train_single_cnn(params):
         params.model_path = params.output_dir
         test_cnn(params.output_dir, train_loader, "train",
                  fi, criterion, params, gpu=params.gpu, train_begin_time=train_begin_time)
-        test_cnn(params.output_dir, valid_loader, "validation",
+        metric_dict = test_cnn(params.output_dir, valid_loader, "validation",
                  fi, criterion, params, gpu=params.gpu, train_begin_time=train_begin_time)
+        for key in  metric_dict.keys:
+            if key in mean_matric_dict:
+                mean_matric_dict[key].append(metric_dict[key])
+            else:
+                mean_matric_dict[key] = [metric_dict[key]]
+    for key in mean_matric_dict.keys:
+        mean_matric_dict[key] = np.mean(mean_matric_dict[key])
+        mean_matric_dict.update({"mean_{}".format(key):mean_matric_dict.pop(key)})
+    wandb.log(mean_matric_dict)

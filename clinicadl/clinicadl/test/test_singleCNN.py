@@ -15,6 +15,7 @@ import wandb
 
 
 def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_options, gpu=False, train_begin_time=None):
+    metric_dict = {}
     for selection in ["best_balanced_accuracy", "best_loss"]:
         # load the best trained model during the training
         model = create_model(model_options.model, gpu, device_index=model_options.device, dropout=model_options.dropout)
@@ -41,7 +42,17 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
         if model_options.mode in ["patch", "roi", "slice"]:
             soft_voting_to_tsvs(output_dir, split, selection=selection, mode=model_options.mode, dataset=subset_name,
                                 selection_threshold=model_options.selection_threshold)
-
+        # return metric dict
+        metric_temp_dict = {'{}_accuracy_{}_singel_model'.format(subset_name, selection): metrics['accuracy'],
+                   '{}_balanced_accuracy_{}_singel_model'.format(subset_name, selection): metrics['balanced_accuracy'],
+                   '{}_sensitivity_{}_singel_model'.format(subset_name, selection): metrics['sensitivity'],
+                   '{}_specificity_{}_singel_model'.format(subset_name, selection): metrics['specificity'],
+                   '{}_ppv_{}_singel_model'.format(subset_name, selection): metrics['ppv'],
+                   '{}_npv_{}_singel_model'.format(subset_name, selection): metrics['npv'],
+                   '{}_total_loss_{}_singel_model'.format(subset_name, selection): metrics['total_loss'],
+                   }
+        metric_dict.update(metric_temp_dict)
+    return metric_dict
 
 parser = argparse.ArgumentParser(description="Argparser for evaluation of classifiers")
 
