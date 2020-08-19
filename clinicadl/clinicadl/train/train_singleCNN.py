@@ -40,7 +40,7 @@ def train_single_cnn(params):
     else:
         fold_iterator = [params.split]
 
-    mean_matric_dict={}
+    matric_dict_list={}
     for fi in fold_iterator:
 
         training_df, valid_df = load_data(
@@ -101,13 +101,18 @@ def train_single_cnn(params):
         metric_dict = test_cnn(params.output_dir, valid_loader, "validation",
                  fi, criterion, params, gpu=params.gpu, train_begin_time=train_begin_time)
         for key in metric_dict.keys():
-            if key in mean_matric_dict.keys():
-                mean_matric_dict[key].append(metric_dict[key])
+            if key in matric_dict_list.keys():
+                matric_dict_list[key].append(metric_dict[key])
             else:
-                mean_matric_dict[key] = [metric_dict[key]]
-    print(mean_matric_dict)
-    for key in mean_matric_dict.keys():
-        if 'mean'!= key[0:4]:
-            mean_matric_dict.update({"mean_{}".format(key): np.mean(mean_matric_dict.pop(key))})
+                matric_dict_list[key] = [metric_dict[key]]
+
+    for keys,values in matric_dict_list.items():
+        print('{}:'.format(keys))
+        print(values)
+    mean_matric_dict = {}
+    for key in matric_dict_list.keys():
+        mean_matric_dict.update({"mean_{}".format(key): np.mean(matric_dict_list[key])})
     wandb.log(mean_matric_dict)
-    print(mean_matric_dict)
+    for keys,values in mean_matric_dict.items():
+        print('{}:{}'.format(keys,values))
+
