@@ -108,7 +108,6 @@ def train_single_cnn(params):
     print(mean_matric_dict)
     for key in mean_matric_dict.keys():
         if 'mean'!= key[0:4]:
-            mean_matric_dict[key] = np.mean(mean_matric_dict[key])
-            mean_matric_dict.update({"mean_{}".format(key):mean_matric_dict.pop(key)})
+            mean_matric_dict.update({"mean_{}".format(key): np.mean(mean_matric_dict.pop(key))})
     wandb.log(mean_matric_dict)
     print(mean_matric_dict)
