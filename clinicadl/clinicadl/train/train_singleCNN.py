@@ -101,12 +101,14 @@ def train_single_cnn(params):
         metric_dict = test_cnn(params.output_dir, valid_loader, "validation",
                  fi, criterion, params, gpu=params.gpu, train_begin_time=train_begin_time)
         for key in metric_dict.keys():
-            if key in mean_matric_dict:
+            if key in mean_matric_dict.keys():
                 mean_matric_dict[key].append(metric_dict[key])
             else:
                 mean_matric_dict[key] = [metric_dict[key]]
+    print(mean_matric_dict)
     for key in mean_matric_dict.keys():
         if 'mean'!= key[0:4]:
             mean_matric_dict[key] = np.mean(mean_matric_dict[key])
             mean_matric_dict.update({"mean_{}".format(key):mean_matric_dict.pop(key)})
     wandb.log(mean_matric_dict)
+    print(mean_matric_dict)
