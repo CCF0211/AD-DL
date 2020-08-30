@@ -73,7 +73,7 @@ class MRIDataset(Dataset):
                                    'deeplearning_prepare_data', '%s_based' % mode, 't1_extensive',
                                    participant + '_' + session
                                    + FILENAME_TYPE['skull_stripped'] + '.pt')
-        elif self.preprocessing == "t1-spm":
+        elif self.preprocessing == "t1-spm-graymatter":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
                         'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
                         participant + '_' + session
@@ -87,10 +87,62 @@ class MRIDataset(Dataset):
 
                 image_array = nib.load(origin_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                dir=path.join(self.caps_directory, 'subjects', participant, session,
+                save_dir=path.join(self.caps_directory, 'subjects', participant, session,
                         'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                os.makedirs(dir)
-                torch.save(image_tensor.clone(), image_path)
+                if os.path.exists(save_dir):
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+
+        elif self.preprocessing == "t1-spm-whitematter":
+            image_path = path.join(self.caps_directory, 'subjects', participant, session,
+                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                        participant + '_' + session
+                        + FILENAME_TYPE['segm-whitematter'] + '.pt')
+            if os.path.exists(image_path):
+                None
+            else:
+                origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
+                't1','spm','segmentation','normalized_space', participant + '_' + session
+                                        + FILENAME_TYPE['segm-whitematterr'] + '.nii.gz')
+
+                image_array = nib.load(origin_nii_path).get_fdata()
+                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                save_dir=path.join(self.caps_directory, 'subjects', participant, session,
+                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                if os.path.exists(save_dir):
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+        elif self.preprocessing == "t1-spm-csf":
+            image_path = path.join(self.caps_directory, 'subjects', participant, session,
+                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                        participant + '_' + session
+                        + FILENAME_TYPE['segm-csf'] + '.pt')
+            if os.path.exists(image_path):
+                None
+            else:
+                origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
+                't1','spm','segmentation','normalized_space', participant + '_' + session
+                                        + FILENAME_TYPE['segm-csf'] + '.nii.gz')
+
+                image_array = nib.load(origin_nii_path).get_fdata()
+                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                save_dir=path.join(self.caps_directory, 'subjects', participant, session,
+                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                if os.path.exists(save_dir):
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
 
         else:
             raise NotImplementedError(
