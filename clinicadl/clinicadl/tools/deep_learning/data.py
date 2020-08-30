@@ -87,6 +87,8 @@ class MRIDataset(Dataset):
 
                 image_array = nib.load(origin_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                os.mkdir(path.join(self.caps_directory, 'subjects', participant, session,
+                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm'))
                 torch.save(image_tensor.clone(), image_path)
 
         else:
