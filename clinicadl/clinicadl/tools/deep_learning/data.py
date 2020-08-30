@@ -8,6 +8,8 @@ from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 import abc
 from clinicadl.tools.inputs.filename_types import FILENAME_TYPE
+import os
+import nibabel as nib
 
 
 #################################
@@ -71,6 +73,22 @@ class MRIDataset(Dataset):
                                    'deeplearning_prepare_data', '%s_based' % mode, 't1_extensive',
                                    participant + '_' + session
                                    + FILENAME_TYPE['skull_stripped'] + '.pt')
+        elif self.preprocessing == "t1-spm":
+            image_path = path.join(self.caps_directory, 'subjects', participant, session,
+                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                        participant + '_' + session
+                        + FILENAME_TYPE['segm-graymatter'] + '.pt')
+            if os.path.exists(image_path):
+                None
+            else:
+                origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
+                't1','spm','segmentation','normalized_space', participant + '_' + session
+                                        + FILENAME_TYPE['segm-graymatter'] + '.nii.gz')
+
+                image_array = nib.load(origin_nii_path).get_fdata()
+                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                torch.save(image_tensor.clone(), image_path)
+
         else:
             raise NotImplementedError(
                 "The path to preprocessing %s is not implemented" % self.preprocessing)
