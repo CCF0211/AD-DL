@@ -398,7 +398,6 @@ def classify_func(args):
         args.tsv_path,
         args.model_path,
         args.prefix_output,
-        no_labels=args.no_labels,
         gpu=not args.use_cpu,
         prepare_dl=args.use_extracted_features,
         device=args.device
@@ -469,7 +468,7 @@ def tsv_analysis_func(args):
 def parse_command_line():
     parser = argparse.ArgumentParser(
         prog='clinicadl',
-        description='Clinica Deep Learning.')
+        description='Deep learning software for neuroimaging datasets')
 
     parser.add_argument('--verbose', '-v', action='count')
 
@@ -762,7 +761,7 @@ def parse_command_line():
         TRAIN_CATEGORIES["OPTIMIZATION"])
     train_optim_group.add_argument(
         '--epochs',
-        help='Epochs through the data. (default=20)',
+        help='Maximum number of epochs. (default=20)',
         default=20, type=int)
     train_optim_group.add_argument(
         '--learning_rate', '-lr',
@@ -1058,10 +1057,6 @@ def parse_command_line():
         '-pre', '--prefix_output',
         help='Prefix to name the files resulting from the classify task.',
         type=str, default='prefix_DB')
-    classify_parser.add_argument(
-        '-nl', '--no_labels', action='store_true',
-        help='Add this flag if your dataset does not contain a ground truth.',
-        default=False)
     classify_parser.add_argument(
         '--use_extracted_features',
         help='''If True the extract slices or patche are used, otherwise the they
