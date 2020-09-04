@@ -197,7 +197,7 @@ def inference_from_model(caps_dir,
         print("Prediction results and metrics are written in the "
               "following folder: %s" % performance_dir)
 
-        for keys,values in metrics.items():
+        for key,values in metrics.items():
             wandb.log({"Test_{}".format(key):values})
             print("{}_fold_Test_{}".format(fold, key))
             print(values)
