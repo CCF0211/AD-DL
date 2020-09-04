@@ -11,6 +11,7 @@ from clinicadl.tools.deep_learning.cnn_utils import test, soft_voting_to_tsvs, m
 import pandas as pd
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import wandb
 
 
 def classify(caps_dir,
@@ -188,9 +189,19 @@ def inference_from_model(caps_dir,
         # Prepare outputs
         usr_prefix = str(prefix)
 
+
         # Write output files at %mode level
         print("Prediction results and metrics are written in the "
               "following folder: %s" % performance_dir)
+        
+        # log test result for each fold
+        for keys,values in metrics.items():
+            print("{}_fold_Test_{}".format(fold, key))
+            print(values)
+        matric_dict = {}
+        for key in metrics.keys():
+            matric_dict.update({"{}_fold_Test_{}".format(fold, key): metrics[key]})
+        wandb.log(matric_dict)
 
         mode_level_to_tsvs(currentDirectory, infered_classes, metrics, fold, best_model['best_acc'], options.mode,
                            dataset=usr_prefix)
