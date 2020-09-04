@@ -12,6 +12,7 @@ import pandas as pd
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import wandb
+import numpy as np
 
 
 def classify(caps_dir,
@@ -147,6 +148,8 @@ def inference_from_model(caps_dir,
         'best_loss': 'best_loss'
     }
 
+    metric_dict_list={}
+
     # loop depending the number of folds found in the model folder
     for fold_dir in currentDirectory.glob(currentPattern):
         fold = int(str(fold_dir).split("-")[-1])
@@ -193,15 +196,18 @@ def inference_from_model(caps_dir,
         # Write output files at %mode level
         print("Prediction results and metrics are written in the "
               "following folder: %s" % performance_dir)
-        
-        # log test result for each fold
+
         for keys,values in metrics.items():
+            wandb.log({"Test_{}".format(key):values})
             print("{}_fold_Test_{}".format(fold, key))
             print(values)
-        matric_dict = {}
+
+        # log test result to a list for each fold
         for key in metrics.keys():
-            matric_dict.update({"{}_fold_Test_{}".format(fold, key): metrics[key]})
-        wandb.log(matric_dict)
+            if key in metric_dict_list.keys():
+                metric_dict_list[key].append(metrics[key])
+            else:
+                metric_dict_list[key] = [metrics[key]]
 
         mode_level_to_tsvs(currentDirectory, infered_classes, metrics, fold, best_model['best_acc'], options.mode,
                            dataset=usr_prefix)
@@ -217,6 +223,17 @@ def inference_from_model(caps_dir,
         if options.mode in ["patch", "roi", "slice"]:
             soft_voting_to_tsvs(currentDirectory, fold, best_model["best_acc"], options.mode,
                                 usr_prefix, num_cnn=num_cnn, selection_threshold=selection_thresh)
+    
+    # log mean metric for test phase
+    for keys,values in metric_dict_list.items():
+        print('{}:'.format(keys))
+        print(values)
+    mean_matric_dict = {}
+    for key in metric_dict_list.keys():
+        mean_matric_dict.update({"mean_{}".format(key): np.mean(metric_dict_list[key])})
+    wandb.log(mean_matric_dict)
+    for keys,values in mean_matric_dict.items():
+        print('{}:{}'.format(keys,values))
 
 
 def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
