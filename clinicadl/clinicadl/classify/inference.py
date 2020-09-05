@@ -204,7 +204,10 @@ def inference_from_model(caps_dir,
                    'test_total_loss_best_BA_singel_model' : metrics['total_loss'].iloc[0],
                    }
         print(metric_dict)
-        wandb.log(metric_dict)
+        try:
+            wandb.log(metric_dict)
+        except:
+            print('wandb has no init!')
         for key, values in  metric_dict.items():
             print("{}_fold_{}".format(fold, key))
             print(values)
@@ -238,7 +241,10 @@ def inference_from_model(caps_dir,
     mean_matric_dict = {}
     for key in metric_dict_list.keys():
         mean_matric_dict.update({"mean_{}".format(key): np.mean(metric_dict_list[key])})
-    wandb.log(mean_matric_dict)
+    try:
+        wandb.log(mean_matric_dict)
+    except:
+        print('wandb has no init!')
     for keys, values in mean_matric_dict.items():
         print('{}:{}'.format(keys, values))
 
