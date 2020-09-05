@@ -204,8 +204,15 @@ def inference_from_model(caps_dir,
                    'test_npv_best_BA_singel_model' : metrics['npv'],
                    'test_total_loss_best_BA_singel_model' : metrics['total_loss'],
                    }
-
-        wandb.log(metric_dict)
+        print(metric_dict)
+        wandb.log({'test_accuracy_best_BA_singel_model' : metrics['accuracy'],
+                   'test_balanced_accuracy_best_BA_singel_model' : metrics['balanced_accuracy'],
+                   'test_sensitivity_best_BA_singel_model' : metrics['sensitivity'],
+                   'test_specificity_best_BA_singel_model' : metrics['specificity'],
+                   'test_ppv_best_BA_singel_model' : metrics['ppv'],
+                   'test_npv_best_BA_singel_model' : metrics['npv'],
+                   'test_total_loss_best_BA_singel_model' : metrics['total_loss'],
+                   })
         for key, values in  metric_dict.items():
             print("{}_fold_{}".format(fold, key))
             print(values)
