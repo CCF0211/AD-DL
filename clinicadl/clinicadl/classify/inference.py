@@ -195,24 +195,16 @@ def inference_from_model(caps_dir,
         # Write output files at %mode level
         print("Prediction results and metrics are written in the "
               "following folder: %s" % performance_dir)
-        print(metrics)
-        metric_dict = {'test_accuracy_best_BA_singel_model' : metrics['accuracy'],
-                   'test_balanced_accuracy_best_BA_singel_model' : metrics['balanced_accuracy'],
-                   'test_sensitivity_best_BA_singel_model' : metrics['sensitivity'],
-                   'test_specificity_best_BA_singel_model' : metrics['specificity'],
-                   'test_ppv_best_BA_singel_model' : metrics['ppv'],
-                   'test_npv_best_BA_singel_model' : metrics['npv'],
-                   'test_total_loss_best_BA_singel_model' : metrics['total_loss'],
+        metric_dict = {'test_accuracy_best_BA_singel_model' : metrics['accuracy'].iloc[0],
+                   'test_balanced_accuracy_best_BA_singel_model' : metrics['balanced_accuracy'].iloc[0],
+                   'test_sensitivity_best_BA_singel_model' : metrics['sensitivity'].iloc[0],
+                   'test_specificity_best_BA_singel_model' : metrics['specificity'].iloc[0],
+                   'test_ppv_best_BA_singel_model' : metrics['ppv'].iloc[0],
+                   'test_npv_best_BA_singel_model' : metrics['npv'].iloc[0],
+                   'test_total_loss_best_BA_singel_model' : metrics['total_loss'].iloc[0],
                    }
         print(metric_dict)
-        wandb.log({'test_accuracy_best_BA_singel_model' : metrics['accuracy'],
-                   'test_balanced_accuracy_best_BA_singel_model' : metrics['balanced_accuracy'],
-                   'test_sensitivity_best_BA_singel_model' : metrics['sensitivity'],
-                   'test_specificity_best_BA_singel_model' : metrics['specificity'],
-                   'test_ppv_best_BA_singel_model' : metrics['ppv'],
-                   'test_npv_best_BA_singel_model' : metrics['npv'],
-                   'test_total_loss_best_BA_singel_model' : metrics['total_loss'],
-                   })
+        wandb.log(metric_dict)
         for key, values in  metric_dict.items():
             print("{}_fold_{}".format(fold, key))
             print(values)
