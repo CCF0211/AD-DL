@@ -208,9 +208,9 @@ def inference_from_model(caps_dir,
             wandb.log(metric_dict)
         except:
             print('wandb has no init!')
-        for key, values in  metric_dict.items():
-            print("{}_fold_{}".format(fold, key))
-            print(values)
+        # for key, values in  metric_dict.items():
+        #     print("{}_fold_{}".format(fold, key))
+        #     print(values)
 
         # log test result to a list for each fold
         for key in  metric_dict.keys():
