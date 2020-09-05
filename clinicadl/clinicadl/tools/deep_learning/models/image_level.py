@@ -6,6 +6,7 @@ import sys
 
 sys.path.append('/root/fanchenchen/fanchenchen/MRI/code/paper')
 from networks import DAM_3d, UNet3D
+from Unet import N_Net
 from resnet50_3d import i3_res50, i3_res50_nl
 
 """
