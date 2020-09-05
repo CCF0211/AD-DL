@@ -195,6 +195,7 @@ def inference_from_model(caps_dir,
         # Write output files at %mode level
         print("Prediction results and metrics are written in the "
               "following folder: %s" % performance_dir)
+        print(metrics)
         metric_dict = {'test_accuracy_best_BA_singel_model' : metrics['accuracy'],
                    'test_balanced_accuracy_best_BA_singel_model' : metrics['balanced_accuracy'],
                    'test_sensitivity_best_BA_singel_model' : metrics['sensitivity'],
