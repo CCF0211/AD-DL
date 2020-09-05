@@ -195,18 +195,26 @@ def inference_from_model(caps_dir,
         # Write output files at %mode level
         print("Prediction results and metrics are written in the "
               "following folder: %s" % performance_dir)
+        metric_dict = {'test_accuracy_best_BA_singel_model' : metrics['accuracy'],
+                   'test_balanced_accuracy_best_BA_singel_model' : metrics['balanced_accuracy'],
+                   'test_sensitivity_best_BA_singel_model' : metrics['sensitivity'],
+                   'test_specificity_best_BA_singel_model' : metrics['specificity'],
+                   'test_ppv_best_BA_singel_model' : metrics['ppv'],
+                   'test_npv_best_BA_singel_model' : metrics['npv'],
+                   'test_total_loss_best_BA_singel_model' : metrics['total_loss'],
+                   }
 
-        for key, values in metrics.items():
-            wandb.log({"Test_{}".format(key): values})
-            print("{}_fold_Test_{}".format(fold, key))
+        wandb.log(metric_dict)
+        for key, values in  metric_dict.items():
+            print("{}_fold_{}".format(fold, key))
             print(values)
 
         # log test result to a list for each fold
-        for key in metrics.keys():
+        for key in  metric_dict.keys():
             if key in metric_dict_list.keys():
-                metric_dict_list[key].append(metrics[key])
+                metric_dict_list[key].append( metric_dict[key])
             else:
-                metric_dict_list[key] = [metrics[key]]
+                metric_dict_list[key] = [ metric_dict[key]]
 
         mode_level_to_tsvs(currentDirectory, infered_classes, metrics, fold, best_model['best_acc'], options.mode,
                            dataset=usr_prefix)
