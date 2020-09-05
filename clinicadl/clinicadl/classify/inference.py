@@ -148,7 +148,7 @@ def inference_from_model(caps_dir,
         'best_loss': 'best_loss'
     }
 
-    metric_dict_list={}
+    metric_dict_list = {}
 
     # loop depending the number of folds found in the model folder
     for fold_dir in currentDirectory.glob(currentPattern):
@@ -192,13 +192,12 @@ def inference_from_model(caps_dir,
         # Prepare outputs
         usr_prefix = str(prefix)
 
-
         # Write output files at %mode level
         print("Prediction results and metrics are written in the "
               "following folder: %s" % performance_dir)
 
-        for key,values in metrics.items():
-            wandb.log({"Test_{}".format(key):values})
+        for key, values in metrics.items():
+            wandb.log({"Test_{}".format(key): values})
             print("{}_fold_Test_{}".format(fold, key))
             print(values)
 
@@ -223,17 +222,17 @@ def inference_from_model(caps_dir,
         if options.mode in ["patch", "roi", "slice"]:
             soft_voting_to_tsvs(currentDirectory, fold, best_model["best_acc"], options.mode,
                                 usr_prefix, num_cnn=num_cnn, selection_threshold=selection_thresh)
-    
+
     # log mean metric for test phase
-    for keys,values in metric_dict_list.items():
+    for keys, values in metric_dict_list.items():
         print('{}:'.format(keys))
         print(values)
     mean_matric_dict = {}
     for key in metric_dict_list.keys():
         mean_matric_dict.update({"mean_{}".format(key): np.mean(metric_dict_list[key])})
     wandb.log(mean_matric_dict)
-    for keys,values in mean_matric_dict.items():
-        print('{}:{}'.format(keys,values))
+    for keys, values in mean_matric_dict.items():
+        print('{}:{}'.format(keys, values))
 
 
 def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
@@ -263,7 +262,6 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
         metrics_df = pd.DataFrame()
 
         for n in range(num_cnn):
-
             dataset = return_dataset(
                 model_options.mode,
                 caps_dir,
