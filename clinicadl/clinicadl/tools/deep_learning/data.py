@@ -171,21 +171,32 @@ class MRIDataset(Dataset):
         from ..data.utils import find_image_path as get_nii_path
         import nibabel as nib
 
-        participant_id = self.df.loc[0, 'participant_id']
-        session_id = self.df.loc[0, 'session_id']
 
-        try:
-            image_path = self._get_path(participant_id, session_id, "image")
-            image = torch.load(image_path)
-        except FileNotFoundError:
-            image_path = get_nii_path(
-                self.caps_directory,
-                participant_id,
-                session_id,
-                preprocessing=self.preprocessing)
-            image_nii = nib.load(image_path)
-            image_np = image_nii.get_fdata()
-            image = ToTensor()(image_np)
+        if self.preprocessing in ["t1-linear", "t1-extensive"]:
+            participant_id = self.df.loc[0, 'participant_id']
+            session_id = self.df.loc[0, 'session_id']
+            try:
+                image_path = self._get_path(participant_id, session_id, "image")
+                image = torch.load(image_path)
+            except FileNotFoundError:
+                try:
+                    image_path = get_nii_path(
+                        self.caps_directory,
+                        participant_id,
+                        session_id,
+                        preprocessing=self.preprocessing)
+                    image_nii = nib.load(image_path)
+                    image_np = image_nii.get_fdata()
+                    image = ToTensor()(image_np)
+                except:
+                    # if we use moved folder which only has slice/patch, we can not find the whole image in folder, so use this file to get full image
+                    # image_path = os.path.join(self.caps_directory,'sub-ADNI002S0295_ses-M00_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.nii.gz')
+                    # image_nii = nib.load(image_path)
+                    # image_np = image_nii.get_fdata()
+                    # image = ToTensor()(image_np) 
+                    image = torch.zeros([169, 208, 179])  # in those segm data, size : [169, 208, 179]
+        elif self.preprocessing in ["t1-spm-whitematter", "t1-spm-whitematter", "t1-spm-csf"]:
+            image = torch.zeros([121, 145, 121])  # in those segm data, size : [121, 145, 121]
 
         return image
 
