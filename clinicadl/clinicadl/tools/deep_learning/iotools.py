@@ -54,7 +54,8 @@ class Parameters:
             discarded_slices: int = 20,
             prepare_dl: bool = False,
             visualization: bool = False,
-            device: int = 0
+            device: int = 0,
+            patch_index: int = 0,
     ):
         """
         Optional parameters used for training CNN.
@@ -123,6 +124,7 @@ class Parameters:
         self.visualization = visualization
         self.selection_threshold = selection_threshold
         self.device = device
+        self.patch_index = patch_index
 
 
 def check_and_clean(d):

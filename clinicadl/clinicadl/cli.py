@@ -105,7 +105,7 @@ def generate_data_func(args):
 
 # Function to dispatch training to corresponding function
 def train_func(args):
-    from .train import train_autoencoder, train_multi_cnn, train_single_cnn
+    from .train import train_autoencoder, train_multi_cnn, train_single_cnn, train_selectPatch
 
     set_default_dropout(args)
 
@@ -278,7 +278,7 @@ def train_func(args):
                 device=args.device
             )
             train_single_cnn(train_params_patch)
-        else:
+        elif args.mode_task == "multicnn":
             train_params_patch = Parameters(
                 args.mode,
                 args.tsv_path,
@@ -315,6 +315,44 @@ def train_func(args):
                 device=args.device
             )
             train_multi_cnn(train_params_patch)
+        elif args.mode_task == "selectpatchcnn":
+            train_params_selectpatch = Parameters(
+                args.mode,
+                args.tsv_path,
+                args.output_dir,
+                args.caps_dir,
+                args.preprocessing,
+                args.model
+            )
+            train_params_selectpatch.write(
+                diagnoses=args.diagnoses,
+                baseline=args.baseline,
+                minmaxnormalization=not args.unnormalize,
+                n_splits=args.n_splits,
+                split=args.split,
+                accumulation_steps=args.accumulation_steps,
+                epochs=args.epochs,
+                learning_rate=args.learning_rate,
+                patience=args.patience,
+                tolerance=args.tolerance,
+                optimizer='Adam',
+                weight_decay=args.weight_decay,
+                dropout=args.dropout,
+                gpu=not args.use_cpu,
+                batch_size=args.batch_size,
+                evaluation_steps=args.evaluation_steps,
+                num_workers=args.nproc,
+                transfer_learning_path=args.transfer_learning_path,
+                transfer_learning_selection=args.transfer_learning_selection,
+                patch_size=args.patch_size,
+                stride_size=args.stride_size,
+                hippocampus_roi=False,
+                selection_threshold=args.selection_threshold,
+                prepare_dl=args.use_extracted_patches,
+                device=args.device,
+                patch_index=args.patch_index
+            )
+            train_selectPatch(train_params_selectpatch)
     elif args.mode == 'roi':
         if args.mode_task == "autoencoder":
             train_params_autoencoder = Parameters(
