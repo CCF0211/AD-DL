@@ -1169,7 +1169,7 @@ def parse_command_line():
     tsv_getlabels_subparser.add_argument(
         "--diagnoses",
         help="Labels that must be extracted from merged_tsv.",
-        nargs="+", type=str, choices=['AD', 'CN', 'MCI', 'sMCI', 'pMCI'], default=['AD', 'CN'])
+        nargs="+", type=str, choices=['AD', 'CN', 'MCI', 'sMCI', 'pMCI'], default=['AD', 'CN', 'MCI', 'sMCI', 'pMCI'])
     tsv_getlabels_subparser.add_argument(
         "--time_horizon",
         help="Time horizon to analyse stability of MCI subjects.",
