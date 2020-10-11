@@ -20,10 +20,10 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
         # load the best trained model during the training
         if model_options.model == 'UNet3D':
             print('********** init UNet3D model for test! **********')
-            model = init_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
                  out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
         else:
-            model = init_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
 

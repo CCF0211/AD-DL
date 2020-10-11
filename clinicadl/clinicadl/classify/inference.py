@@ -262,8 +262,12 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
 
     # Recreate the model with the network described in the json file
     # Initialize the model
-    model = create_model(model_options.model,
-                         gpu, device_index=model_options.device, dropout=model_options.dropout)
+    if model_options.model == 'UNet3D':
+        print('********** init UNet3D model for test! **********')
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
+                out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+    else:
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
     transformations = get_transforms(model_options.mode,
                                      model_options.minmaxnormalization)
 
