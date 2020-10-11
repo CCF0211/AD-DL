@@ -74,6 +74,9 @@ def train_single_cnn(params):
 
         # Initialize the model
         print('Initialization of the model')
+        if params.model == 'UNet3D':
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels)
         model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device)
         model = transfer_learning(model, fi, source_path=params.transfer_learning_path,
                                   gpu=params.gpu, selection=params.transfer_learning_selection, device_index=params.device)
