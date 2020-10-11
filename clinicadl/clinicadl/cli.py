@@ -169,7 +169,13 @@ def train_func(args):
                 num_workers=args.nproc,
                 transfer_learning_path=args.transfer_learning_path,
                 transfer_learning_selection=args.transfer_learning_selection,
-                device=args.device
+                device=args.device,
+                in_channels = args.in_channels,
+                out_channels = args.out_channels,
+                f_maps = args.f_maps,
+                layer_order = args.layer_order,
+                num_groups = args.num_groups,
+                num_levels = args.num_levels,
             )
             train_single_cnn(train_params_cnn)
     elif args.mode == 'slice':
