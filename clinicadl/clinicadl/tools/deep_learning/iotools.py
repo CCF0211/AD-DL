@@ -56,6 +56,12 @@ class Parameters:
             visualization: bool = False,
             device: int = 0,
             patch_index: int = 0,
+            in_channels: int = None,
+            out_channels: int = None,
+            f_maps: int = None,
+            layer_order: str = None,
+            num_groups: int = None,
+            num_levels: int = None,
     ):
         """
         Optional parameters used for training CNN.
@@ -125,6 +131,12 @@ class Parameters:
         self.selection_threshold = selection_threshold
         self.device = device
         self.patch_index = patch_index
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.f_maps = f_maps
+        self.layer_order = layer_order
+        self.num_groups = num_groups
+        self.num_levels = num_levels
 
 
 def check_and_clean(d):
