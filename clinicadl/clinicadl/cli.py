@@ -176,6 +176,7 @@ def train_func(args):
                 layer_order = args.layer_order,
                 num_groups = args.num_groups,
                 num_levels = args.num_levels,
+                crop_padding_to_128 = args.crop_padding_to_128,
             )
             train_single_cnn(train_params_cnn)
     elif args.mode == 'slice':

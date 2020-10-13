@@ -10,6 +10,7 @@ import abc
 from clinicadl.tools.inputs.filename_types import FILENAME_TYPE
 import os
 import nibabel as nib
+import torch.nn.functional as F
 
 
 #################################
@@ -21,9 +22,11 @@ class MRIDataset(Dataset):
     """Abstract class for all derived MRIDatasets."""
 
     def __init__(self, caps_directory, data_file,
-                 preprocessing, transformations=None):
+                 preprocessing, transformations=None, crop_padding_to_128=False, resample_size=None):
         self.caps_directory = caps_directory
         self.transformations = transformations
+        self.crop_padding_to_128 = crop_padding_to_128
+        self.resample_size = resample_size
         self.diagnosis_code = {
             'CN': 0,
             'AD': 1,
@@ -213,7 +216,7 @@ class MRIDatasetImage(MRIDataset):
     """Dataset of MRI organized in a CAPS folder."""
 
     def __init__(self, caps_directory, data_file,
-                 preprocessing='t1-linear', transformations=None):
+                 preprocessing='t1-linear', transformations=None, crop_padding_to_128=False, resample_size=None):
         """
         Args:
             caps_directory (string): Directory of all the images.
@@ -234,6 +237,16 @@ class MRIDatasetImage(MRIDataset):
 
         if self.transformations:
             image = self.transformations(image)
+        if self.crop_padding_to_128:
+            image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
+            image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
+            pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
+            image = pad(image)  # [1, 1, 128, 128, 128]
+            image = image.squeeze(0)  # [1, 128, 128, 128]
+        if self.resample_size != None:
+            image = image.unsqueeze(0)
+            image = F.interpolate(image, size=[self.resample_size, self.resample_size, self.resample_size])  # resize to resample_size * resample_size * resample_size
+            image = image.squeeze(0)
         sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
                   'image_path': image_path}
 

@@ -62,6 +62,7 @@ class Parameters:
             layer_order: str = None,
             num_groups: int = None,
             num_levels: int = None,
+            crop_padding_to_128: bool = False,
     ):
         """
         Optional parameters used for training CNN.
@@ -137,6 +138,7 @@ class Parameters:
         self.layer_order = layer_order
         self.num_groups = num_groups
         self.num_levels = num_levels
+        self.crop_padding_to_128 = crop_padding_to_128
 
 
 def check_and_clean(d):
