@@ -247,7 +247,6 @@ class MRIDatasetImage(MRIDataset):
             image = image.unsqueeze(0)
             image = F.interpolate(image, size=[self.resample_size, self.resample_size, self.resample_size])  # resize to resample_size * resample_size * resample_size
             image = image.squeeze(0)
-        print(image.shape)
         sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
                   'image_path': image_path}
 
@@ -526,7 +525,9 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
             input_dir,
             data_df,
             preprocessing,
-            transformations=transformations
+            transformations=transformations,
+            crop_padding_to_128 = params.crop_padding_to_128,
+            resample_size = params.resample_size
         )
     if mode == "patch":
         return MRIDatasetPatch(
