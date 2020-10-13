@@ -78,10 +78,10 @@ def train_single_cnn(params):
             print('********** init UNet3D model! **********')
             model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
                  out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels)
-        elif model_options.model == 'ResidualUNet3D':
+        elif params.model == 'ResidualUNet3D':
             print('********** init ResidualUNet3D model! **********')
-            model = init_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                    out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels)
         else:
             model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device)
         model = transfer_learning(model, fi, source_path=params.transfer_learning_path,
