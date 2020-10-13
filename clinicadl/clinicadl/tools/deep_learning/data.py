@@ -248,6 +248,7 @@ class MRIDatasetImage(MRIDataset):
             image = image.unsqueeze(0)
             image = F.interpolate(image, size=self.resample_size)  # resize to resample_size * resample_size * resample_size
             image = image.squeeze(0)
+        print(image.shape)
         sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
                   'image_path': image_path}
 
