@@ -22,11 +22,9 @@ class MRIDataset(Dataset):
     """Abstract class for all derived MRIDatasets."""
 
     def __init__(self, caps_directory, data_file,
-                 preprocessing, transformations=None, crop_padding_to_128=False, resample_size=None):
+                 preprocessing, transformations=None):
         self.caps_directory = caps_directory
         self.transformations = transformations
-        self.crop_padding_to_128 = crop_padding_to_128
-        self.resample_size = resample_size
         self.diagnosis_code = {
             'CN': 0,
             'AD': 1,
@@ -227,6 +225,8 @@ class MRIDatasetImage(MRIDataset):
         """
         self.elem_index = None
         self.mode = "image"
+        self.crop_padding_to_128 = crop_padding_to_128
+        self.resample_size = resample_size
         super().__init__(caps_directory, data_file, preprocessing, transformations)
 
     def __getitem__(self, idx):
@@ -528,7 +528,7 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
             preprocessing,
             transformations=transformations,
             crop_padding_to_128 = params.crop_padding_to_128,
-            resample_size = params.resample_size
+            resample_size = params.resample_size,
         )
     if mode == "patch":
         return MRIDatasetPatch(
