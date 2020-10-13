@@ -63,7 +63,7 @@ class Parameters:
             num_groups: int = None,
             num_levels: int = None,
             crop_padding_to_128: bool = False,
-            resample_size: int=None,
+            resample_size: int = None,
     ):
         """
         Optional parameters used for training CNN.

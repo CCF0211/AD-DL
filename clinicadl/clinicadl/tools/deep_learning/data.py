@@ -243,7 +243,7 @@ class MRIDatasetImage(MRIDataset):
             pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
             image = pad(image)  # [1, 1, 128, 128, 128]
             image = image.squeeze(0)  # [1, 128, 128, 128]
-        if self.resample_size is not None:
+        if self.resample_size != 0:
             print(self.resample_size)
             image = image.unsqueeze(0)
             image = F.interpolate(image, size=self.resample_size)  # resize to resample_size * resample_size * resample_size
