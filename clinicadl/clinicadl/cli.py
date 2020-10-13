@@ -177,6 +177,7 @@ def train_func(args):
                 num_groups = args.num_groups,
                 num_levels = args.num_levels,
                 crop_padding_to_128 = args.crop_padding_to_128,
+                resample_size = args.resample_size,
             )
             train_single_cnn(train_params_cnn)
     elif args.mode == 'slice':
