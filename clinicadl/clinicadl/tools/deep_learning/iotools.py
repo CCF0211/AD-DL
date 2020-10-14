@@ -64,6 +64,7 @@ class Parameters:
             num_levels: int = None,
             crop_padding_to_128: bool = False,
             resample_size: int = None,
+            drop_last: bool = False,
     ):
         """
         Optional parameters used for training CNN.
@@ -141,6 +142,7 @@ class Parameters:
         self.num_levels = num_levels
         self.crop_padding_to_128 = crop_padding_to_128
         self.resample_size = resample_size
+        self.drop_last = drop_last
 
 
 def check_and_clean(d):

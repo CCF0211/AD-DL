@@ -66,13 +66,15 @@ if __name__ == "__main__":
                 batch_size=options.batch_size,
                 shuffle=False,
                 num_workers=options.num_workers,
-                pin_memory=True)
+                pin_memory=True,
+                drop_last=options.drop_last)
             valid_loader = DataLoader(
                 data_valid,
                 batch_size=options.batch_size,
                 shuffle=False,
                 num_workers=options.num_workers,
-                pin_memory=True)
+                pin_memory=True,
+                drop_last=options.drop_last)
 
             test_cnn(options.model_path, train_loader, "train", split, criterion, cnn_index,
                      model_options, options.gpu)

@@ -137,7 +137,8 @@ def train_func(args):
                 evaluation_steps=args.evaluation_steps,
                 num_workers=args.nproc,
                 visualization=args.visualization,
-                device=args.device
+                device=args.device,
+                drop_last=args.drop_last,
             )
             train_autoencoder(train_params_autoencoder)
         else:
@@ -170,14 +171,15 @@ def train_func(args):
                 transfer_learning_path=args.transfer_learning_path,
                 transfer_learning_selection=args.transfer_learning_selection,
                 device=args.device,
-                in_channels = args.in_channels,
-                out_channels = args.out_channels,
-                f_maps = args.f_maps,
-                layer_order = args.layer_order,
-                num_groups = args.num_groups,
-                num_levels = args.num_levels,
-                crop_padding_to_128 = args.crop_padding_to_128,
-                resample_size = args.resample_size,
+                in_channels=args.in_channels,
+                out_channels=args.out_channels,
+                f_maps=args.f_maps,
+                layer_order=args.layer_order,
+                num_groups=args.num_groups,
+                num_levels=args.num_levels,
+                crop_padding_to_128=args.crop_padding_to_128,
+                resample_size=args.resample_size,
+                drop_last=args.drop_last,
             )
             train_single_cnn(train_params_cnn)
     elif args.mode == 'slice':
@@ -211,7 +213,8 @@ def train_func(args):
             selection_threshold=args.selection_threshold,
             prepare_dl=args.use_extracted_slices,
             discarded_slices=args.discarded_slices,
-            device=args.device
+            device=args.device,
+            drop_last=args.drop_last,
         )
         train_single_cnn(train_params_slice)
     elif args.mode == 'patch':
@@ -246,7 +249,8 @@ def train_func(args):
                 hippocampus_roi=False,
                 visualization=args.visualization,
                 prepare_dl=args.use_extracted_patches,
-                device=args.device
+                device=args.device,
+                drop_last=args.drop_last,
             )
             train_autoencoder(train_params_autoencoder)
         elif args.mode_task == "cnn":
@@ -283,7 +287,8 @@ def train_func(args):
                 hippocampus_roi=False,
                 selection_threshold=args.selection_threshold,
                 prepare_dl=args.use_extracted_patches,
-                device=args.device
+                device=args.device,
+                drop_last=args.drop_last,
             )
             train_single_cnn(train_params_patch)
         elif args.mode_task == "multicnn":
@@ -320,7 +325,8 @@ def train_func(args):
                 hippocampus_roi=False,
                 selection_threshold=args.selection_threshold,
                 prepare_dl=args.use_extracted_patches,
-                device=args.device
+                device=args.device,
+                drop_last=args.drop_last,
             )
             train_multi_cnn(train_params_patch)
         elif args.mode_task == "selectpatchcnn":
@@ -358,7 +364,8 @@ def train_func(args):
                 selection_threshold=args.selection_threshold,
                 prepare_dl=args.use_extracted_patches,
                 device=args.device,
-                patch_index=args.patch_index
+                patch_index=args.patch_index,
+                drop_last=args.drop_last,
             )
             train_selectPatch(train_params_selectpatch)
     elif args.mode == 'roi':
@@ -390,7 +397,8 @@ def train_func(args):
                 num_workers=args.nproc,
                 hippocampus_roi=True,
                 visualization=args.visualization,
-                device=args.device
+                device=args.device,
+                drop_last=args.drop_last,
             )
             train_autoencoder(train_params_autoencoder)
         else:
@@ -424,7 +432,8 @@ def train_func(args):
                 transfer_learning_selection=args.transfer_learning_selection,
                 hippocampus_roi=True,
                 selection_threshold=args.selection_threshold,
-                device=args.device
+                device=args.device,
+                drop_last=args.drop_last,
             )
             train_single_cnn(train_params_patch)
 
@@ -446,7 +455,7 @@ def classify_func(args):
         args.prefix_output,
         gpu=not args.use_cpu,
         prepare_dl=args.use_extracted_features,
-        device=args.device
+        device=args.device,
     )
 
 # Functions to dispatch command line options from tsvtool to corresponding

@@ -129,7 +129,8 @@ def main(options):
                 batch_size=options.batch_size,
                 shuffle=False,
                 num_workers=options.num_workers,
-                pin_memory=True)
+                pin_memory=True,
+                drop_last=options.drop_last)
 
             test_cnn(options.model_path, test_loader, options.dataset, split, criterion, cnn_index,
                      model_options, options.gpu)

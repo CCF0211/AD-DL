@@ -122,13 +122,14 @@ if __name__ == "__main__":
 
         dataset = return_dataset(model_options.mode, options.input_dir, test_df, options.preprocessing,
                                  transformations, model_options)
-
         test_loader = DataLoader(
             dataset,
             batch_size=options.batch_size,
             shuffle=False,
             num_workers=options.num_workers,
-            pin_memory=True)
+            pin_memory=True,
+            drop_last=options.drop_last
+        )
 
         test_cnn(options.model_path, test_loader, options.dataset, split, criterion,
                  model_options, options.gpu)

@@ -270,6 +270,12 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
         print('********** init ResidualUNet3D model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
                 out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+    elif model_options.model == 'VoxCNN':
+        print('********** init VoxCNN model for test! **********')
+        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
+    elif model_options.model == 'ConvNet3D':
+        print('********** init ConvNet3D model for test! **********')
+        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
     else:
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
     transformations = get_transforms(model_options.mode,
@@ -292,13 +298,14 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
                 transformations,
                 model_options,
                 cnn_index=n)
-
+            
             test_loader = DataLoader(
                 dataset,
                 batch_size=model_options.batch_size,
                 shuffle=False,
                 num_workers=model_options.nproc,
-                pin_memory=True)
+                pin_memory=True,
+                drop_last=model_options.drop_last)
 
             # load the best trained model during the training
             model, best_epoch = load_model(
@@ -341,11 +348,12 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
 
         # Load the data
         test_loader = DataLoader(
-            data_to_test,
-            batch_size=model_options.batch_size,
-            shuffle=False,
-            num_workers=model_options.nproc,
-            pin_memory=True)
+        data_to_test,
+        batch_size=model_options.batch_size,
+        shuffle=False,
+        num_workers=model_options.nproc,
+        pin_memory=True,
+        drop_last=model_options.drop_last)
 
         # Run the model on the data
         predictions_df, metrics = test(

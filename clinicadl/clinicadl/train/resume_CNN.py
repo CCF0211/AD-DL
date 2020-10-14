@@ -53,14 +53,16 @@ def main(options):
                               batch_size=options.batch_size,
                               shuffle=True,
                               num_workers=options.num_workers,
-                              pin_memory=True
+                              pin_memory=True,
+                              drop_last=options.drop_last
                               )
 
     valid_loader = DataLoader(data_valid,
                               batch_size=options.batch_size,
                               shuffle=False,
                               num_workers=options.num_workers,
-                              pin_memory=True
+                              pin_memory=True,
+                              drop_last=options.drop_last
                               )
 
     # Initialize the model

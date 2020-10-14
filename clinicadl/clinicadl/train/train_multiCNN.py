@@ -65,14 +65,16 @@ def train_multi_cnn(params):
                                       batch_size=params.batch_size,
                                       shuffle=True,
                                       num_workers=params.num_workers,
-                                      pin_memory=True
+                                      pin_memory=True,
+                                      drop_last=params.drop_last
                                       )
 
             valid_loader = DataLoader(data_valid,
                                       batch_size=params.batch_size,
                                       shuffle=False,
                                       num_workers=params.num_workers,
-                                      pin_memory=True
+                                      pin_memory=True,
+                                      drop_last=params.drop_last
                                       )
 
             # Initialize the model
