@@ -65,7 +65,22 @@ def main(options):
 
     # Initialize the model
     print('Initialization of the model')
-    model = create_model(options.model, options.gpu, dropout=options.dropout, device_index=options.device)
+    if options.model == 'UNet3D':
+        print('********** init UNet3D model for test! **********')
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
+                out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
+    elif options.model == 'ResidualUNet3D':
+        print('********** init ResidualUNet3D model for test! **********')
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
+                out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
+    elif options.model == 'VoxCNN':
+        print('********** init VoxCNN model for test! **********')
+        model = create_model(options.model, gpu=options.gpu, device_index=options.device)
+    elif options.model == 'ConvNet3D':
+        print('********** init ConvNet3D model for test! **********')
+        model = create_model(options.model, gpu=options.gpu, device_index=options.device)
+    else:
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device)
     model_dir = path.join(options.model_path, "best_model_dir", "CNN", "fold_" + str(options.split))
     model, current_epoch = load_model(model, model_dir, options.gpu, 'checkpoint.pth.tar', device_index=options.device)
 

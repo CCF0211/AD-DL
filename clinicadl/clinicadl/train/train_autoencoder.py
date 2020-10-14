@@ -74,8 +74,22 @@ def train_autoencoder(params):
         log_dir = os.path.join(params.output_dir, 'fold-%i' % fi, 'tensorboard_logs')
         model_dir = os.path.join(params.output_dir, 'fold-%i' % fi, 'models')
         visualization_dir = os.path.join(params.output_dir, 'fold-%i' % fi, 'autoencoder_reconstruction')
-
-        decoder = init_model(params.model, gpu=params.gpu, autoencoder=True, dropout=params.dropout, device_index=params.device)
+        if params.model == 'UNet3D':
+            print('********** init autoencoder UNet3D model! **********')
+            decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
+        elif params.model == 'ResidualUNet3D':
+            print('********** init autoencoder ResidualUNet3D model! **********')
+            decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
+        elif params.model == 'VoxCNN':
+            print('********** init autoencoder VoxCNN model! **********')
+            decoder = init_model(params.model, gpu=params.gpu, device_index=params.device, autoencoder=True)
+        elif params.model == 'ConvNet3D':
+            print('********** init autoencoder ConvNet3D model! **********')
+            decoder = init_model(params.model, gpu=params.gpu, device_index=params.device, autoencoder=True)
+        else:
+            decoder = init_model(params.model, gpu=params.gpu, autoencoder=True, dropout=params.dropout, device_index=params.device)
         optimizer = eval("torch.optim." + params.optimizer)(filter(lambda x: x.requires_grad, decoder.parameters()),
                                                             lr=params.learning_rate,
                                                             weight_decay=params.weight_decay)

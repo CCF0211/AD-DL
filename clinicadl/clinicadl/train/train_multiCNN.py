@@ -77,7 +77,22 @@ def train_multi_cnn(params):
 
             # Initialize the model
             print('Initialization of the model %i' % cnn_index)
-            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device)
+            if params.model == 'UNet3D':
+                print('********** init UNet3D model! **********')
+                model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                    out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels)
+            elif params.model == 'ResidualUNet3D':
+                print('********** init ResidualUNet3D model! **********')
+                model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                    out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels)
+            elif params.model == 'VoxCNN':
+                print('********** init VoxCNN model! **********')
+                model = init_model(params.model, gpu=params.gpu, device_index=params.device)
+            elif params.model == 'ConvNet3D':
+                print('********** init ConvNet3D model! **********')
+                model = init_model(params.model, gpu=params.gpu, device_index=params.device)
+            else:
+                model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device)
             model = transfer_learning(model, fi, source_path=params.transfer_learning_path,
                                       gpu=params.gpu, selection=params.transfer_learning_selection, device_index=params.device)
 
