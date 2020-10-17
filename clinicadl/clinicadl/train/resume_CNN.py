@@ -75,6 +75,14 @@ def main(options):
         print('********** init ResidualUNet3D model for test! **********')
         model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
                 out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
+    elif options.model == 'UNet3D_add_more_fc':
+        print('********** init UNet3D_add_more_fc model for test! **********')
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
+                out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
+    elif options.model == 'ResidualUNet3D_add_more_fc':
+        print('********** init ResidualUNet3D_add_more_fc model for test! **********')
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
+                out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
     elif options.model == 'VoxCNN':
         print('********** init VoxCNN model for test! **********')
         model = create_model(options.model, gpu=options.gpu, device_index=options.device)

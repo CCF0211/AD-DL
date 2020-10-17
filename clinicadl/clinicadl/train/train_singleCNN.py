@@ -84,6 +84,14 @@ def train_single_cnn(params):
             print('********** init ResidualUNet3D model! **********')
             model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
                  out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels)
+        elif params.model == 'UNet3D_add_more_fc':
+            print('********** init UNet3D_add_more_fc model! **********')
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels)
+        elif params.model == 'ResidualUNet3D_add_more_fc':
+            print('********** init ResidualUNet3D_add_more_fc model! **********')
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels)       
         elif params.model == 'VoxCNN':
             print('********** init VoxCNN model! **********')
             model = init_model(params.model, gpu=params.gpu, device_index=params.device)

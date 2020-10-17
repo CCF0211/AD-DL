@@ -84,6 +84,14 @@ def train_autoencoder(params):
             print('********** init autoencoder ResidualUNet3D model! **********')
             decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
                  out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
+        elif params.model == 'UNet3D_add_more_fc':
+            print('********** init autoencoder UNet3D_add_more_fc model! **********')
+            decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
+        elif params.model == 'ResidualUNet3D_add_more_fc':
+            print('********** init autoencoder ResidualUNet3D_add_more_fc model! **********')
+            decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
         elif params.model == 'VoxCNN':
             print('********** init autoencoder VoxCNN model! **********')
             decoder = init_model(params.model, gpu=params.gpu, device_index=params.device, autoencoder=True)

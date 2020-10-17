@@ -26,6 +26,14 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
             print('********** init ResidualUNet3D model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
                     out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+        elif model_options.model == 'UNet3D_add_more_fc':
+            print('********** init UNet3D_add_more_fc model for test! **********')
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
+                 out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+        elif model_options.model == 'ResidualUNet3D_add_more_fc':
+            print('********** init ResidualUNet3D_add_more_fc model for test! **********')
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
+                    out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
         elif model_options.model == 'VoxCNN':
             print('********** init VoxCNN model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
