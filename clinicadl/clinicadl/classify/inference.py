@@ -306,7 +306,7 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
                 transformations,
                 model_options,
                 cnn_index=n)
-            
+            print('test data size:{}'.format(len(dataset)))
             test_loader = DataLoader(
                 dataset,
                 batch_size=model_options.batch_size,
@@ -353,7 +353,7 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
             model_options.preprocessing,
             transformations,
             model_options)
-
+        print('test data size:{}'.format(len(data_to_test)))
         # Load the data
         test_loader = DataLoader(
         data_to_test,
