@@ -647,7 +647,6 @@ def load_data(train_val_path, diagnoses_list,
 
     train_df = pd.DataFrame()
     valid_df = pd.DataFrame()
-    print('use baseline？ {}'.format(baseline))
     if n_splits is None:
         train_path = path.join(train_val_path, 'train')
         valid_path = path.join(train_val_path, 'validation')
@@ -667,14 +666,13 @@ def load_data(train_val_path, diagnoses_list,
             train_diagnosis_path = path.join(
                 train_path, diagnosis + '_baseline.tsv')
         elif isinstance(baseline,str):
-            if baseline.lower() == 'true':
+            if baseline in ['true', 'True']:
                train_diagnosis_path = path.join(
                 train_path, diagnosis + '_baseline.tsv')
-            else baseline.lower() == 'false':
+            elif baseline in ['false', 'False']:
                 train_diagnosis_path = path.join(train_path, diagnosis + '.tsv')
         else:
             train_diagnosis_path = path.join(train_path, diagnosis + '.tsv')
-        print(train_diagnosis_path)
         valid_diagnosis_path = path.join(
             valid_path, diagnosis + '_baseline.tsv')
 
