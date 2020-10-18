@@ -668,7 +668,7 @@ def load_data(train_val_path, diagnoses_list,
                 train_path, diagnosis + '_baseline.tsv')
         else:
             train_diagnosis_path = path.join(train_path, diagnosis + '.tsv')
-
+        print(train_diagnosis_path)
         valid_diagnosis_path = path.join(
             valid_path, diagnosis + '_baseline.tsv')
 
