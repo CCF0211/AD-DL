@@ -647,7 +647,7 @@ def load_data(train_val_path, diagnoses_list,
 
     train_df = pd.DataFrame()
     valid_df = pd.DataFrame()
-
+    print('use baseline？ {}'.format(baseline))
     if n_splits is None:
         train_path = path.join(train_val_path, 'train')
         valid_path = path.join(train_val_path, 'validation')
