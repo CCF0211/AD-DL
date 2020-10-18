@@ -661,7 +661,6 @@ def load_data(train_val_path, diagnoses_list,
     print("Valid", valid_path)
 
     for diagnosis in diagnoses_list:
-        print(type(baseline))
         if isinstance(baseline,str):
             if baseline in ['true', 'True']:
                train_diagnosis_path = path.join(
