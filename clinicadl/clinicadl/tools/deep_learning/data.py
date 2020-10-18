@@ -661,18 +661,19 @@ def load_data(train_val_path, diagnoses_list,
     print("Valid", valid_path)
 
     for diagnosis in diagnoses_list:
-
-        if baseline:
-            train_diagnosis_path = path.join(
-                train_path, diagnosis + '_baseline.tsv')
-        elif isinstance(baseline,str):
+        print(type(baseline))
+        if isinstance(baseline,str):
             if baseline in ['true', 'True']:
                train_diagnosis_path = path.join(
                 train_path, diagnosis + '_baseline.tsv')
             elif baseline in ['false', 'False']:
                 train_diagnosis_path = path.join(train_path, diagnosis + '.tsv')
-        else:
-            train_diagnosis_path = path.join(train_path, diagnosis + '.tsv')
+        elif isinstance(baseline,bool):
+            if baseline:
+                train_diagnosis_path = path.join(
+                    train_path, diagnosis + '_baseline.tsv')
+            else:
+                train_diagnosis_path = path.join(train_path, diagnosis + '.tsv')
         valid_diagnosis_path = path.join(
             valid_path, diagnosis + '_baseline.tsv')
 
