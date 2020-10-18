@@ -49,12 +49,12 @@ def train_single_cnn(params):
             fi,
             n_splits=params.n_splits,
             baseline=params.baseline)
-        print('# train data size:{} valid data size:{}'.format(len(training_df), len(valid_df)))
         data_train = return_dataset(params.mode, params.input_dir, training_df, params.preprocessing,
                                     transformations, params)
         data_valid = return_dataset(params.mode, params.input_dir, valid_df, params.preprocessing,
                                     transformations, params)
         print('use baseline:{}'.format(params.baseline))
+        print(type(baseline))
         print('train data size:{} valid data size:{}'.format(len(data_train), len(data_valid)))
         # Use argument load to distinguish training and testing
         train_loader = DataLoader(
