@@ -668,7 +668,7 @@ def load_data(train_val_path, diagnoses_list,
                 train_path, diagnosis + '_baseline.tsv')
             elif baseline in ['false', 'False']:
                 train_diagnosis_path = path.join(train_path, diagnosis + '.tsv')
-        elif isinstance(baseline,bool):
+        else:
             if baseline:
                 train_diagnosis_path = path.join(
                     train_path, diagnosis + '_baseline.tsv')
