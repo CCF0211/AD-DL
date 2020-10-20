@@ -735,7 +735,7 @@ def load_data(train_val_path, diagnoses_list,
     train_df.reset_index(inplace=True, drop=True)
     valid_df.reset_index(inplace=True, drop=True)
     if fake_caps_path is not None:
-        path_list=os.listdir(path)
+        path_list=os.listdir(fake_caps_path)
         fake_tsv_path = path_list[1]
         fake_df = pd.read_csv(fake_tsv_path, sep='\t')
         train_fake_df = pd.DataFrame(columns={"participant_id": "", "session_id": "", "diagnosis": ""})
