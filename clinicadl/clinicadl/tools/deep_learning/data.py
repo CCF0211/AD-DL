@@ -802,6 +802,8 @@ def load_data(train_val_path, diagnoses_list,
                     filted_df_train.loc[j]["session_id"] = ses_id
                 train_fake_df = train_fake_df.append(filted_df_train).drop_duplicates().reset_index(drop=True)
         print('use {} fake images for train!'.format(len(train_fake_df)))
+        print(train_fake_df)
+        print(train_df)
         train_df.append(train_fake_df).drop_duplicates().reset_index(drop=True)
         saved_tsv_path = os.path.join(train_path, fake_caps_path.split('/')[-1])
         save_path_train = os.path.join(saved_tsv_path, 'train_real_and_fake_' + "_".join(diagnoses_list) + '.tsv')
