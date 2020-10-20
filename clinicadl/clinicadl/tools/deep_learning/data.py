@@ -82,13 +82,14 @@ class MRIDataset(Dataset):
             origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
                                         't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-graymatter'] + '.nii.gz')
-            fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
-                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
-                                        participant + '_' + session
-                                        + FILENAME_TYPE['segm-graymatter'] + '.pt')
-            fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
-                                      't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
-                                      + FILENAME_TYPE['segm-graymatter'] + '.nii.gz')
+            if fake_caps_path is not None:
+                fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                            'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                            participant + '_' + session
+                                            + FILENAME_TYPE['segm-graymatter'] + '.pt')
+                fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                        't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
+                                        + FILENAME_TYPE['segm-graymatter'] + '.nii.gz')
             if os.path.exists(image_path):  # exist real pt file
                 None
             elif os.path.exists(origin_nii_path):  # exist real pt file
@@ -100,9 +101,9 @@ class MRIDataset(Dataset):
                     os.makedirs(save_dir)
                 torch.save(image_tensor.clone(), image_path)
                 print('save {}'.format(image_path))
-            elif os.path.exists(fake_image_path):
+            elif os.path.exists(fake_image_path) and fake_caps_path is not None:
                 image_path = fake_image_path
-            elif os.path.exists(fake_nii_path):
+            elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
                 image_array = nib.load(fake_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
                 save_dir = path.join(self.caps_directory, 'subjects', participant, session,
@@ -122,13 +123,14 @@ class MRIDataset(Dataset):
             origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
                                         't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-whitematter'] + '.nii.gz')
-            fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
-                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
-                                        participant + '_' + session
-                                        + FILENAME_TYPE['segm-whitematter'] + '.pt')
-            fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
-                                      't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
-                                      + FILENAME_TYPE['segm-whitematter'] + '.nii.gz')
+            if fake_caps_path is not None:
+                fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                            'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                            participant + '_' + session
+                                            + FILENAME_TYPE['segm-whitematter'] + '.pt')
+                fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                        't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
+                                        + FILENAME_TYPE['segm-whitematter'] + '.nii.gz')
             if os.path.exists(image_path):  # exist real pt file
                 None
             elif os.path.exists(origin_nii_path):  # exist real pt file
@@ -140,9 +142,9 @@ class MRIDataset(Dataset):
                     os.makedirs(save_dir)
                 torch.save(image_tensor.clone(), image_path)
                 print('save {}'.format(image_path))
-            elif os.path.exists(fake_image_path):
+            elif os.path.exists(fake_image_path) and fake_caps_path is not None:
                 image_path = fake_image_path
-            elif os.path.exists(fake_nii_path):
+            elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
                 image_array = nib.load(fake_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
                 save_dir = path.join(self.caps_directory, 'subjects', participant, session,
@@ -161,13 +163,14 @@ class MRIDataset(Dataset):
             origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
                                         't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-csf'] + '.nii.gz')
-            fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
-                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
-                                        participant + '_' + session
-                                        + FILENAME_TYPE['segm-csf'] + '.pt')
-            fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
-                                      't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
-                                      + FILENAME_TYPE['segm-csf'] + '.nii.gz')
+            if fake_caps_path is not None:
+                fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                            'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                            participant + '_' + session
+                                            + FILENAME_TYPE['segm-csf'] + '.pt')
+                fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                        't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
+                                        + FILENAME_TYPE['segm-csf'] + '.nii.gz')
             if os.path.exists(image_path):  # exist real pt file
                 None
             elif os.path.exists(origin_nii_path):  # exist real pt file
@@ -179,9 +182,9 @@ class MRIDataset(Dataset):
                     os.makedirs(save_dir)
                 torch.save(image_tensor.clone(), image_path)
                 print('save {}'.format(image_path))
-            elif os.path.exists(fake_image_path):
+            elif os.path.exists(fake_image_path) and fake_caps_path is not None:
                 image_path = fake_image_path
-            elif os.path.exists(fake_nii_path):
+            elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
                 image_array = nib.load(fake_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
                 save_dir = path.join(self.caps_directory, 'subjects', participant, session,
