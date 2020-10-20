@@ -613,7 +613,7 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
         raise ValueError("Mode %s is not implemented." % mode)
 
 
-def compute_num_cnn(input_dir, tsv_path, options, data="train"):
+def compute_num_cnn(input_dir, tsv_path, optiod_dans, data="train"):
     transformations = get_transforms(options.mode, options.minmaxnormalization)
 
     if data == "train":
@@ -694,7 +694,7 @@ def get_transforms(mode, minmaxnormalization=True):
 ################################
 
 def load_data(train_val_path, diagnoses_list,
-              split, n_splits=None, baseline=True):
+              split, n_splits=None, baseline=True, fake_caps_path=None):
     train_df = pd.DataFrame()
     valid_df = pd.DataFrame()
     if n_splits is None:
@@ -734,7 +734,32 @@ def load_data(train_val_path, diagnoses_list,
 
     train_df.reset_index(inplace=True, drop=True)
     valid_df.reset_index(inplace=True, drop=True)
-
+    if fake_caps_path is not None:
+        path_list=os.listdir(path)
+        fake_tsv_path = path_list[1]
+        fake_df = pd.read_csv(fake_tsv_path, sep='\t')
+        train_fake_df = pd.DataFrame(columns={"participant_id": "", "session_id": "", "diagnosis": ""})
+        valid_fake_df = pd.DataFrame(columns={"participant_id": "", "session_id": "", "diagnosis": ""})
+        for i in range(len(fake_df)):
+            subject = fake_df.loc[i]['participant_id']
+            filted_df_train = train_df.loc[train_df['participant_id'] == subject]
+            filted_df_valid = valid_df.loc[valid_df['participant_id'] == subject]
+            if filted_df_train.shape[0] != 0:
+                train_fake_df = train_fake_df.append(filted_df_train).drop_duplicates().reset_index(drop=True)
+            if filted_df_valid.shape[0] != 0:
+                valid_fake_df = valid_fake_df.append(filted_df_valid).drop_duplicates().reset_index(drop=True)
+        print('use {} fake images for train!'.format(len(train_fake_df)))
+        print('use {} fake images for valid!'.format(len(valid_fake_df)))
+        train_df.append(train_fake_df).drop_duplicates().reset_index(drop=True)
+        valid_df.append(valid_fake_df).drop_duplicates().reset_index(drop=True)
+        save_path_train = os.path.join(train_path,fake_caps_path.split('/')[-1],'train_real_and_fake_{}.tsv'.format(diagnoses_list))
+        save_path_valid = os.path.join(valid_path,fake_caps_path.split('/')[-1],'valid_real_and_fake_{}.tsv'.format(diagnoses_list))
+        os.makedirs(save_path_train)
+        os.makedirs(save_path_valid)
+        train_df.to_csv(save_path_train, sep='\t', index=False)
+        valid_df.to_csv(save_path_valid, sep='\t', index=False)
+        print('save: {}'.format(save_path_train))
+        print('save: {}'.format(save_path_valid))
     return train_df, valid_df
 
 

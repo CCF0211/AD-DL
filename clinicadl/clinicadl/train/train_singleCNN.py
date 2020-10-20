@@ -48,7 +48,8 @@ def train_single_cnn(params):
             params.diagnoses,
             fi,
             n_splits=params.n_splits,
-            baseline=params.baseline)
+            baseline=params.baseline,
+            fake_caps_path=params.fake_caps_path)
         data_train = return_dataset(params.mode, params.input_dir, training_df, params.preprocessing,
                                     transformations, params)
         data_valid = return_dataset(params.mode, params.input_dir, valid_df, params.preprocessing,
