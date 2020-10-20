@@ -739,28 +739,19 @@ def load_data(train_val_path, diagnoses_list,
         fake_tsv_path = os.path.join(fake_caps_path, path_list[1])
         fake_df = pd.read_csv(fake_tsv_path, sep='\t')
         train_fake_df = pd.DataFrame(columns={"participant_id": "", "session_id": "", "diagnosis": ""})
-        valid_fake_df = pd.DataFrame(columns={"participant_id": "", "session_id": "", "diagnosis": ""})
         for i in range(len(fake_df)):
             subject = fake_df.loc[i]['participant_id']
             filted_df_train = train_df.loc[train_df['participant_id'] == subject]
-            filted_df_valid = valid_df.loc[valid_df['participant_id'] == subject]
             if filted_df_train.shape[0] != 0:
                 train_fake_df = train_fake_df.append(filted_df_train).drop_duplicates().reset_index(drop=True)
-            if filted_df_valid.shape[0] != 0:
-                valid_fake_df = valid_fake_df.append(filted_df_valid).drop_duplicates().reset_index(drop=True)
         print('use {} fake images for train!'.format(len(train_fake_df)))
-        print('use {} fake images for valid!'.format(len(valid_fake_df)))
         train_df.append(train_fake_df).drop_duplicates().reset_index(drop=True)
-        valid_df.append(valid_fake_df).drop_duplicates().reset_index(drop=True)
         saved_tsv_path = os.path.join(train_path, fake_caps_path.split('/')[-1])
         save_path_train = os.path.join(saved_tsv_path, 'train_real_and_fake_' + "_".join(diagnoses_list) + '.tsv')
-        save_path_valid = os.path.join(saved_tsv_path, 'valid_real_and_fake_' + "_".join(diagnoses_list) + '.tsv')
         if not os.path.exists(saved_tsv_path):
             os.makedirs(saved_tsv_path)
         train_df.to_csv(save_path_train, sep='\t', index=False)
-        valid_df.to_csv(save_path_valid, sep='\t', index=False)
         print('save: {}'.format(save_path_train))
-        print('save: {}'.format(save_path_valid))
     return train_df, valid_df
 
 
