@@ -282,7 +282,7 @@ class MRIDatasetImage(MRIDataset):
     def __getitem__(self, idx):
         participant, session, _, label = self._get_meta_data(idx)
 
-        image_path = self._get_path(participant, session, "image", fake_CAPS_path=self.fake_caps_path)
+        image_path = self._get_path(participant, session, "image", fake_caps_path=self.fake_caps_path)
         image = torch.load(image_path)
 
         if self.transformations:
