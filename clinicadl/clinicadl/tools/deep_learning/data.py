@@ -103,6 +103,7 @@ class MRIDataset(Dataset):
                         os.makedirs(save_dir)
                     torch.save(image_tensor.clone(), fake_image_path)
                     print('save fake image: {}'.format(fake_image_path))
+                    image_path = fake_image_path
                 elif os.path.exists(image_path):  # exist real pt file
                     None
                 elif os.path.exists(origin_nii_path):  # exist real pt file
@@ -161,6 +162,7 @@ class MRIDataset(Dataset):
                     if not os.path.exists(save_dir):
                         os.makedirs(save_dir)
                     torch.save(image_tensor.clone(), fake_image_path)
+                    image_path = fake_image_path
                     print('save fake image: {}'.format(fake_image_path))
                 elif os.path.exists(image_path):  # exist real pt file
                     None
@@ -219,6 +221,7 @@ class MRIDataset(Dataset):
                     if not os.path.exists(save_dir):
                         os.makedirs(save_dir)
                     torch.save(image_tensor.clone(), fake_image_path)
+                    image_path = fake_image_path
                     print('save fake image: {}'.format(fake_image_path))
                 elif os.path.exists(image_path):  # exist real pt file
                     None
