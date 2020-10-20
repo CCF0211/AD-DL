@@ -755,7 +755,7 @@ def load_data(train_val_path, diagnoses_list,
         saved_tsv_path = os.path.join(train_path, fake_caps_path.split('/')[-1])
         save_path_train = os.path.join(saved_tsv_path, 'train_real_and_fake_' + "_".join(diagnoses_list) + '.tsv')
         save_path_valid = os.path.join(saved_tsv_path, 'valid_real_and_fake_' + "_".join(diagnoses_list) + '.tsv')
-        if not os.path.exists(saved_tsv_path)):
+        if not os.path.exists(saved_tsv_path):
             os.makedirs(saved_tsv_path)
         train_df.to_csv(save_path_train, sep='\t', index=False)
         valid_df.to_csv(save_path_valid, sep='\t', index=False)
