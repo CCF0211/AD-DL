@@ -90,30 +90,48 @@ class MRIDataset(Dataset):
                 fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
                                         't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-graymatter'] + '.nii.gz')
-            if os.path.exists(image_path):  # exist real pt file
-                None
-            elif os.path.exists(origin_nii_path):  # exist real pt file
-                image_array = nib.load(origin_nii_path).get_fdata()
-                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
-                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if not os.path.exists(save_dir):
-                    os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), image_path)
-                print('save {}'.format(image_path))
-            elif os.path.exists(fake_image_path) and fake_caps_path is not None:
-                image_path = fake_image_path
-            elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
-                image_array = nib.load(fake_nii_path).get_fdata()
-                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(fake_caps_path, 'subjects', participant, session,
-                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if not os.path.exists(save_dir):
-                    os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), fake_image_path)
-                print('save fake image: {}'.format(fake_image_path))
+                
+                # first use fake image, because some image lacked in tsv but have in caps
+                if os.path.exists(fake_image_path):
+                    image_path = fake_image_path
+                elif os.path.exists(fake_nii_path):
+                    image_array = nib.load(fake_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(fake_caps_path, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), fake_image_path)
+                    print('save fake image: {}'.format(fake_image_path))
+                elif os.path.exists(image_path):  # exist real pt file
+                    None
+                elif os.path.exists(origin_nii_path):  # exist real pt file
+                    image_array = nib.load(origin_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    print('Can not find:{}'.format(image_path))
+
             else:
-                print('Can not find:{}'.format(image_path))
+
+                if os.path.exists(image_path):  # exist real pt file
+                    None
+                elif os.path.exists(origin_nii_path):  # exist real pt file
+                    image_array = nib.load(origin_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    print('Can not find:{}'.format(image_path))
 
         elif self.preprocessing == "t1-spm-whitematter":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
@@ -131,30 +149,48 @@ class MRIDataset(Dataset):
                 fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
                                         't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-whitematter'] + '.nii.gz')
-            if os.path.exists(image_path):  # exist real pt file
-                None
-            elif os.path.exists(origin_nii_path):  # exist real pt file
-                image_array = nib.load(origin_nii_path).get_fdata()
-                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
-                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if not os.path.exists(save_dir):
-                    os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), image_path)
-                print('save {}'.format(image_path))
-            elif os.path.exists(fake_image_path) and fake_caps_path is not None:
-                image_path = fake_image_path
-            elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
-                image_array = nib.load(fake_nii_path).get_fdata()
-                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(fake_caps_path, 'subjects', participant, session,
-                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if not os.path.exists(save_dir):
-                    os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), fake_image_path)
-                print('save fake image: {}'.format(fake_image_path))
+                
+                # first use fake image, because some image lacked in tsv but have in caps
+                if os.path.exists(fake_image_path):
+                    image_path = fake_image_path
+                elif os.path.exists(fake_nii_path):
+                    image_array = nib.load(fake_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(fake_caps_path, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), fake_image_path)
+                    print('save fake image: {}'.format(fake_image_path))
+                elif os.path.exists(image_path):  # exist real pt file
+                    None
+                elif os.path.exists(origin_nii_path):  # exist real pt file
+                    image_array = nib.load(origin_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    print('Can not find:{}'.format(image_path))
+
             else:
-                print('Can not find:{}'.format(image_path))
+
+                if os.path.exists(image_path):  # exist real pt file
+                    None
+                elif os.path.exists(origin_nii_path):  # exist real pt file
+                    image_array = nib.load(origin_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    print('Can not find:{}'.format(image_path))
         elif self.preprocessing == "t1-spm-csf":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
                                    'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
@@ -171,34 +207,48 @@ class MRIDataset(Dataset):
                 fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
                                         't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-csf'] + '.nii.gz')
-            if os.path.exists(image_path):  # exist real pt file
-                None
-            elif os.path.exists(origin_nii_path):  # exist real pt file
-                image_array = nib.load(origin_nii_path).get_fdata()
-                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
-                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if not os.path.exists(save_dir):
-                    os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), image_path)
-                print('save {}'.format(image_path))
-            elif os.path.exists(fake_image_path) and fake_caps_path is not None:
-                image_path = fake_image_path
-            elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
-                image_array = nib.load(fake_nii_path).get_fdata()
-                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(fake_caps_path, 'subjects', participant, session,
-                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if not os.path.exists(save_dir):
-                    os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), fake_image_path)
-                print('save fake image: {}'.format(fake_image_path))
-            else:
-                print('Can not find:{}'.format(image_path))
+                
+                # first use fake image, because some image lacked in tsv but have in caps
+                if os.path.exists(fake_image_path):
+                    image_path = fake_image_path
+                elif os.path.exists(fake_nii_path):
+                    image_array = nib.load(fake_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(fake_caps_path, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), fake_image_path)
+                    print('save fake image: {}'.format(fake_image_path))
+                elif os.path.exists(image_path):  # exist real pt file
+                    None
+                elif os.path.exists(origin_nii_path):  # exist real pt file
+                    image_array = nib.load(origin_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    print('Can not find:{}'.format(image_path))
 
-        else:
-            raise NotImplementedError(
-                "The path to preprocessing %s is not implemented" % self.preprocessing)
+            else:
+
+                if os.path.exists(image_path):  # exist real pt file
+                    None
+                elif os.path.exists(origin_nii_path):  # exist real pt file
+                    image_array = nib.load(origin_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    print('Can not find:{}'.format(image_path))
 
         return image_path
 
