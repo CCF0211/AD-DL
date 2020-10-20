@@ -752,8 +752,8 @@ def load_data(train_val_path, diagnoses_list,
         print('use {} fake images for valid!'.format(len(valid_fake_df)))
         train_df.append(train_fake_df).drop_duplicates().reset_index(drop=True)
         valid_df.append(valid_fake_df).drop_duplicates().reset_index(drop=True)
-        name_train = 'train_real_and_fake'+ "_".join(diagnoses_list),'.tsv'
-        name_valid = 'valid_real_and_fake'+ "_".join(diagnoses_list),'.tsv'
+        name_train = 'train_real_and_fake' + "_".join(diagnoses_list) + '.tsv'
+        name_valid = 'valid_real_and_fake' + "_".join(diagnoses_list) + '.tsv'
         save_path_train = os.path.join(train_path, fake_caps_path.split('/')[-1], name_train)
         save_path_valid = os.path.join(valid_path, fake_caps_path.split('/')[-1], name_valid)
         os.makedirs(save_path_train)
