@@ -106,12 +106,12 @@ class MRIDataset(Dataset):
             elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
                 image_array = nib.load(fake_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                save_dir = path.join(fake_caps_path, 'subjects', participant, session,
                                      'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
                 if not os.path.exists(save_dir):
                     os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), image_path)
-                print('save fake image: {}'.format(image_path))
+                torch.save(image_tensor.clone(), fake_image_path)
+                print('save fake image: {}'.format(fake_image_path))
             else:
                 print('Can not find:{}'.format(image_path))
 
@@ -147,12 +147,12 @@ class MRIDataset(Dataset):
             elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
                 image_array = nib.load(fake_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                save_dir = path.join(fake_caps_path, 'subjects', participant, session,
                                      'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
                 if not os.path.exists(save_dir):
                     os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), image_path)
-                print('save fake image: {}'.format(image_path))
+                torch.save(image_tensor.clone(), fake_image_path)
+                print('save fake image: {}'.format(fake_image_path))
             else:
                 print('Can not find:{}'.format(image_path))
         elif self.preprocessing == "t1-spm-csf":
@@ -187,12 +187,12 @@ class MRIDataset(Dataset):
             elif os.path.exists(fake_nii_path) and fake_caps_path is not None:
                 image_array = nib.load(fake_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                save_dir = path.join(fake_caps_path, 'subjects', participant, session,
                                      'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
                 if not os.path.exists(save_dir):
                     os.makedirs(save_dir)
-                torch.save(image_tensor.clone(), image_path)
-                print('save fake image: {}'.format(image_path))
+                torch.save(image_tensor.clone(), fake_image_path)
+                print('save fake image: {}'.format(fake_image_path))
             else:
                 print('Can not find:{}'.format(image_path))
 
@@ -740,11 +740,13 @@ def load_data(train_val_path, diagnoses_list,
     if fake_caps_path is not None:
         path_list=os.listdir(fake_caps_path)
         fake_tsv_path = os.path.join(fake_caps_path, path_list[1])
+        
         fake_df = pd.read_csv(fake_tsv_path, sep='\t')
         train_fake_df = pd.DataFrame(columns={"participant_id": "", "session_id": "", "diagnosis": ""})
         for i in range(len(fake_df)):
             subject = fake_df.loc[i]['participant_id']
             filted_df_train = train_df.loc[train_df['participant_id'] == subject]
+            filted_df_train["session_id"] = fake_df.loc[i]["session_id"]
             if filted_df_train.shape[0] != 0:
                 train_fake_df = train_fake_df.append(filted_df_train).drop_duplicates().reset_index(drop=True)
         print('use {} fake images for train!'.format(len(train_fake_df)))
