@@ -62,7 +62,7 @@ class MRIDataset(Dataset):
     def __len__(self):
         return len(self.df) * self.elem_per_image
 
-    def _get_path(self, participant, session, mode="image"):
+    def _get_path(self, participant, session, mode="image", fake_caps_path=None):
 
         if self.preprocessing == "t1-linear":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
@@ -76,74 +76,122 @@ class MRIDataset(Dataset):
                                    + FILENAME_TYPE['skull_stripped'] + '.pt')
         elif self.preprocessing == "t1-spm-graymatter":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
-                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
-                        participant + '_' + session
-                        + FILENAME_TYPE['segm-graymatter'] + '.pt')
-            if os.path.exists(image_path):
-                None
-            else:
-                origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
-                't1','spm','segmentation','normalized_space', participant + '_' + session
+                                   'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                   participant + '_' + session
+                                   + FILENAME_TYPE['segm-graymatter'] + '.pt')
+            origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
+                                        't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-graymatter'] + '.nii.gz')
-
+            fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                        participant + '_' + session
+                                        + FILENAME_TYPE['segm-graymatter'] + '.pt')
+            fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                      't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
+                                      + FILENAME_TYPE['segm-graymatter'] + '.nii.gz')
+            if os.path.exists(image_path):  # exist real pt file
+                None
+            elif os.path.exists(origin_nii_path):  # exist real pt file
                 image_array = nib.load(origin_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir=path.join(self.caps_directory, 'subjects', participant, session,
-                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if os.path.exists(save_dir):
-                    torch.save(image_tensor.clone(), image_path)
-                    print('save {}'.format(image_path))
-                else:
+                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                if not os.path.exists(save_dir):
                     os.makedirs(save_dir)
-                    torch.save(image_tensor.clone(), image_path)
-                    print('save {}'.format(image_path))
+                torch.save(image_tensor.clone(), image_path)
+                print('save {}'.format(image_path))
+            elif os.path.exists(fake_image_path):
+                image_path = fake_image_path
+            elif os.path.exists(fake_nii_path):
+                image_array = nib.load(fake_nii_path).get_fdata()
+                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                if not os.path.exists(save_dir):
+                    os.makedirs(save_dir)
+                torch.save(image_tensor.clone(), image_path)
+                print('save fake image: {}'.format(image_path))
+            else:
+                print('Can not find:{}'.format(image_path))
 
         elif self.preprocessing == "t1-spm-whitematter":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
-                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
-                        participant + '_' + session
-                        + FILENAME_TYPE['segm-whitematter'] + '.pt')
-            if os.path.exists(image_path):
+                                   'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                   participant + '_' + session
+                                   + FILENAME_TYPE['segm-whitematter'] + '.pt')
+            origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
+                                        't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
+                                        + FILENAME_TYPE['segm-whitematter'] + '.nii.gz')
+            fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                        participant + '_' + session
+                                        + FILENAME_TYPE['segm-whitematter'] + '.pt')
+            fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                      't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
+                                      + FILENAME_TYPE['segm-whitematter'] + '.nii.gz')
+            if os.path.exists(image_path):  # exist real pt file
                 None
-            else:
-                origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
-                't1','spm','segmentation','normalized_space', participant + '_' + session
-                                        + FILENAME_TYPE['segm-whitematterr'] + '.nii.gz')
-
+            elif os.path.exists(origin_nii_path):  # exist real pt file
                 image_array = nib.load(origin_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir=path.join(self.caps_directory, 'subjects', participant, session,
-                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if os.path.exists(save_dir):
-                    torch.save(image_tensor.clone(), image_path)
-                    print('save {}'.format(image_path))
-                else:
+                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                if not os.path.exists(save_dir):
                     os.makedirs(save_dir)
-                    torch.save(image_tensor.clone(), image_path)
-                    print('save {}'.format(image_path))
+                torch.save(image_tensor.clone(), image_path)
+                print('save {}'.format(image_path))
+            elif os.path.exists(fake_image_path):
+                image_path = fake_image_path
+            elif os.path.exists(fake_nii_path):
+                image_array = nib.load(fake_nii_path).get_fdata()
+                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                if not os.path.exists(save_dir):
+                    os.makedirs(save_dir)
+                torch.save(image_tensor.clone(), image_path)
+                print('save fake image: {}'.format(image_path))
+            else:
+                print('Can not find:{}'.format(image_path))
         elif self.preprocessing == "t1-spm-csf":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
-                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
-                        participant + '_' + session
-                        + FILENAME_TYPE['segm-csf'] + '.pt')
-            if os.path.exists(image_path):
-                None
-            else:
-                origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
-                't1','spm','segmentation','normalized_space', participant + '_' + session
+                                   'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                   participant + '_' + session
+                                   + FILENAME_TYPE['segm-csf'] + '.pt')
+            origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
+                                        't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-csf'] + '.nii.gz')
-
+            fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                        participant + '_' + session
+                                        + FILENAME_TYPE['segm-csf'] + '.pt')
+            fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                      't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
+                                      + FILENAME_TYPE['segm-csf'] + '.nii.gz')
+            if os.path.exists(image_path):  # exist real pt file
+                None
+            elif os.path.exists(origin_nii_path):  # exist real pt file
                 image_array = nib.load(origin_nii_path).get_fdata()
                 image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
-                save_dir=path.join(self.caps_directory, 'subjects', participant, session,
-                        'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
-                if os.path.exists(save_dir):
-                    torch.save(image_tensor.clone(), image_path)
-                    print('save {}'.format(image_path))
-                else:
+                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                if not os.path.exists(save_dir):
                     os.makedirs(save_dir)
-                    torch.save(image_tensor.clone(), image_path)
-                    print('save {}'.format(image_path))
+                torch.save(image_tensor.clone(), image_path)
+                print('save {}'.format(image_path))
+            elif os.path.exists(fake_image_path):
+                image_path = fake_image_path
+            elif os.path.exists(fake_nii_path):
+                image_array = nib.load(fake_nii_path).get_fdata()
+                image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                     'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                if not os.path.exists(save_dir):
+                    os.makedirs(save_dir)
+                torch.save(image_tensor.clone(), image_path)
+                print('save fake image: {}'.format(image_path))
+            else:
+                print('Can not find:{}'.format(image_path))
 
         else:
             raise NotImplementedError(
@@ -171,7 +219,6 @@ class MRIDataset(Dataset):
     def _get_full_image(self):
         from ..data.utils import find_image_path as get_nii_path
         import nibabel as nib
-
 
         if self.preprocessing in ["t1-linear", "t1-extensive"]:
             participant_id = self.df.loc[0, 'participant_id']
@@ -214,7 +261,7 @@ class MRIDatasetImage(MRIDataset):
     """Dataset of MRI organized in a CAPS folder."""
 
     def __init__(self, caps_directory, data_file,
-                 preprocessing='t1-linear', transformations=None, crop_padding_to_128=False, resample_size=None):
+                 preprocessing='t1-linear', transformations=None, crop_padding_to_128=False, resample_size=None, fake_caps_path=None):
         """
         Args:
             caps_directory (string): Directory of all the images.
@@ -227,13 +274,15 @@ class MRIDatasetImage(MRIDataset):
         self.mode = "image"
         self.crop_padding_to_128 = crop_padding_to_128
         self.resample_size = resample_size
+        self.fake_caps_path = fake_caps_path
         super().__init__(caps_directory, data_file, preprocessing, transformations)
         print('crop_padding_to_128 type:')
         print(type(self.crop_padding_to_128))
+
     def __getitem__(self, idx):
         participant, session, _, label = self._get_meta_data(idx)
 
-        image_path = self._get_path(participant, session, "image")
+        image_path = self._get_path(participant, session, "image", fake_CAPS_path=self.fake_caps_path)
         image = torch.load(image_path)
 
         if self.transformations:
@@ -247,7 +296,8 @@ class MRIDatasetImage(MRIDataset):
         if self.resample_size is not None:
             assert self.resample_size > 0, 'resample_size should be a int positive number'
             image = image.unsqueeze(0)
-            image = F.interpolate(image, size=self.resample_size)  # resize to resample_size * resample_size * resample_size
+            image = F.interpolate(image,
+                                  size=self.resample_size)  # resize to resample_size * resample_size * resample_size
             image = image.squeeze(0)
         sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
                   'image_path': image_path}
@@ -399,11 +449,11 @@ class MRIDatasetRoi(MRIDataset):
         crop_size = (50, 50, 50)  # the output cropped hippocampus size
 
         extracted_roi = image_tensor[
-            :,
-            crop_center[0] - crop_size[0] // 2: crop_center[0] + crop_size[0] // 2:,
-            crop_center[1] - crop_size[1] // 2: crop_center[1] + crop_size[1] // 2:,
-            crop_center[2] - crop_size[2] // 2: crop_center[2] + crop_size[2] // 2:
-        ].clone()
+                        :,
+                        crop_center[0] - crop_size[0] // 2: crop_center[0] + crop_size[0] // 2:,
+                        crop_center[1] - crop_size[1] // 2: crop_center[1] + crop_size[1] // 2:,
+                        crop_center[2] - crop_size[2] // 2: crop_center[2] + crop_size[2] // 2:
+                        ].clone()
 
         return extracted_roi
 
@@ -481,7 +531,7 @@ class MRIDatasetSlice(MRIDataset):
 
         image = self._get_full_image()
         return image.size(self.mri_plane + 1) - \
-            self.discarded_slices[0] - self.discarded_slices[1]
+               self.discarded_slices[0] - self.discarded_slices[1]
 
     def extract_slice_from_mri(self, image, index_slice):
         """
@@ -528,8 +578,9 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
             data_df,
             preprocessing,
             transformations=transformations,
-            crop_padding_to_128 = params.crop_padding_to_128,
-            resample_size = params.resample_size,
+            crop_padding_to_128=params.crop_padding_to_128,
+            resample_size=params.resample_size,
+            fake_caps_path=params.fake_caps_path,
         )
     if mode == "patch":
         return MRIDatasetPatch(
@@ -563,7 +614,6 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
 
 
 def compute_num_cnn(input_dir, tsv_path, options, data="train"):
-
     transformations = get_transforms(options.mode, options.minmaxnormalization)
 
     if data == "train":
@@ -645,7 +695,6 @@ def get_transforms(mode, minmaxnormalization=True):
 
 def load_data(train_val_path, diagnoses_list,
               split, n_splits=None, baseline=True):
-
     train_df = pd.DataFrame()
     valid_df = pd.DataFrame()
     if n_splits is None:
@@ -662,10 +711,10 @@ def load_data(train_val_path, diagnoses_list,
     print("Valid", valid_path)
 
     for diagnosis in diagnoses_list:
-        if isinstance(baseline,str):
+        if isinstance(baseline, str):
             if baseline in ['true', 'True']:
-               train_diagnosis_path = path.join(
-                train_path, diagnosis + '_baseline.tsv')
+                train_diagnosis_path = path.join(
+                    train_path, diagnosis + '_baseline.tsv')
             elif baseline in ['false', 'False']:
                 train_diagnosis_path = path.join(train_path, diagnosis + '.tsv')
         else:
@@ -690,11 +739,9 @@ def load_data(train_val_path, diagnoses_list,
 
 
 def load_data_test(test_path, diagnoses_list):
-
     test_df = pd.DataFrame()
 
     for diagnosis in diagnoses_list:
-
         test_diagnosis_path = path.join(test_path, diagnosis + '_baseline.tsv')
         test_diagnosis_df = pd.read_csv(test_diagnosis_path, sep='\t')
         test_df = pd.concat([test_df, test_diagnosis_df])

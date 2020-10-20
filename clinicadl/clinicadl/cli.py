@@ -180,6 +180,7 @@ def train_func(args):
                 crop_padding_to_128=args.crop_padding_to_128,
                 resample_size=args.resample_size,
                 drop_last=args.drop_last,
+                fake_caps_path=args.fake_caps_path,
             )
             train_single_cnn(train_params_cnn)
     elif args.mode == 'slice':
