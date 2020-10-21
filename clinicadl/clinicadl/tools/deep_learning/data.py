@@ -669,7 +669,7 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
         raise ValueError("Mode %s is not implemented." % mode)
 
 
-def compute_num_cnn(input_dir, tsv_path, optiod_dans, data="train"):
+def compute_num_cnn(input_dir, tsv_path, options, data="train"):
     transformations = get_transforms(options.mode, options.minmaxnormalization)
 
     if data == "train":
