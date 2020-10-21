@@ -343,7 +343,7 @@ class MRIDatasetImage(MRIDataset):
 
         if self.transformations:
             image = self.transformations(image)
-        if self.crop_padding_to_128:
+        if self.crop_padding_to_128 and image.shape[1] != 128:
             image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
             image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
             pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
