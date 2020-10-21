@@ -116,7 +116,7 @@ class MRIDataset(Dataset):
                     torch.save(image_tensor.clone(), image_path)
                     print('save {}'.format(image_path))
                 else:
-                    print('Can not find:{}'.format(image_path))
+                    print('Can not find:{} in both real and fake folder'.format(image_path))
 
             else:
 
