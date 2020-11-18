@@ -38,17 +38,17 @@ def create_model(model_name, gpu=False, device_index=0, pretrain_resnet_path=Non
         net_dict.update(pretrain_dict)
         model.load_state_dict(net_dict)
 
-        new_parameters = [] 
-        for pname, p in model.named_parameters():
-            for layer_name in new_layer_names:
-                if pname.find(layer_name) >= 0:
-                    new_parameters.append(p)
-                    break
+        # new_parameters = [] 
+        # for pname, p in model.named_parameters():
+        #     for layer_name in new_layer_names:
+        #         if pname.find(layer_name) >= 0:
+        #             new_parameters.append(p)
+        #             break
 
-        new_parameters_id = list(map(id, new_parameters))
-        base_parameters = list(filter(lambda p: id(p) not in new_parameters_id, model.parameters()))
-        parameters = {'base_parameters': base_parameters, 
-                      'new_parameters': new_parameters}
+        # new_parameters_id = list(map(id, new_parameters))
+        # base_parameters = list(filter(lambda p: id(p) not in new_parameters_id, model.parameters()))
+        # parameters = {'base_parameters': base_parameters, 
+        #               'new_parameters': new_parameters}
 
     return model
 

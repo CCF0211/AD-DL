@@ -107,9 +107,27 @@ def train_single_cnn(params):
 
         # Define criterion and optimizer
         criterion = torch.nn.CrossEntropyLoss()
-        optimizer = eval("torch.optim." + params.optimizer)(filter(lambda x: x.requires_grad, model.parameters()),
-                                                            lr=params.learning_rate,
-                                                            weight_decay=params.weight_decay)
+        if params.pretrain_resnet_path is not None:
+            new_parameters = [] 
+            for pname, p in model.named_parameters():
+                for layer_name in params.new_layer_names:
+                    if pname.find(layer_name) >= 0:
+                        new_parameters.append(p)
+                        break
+
+            new_parameters_id = list(map(id, new_parameters))
+            base_parameters = list(filter(lambda p: id(p) not in new_parameters_id, model.parameters()))
+            parameters = {'base_parameters': base_parameters, 
+                        'new_parameters': new_parameters}
+            para = [
+                { 'params': parameters['base_parameters'], 'lr': params.learning_rate}, 
+                { 'params': parameters['new_parameters'], 'lr': params.learning_rate*100}
+                ]
+            optimizer = eval("torch.optim." + params.optimizer)(para, weight_decay=params.weight_decay)
+        else:
+            optimizer = eval("torch.optim." + params.optimizer)(filter(lambda x: x.requires_grad, model.parameters()),
+                                                                lr=params.learning_rate,
+                                                                weight_decay=params.weight_decay)
         setattr(params, 'beginning_epoch', 0)
 
         # Define output directories
