@@ -9,30 +9,30 @@ from networks import DAM_3d, UNet3D, ResidualUNet3D, ResidualUNet3D_add_more_fc,
 from Unet import N_Net
 from ConvNet3D import ConvNet3D
 from VoxCNN import VoxCNN
-from resnet50_3d import i3_res50, i3_res50_nl
+from resnet50_3d import *
 
 """
 All the architectures are built here
 """
 
 
-class resnet50_3d(nn.Module):
-    def __init__(self, dropout=0.5):
-        super(resnet50_3d, self).__init__()
-        self.net = i3_res50(dropout=dropout)
+# class resnet50_3d(nn.Module):
+#     def __init__(self, dropout=0.5):
+#         super(resnet50_3d, self).__init__()
+#         self.net = i3_res50(dropout=dropout)
 
-    def forward(self, x):
-        x = self.net(x)
-        return x
+#     def forward(self, x):
+#         x = self.net(x)
+#         return x
 
-class resnet50_3d_nl(nn.Module):
-    def __init__(self, dropout=0.5):
-        super(resnet50_3d_nl, self).__init__()
-        self.net = i3_res50_nl(dropout=dropout)
+# class resnet50_3d_nl(nn.Module):
+#     def __init__(self, dropout=0.5):
+#         super(resnet50_3d_nl, self).__init__()
+#         self.net = i3_res50_nl(dropout=dropout)
 
-    def forward(self, x):
-        x = self.net(x)
-        return x
+#     def forward(self, x):
+#         x = self.net(x)
+#         return x
 
 
 class Conv5_FC3_DAM(nn.Module):

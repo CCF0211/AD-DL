@@ -79,27 +79,27 @@ def train_autoencoder(params):
         if params.model == 'UNet3D':
             print('********** init autoencoder UNet3D model! **********')
             decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
-                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names, autoencoder=True)
         elif params.model == 'ResidualUNet3D':
             print('********** init autoencoder ResidualUNet3D model! **********')
             decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
-                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names, autoencoder=True)
         elif params.model == 'UNet3D_add_more_fc':
             print('********** init autoencoder UNet3D_add_more_fc model! **********')
             decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
-                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names, autoencoder=True)
         elif params.model == 'ResidualUNet3D_add_more_fc':
             print('********** init autoencoder ResidualUNet3D_add_more_fc model! **********')
             decoder = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
-                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, autoencoder=True)
+                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names, autoencoder=True)
         elif params.model == 'VoxCNN':
             print('********** init autoencoder VoxCNN model! **********')
-            decoder = init_model(params.model, gpu=params.gpu, device_index=params.device, autoencoder=True)
+            decoder = init_model(params.model, gpu=params.gpu, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names, autoencoder=True)
         elif params.model == 'ConvNet3D':
             print('********** init autoencoder ConvNet3D model! **********')
-            decoder = init_model(params.model, gpu=params.gpu, device_index=params.device, autoencoder=True)
+            decoder = init_model(params.model, gpu=params.gpu, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names, autoencoder=True)
         else:
-            decoder = init_model(params.model, gpu=params.gpu, autoencoder=True, dropout=params.dropout, device_index=params.device)
+            decoder = init_model(params.model, gpu=params.gpu, autoencoder=True, dropout=params.dropout, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         optimizer = eval("torch.optim." + params.optimizer)(filter(lambda x: x.requires_grad, decoder.parameters()),
                                                             lr=params.learning_rate,
                                                             weight_decay=params.weight_decay)

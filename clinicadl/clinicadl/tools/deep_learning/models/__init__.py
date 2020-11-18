@@ -4,9 +4,10 @@ from .image_level import Conv5_FC3, Conv5_FC3_mni, Conv5_FC3_DAM, Conv5_FC3_DAM_
 from .patch_level import Conv4_FC3
 from .slice_level import resnet18
 import torch
+from torch import nn
 
 
-def create_model(model_name, gpu=False, device_index=0, **kwargs):
+def create_model(model_name, gpu=False, device_index=0, pretrain_resnet_path=None, new_layer_names=[], **kwargs):
     """
     Creates model object from the model_name.
 
@@ -24,8 +25,30 @@ def create_model(model_name, gpu=False, device_index=0, **kwargs):
     if gpu:
         device = torch.device("cuda:{}".format(device_index))
         model.to(device)
+        model = nn.DataParallel(model, device_ids=None)
     else:
         model.cpu()
+    net_dict = model.state_dict()
+    
+    if pretrain_resnet_path is not None:
+        print ('loading pretrained model {}'.format(pretrain_resnet_path))
+        pretrain = torch.load(pretrain_resnet_path)
+        pretrain_dict = {k: v for k, v in pretrain['state_dict'].items() if k in net_dict.keys()}
+         
+        net_dict.update(pretrain_dict)
+        model.load_state_dict(net_dict)
+
+        new_parameters = [] 
+        for pname, p in model.named_parameters():
+            for layer_name in new_layer_names:
+                if pname.find(layer_name) >= 0:
+                    new_parameters.append(p)
+                    break
+
+        new_parameters_id = list(map(id, new_parameters))
+        base_parameters = list(filter(lambda p: id(p) not in new_parameters_id, model.parameters()))
+        parameters = {'base_parameters': base_parameters, 
+                      'new_parameters': new_parameters}
 
     return model
 
@@ -54,7 +77,7 @@ def create_autoencoder(model_name, gpu=False, transfer_learning_path=None, diffe
     return decoder
 
 
-def init_model(model_name, autoencoder=False, gpu=False, device_index=0, **kwargs):
+def init_model(model_name, autoencoder=False, gpu=False, device_index=0, pretrain_resnet_path=None, new_layer_names=[], **kwargs):
 
     model = create_model(model_name, gpu=gpu, device_index=device_index, **kwargs)
     if autoencoder:

@@ -181,6 +181,8 @@ def train_func(args):
                 resample_size=args.resample_size,
                 drop_last=args.drop_last,
                 fake_caps_path=args.fake_caps_path,
+                pretrain_resnet_path = args.pretrain_resnet_path,
+                new_layer_names = args.new_layer_names,
             )
             train_single_cnn(train_params_cnn)
     elif args.mode == 'slice':

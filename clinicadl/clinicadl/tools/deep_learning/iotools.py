@@ -66,6 +66,8 @@ class Parameters:
             resample_size: int = None,
             drop_last: bool = False,
             fake_caps_path: str = None,
+            pretrain_resnet_path: str = None,
+            new_layer_names: str= [],
     ):
         """
         Optional parameters used for training CNN.
@@ -145,6 +147,8 @@ class Parameters:
         self.resample_size = resample_size
         self.drop_last = drop_last
         self.fake_caps_path = fake_caps_path
+        self.pretrain_resnet_path = pretrain_resnet_path
+        self.new_layer_names = new_layer_names
 
 
 def check_and_clean(d):
