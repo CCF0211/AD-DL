@@ -79,7 +79,7 @@ def create_autoencoder(model_name, gpu=False, transfer_learning_path=None, diffe
 
 def init_model(model_name, autoencoder=False, gpu=False, device_index=0, pretrain_resnet_path=None, new_layer_names=[], **kwargs):
 
-    model = create_model(model_name, gpu=gpu, device_index=device_index, **kwargs)
+    model = create_model(model_name, gpu=gpu, device_index=device_index, pretrain_resnet_path=pretrain_resnet_path, new_layer_names=new_layer_names, **kwargs)
     if autoencoder:
         model = AutoEncoder(model)
 
