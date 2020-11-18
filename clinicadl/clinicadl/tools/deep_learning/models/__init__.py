@@ -25,7 +25,7 @@ def create_model(model_name, gpu=False, device_index=0, pretrain_resnet_path=Non
     if gpu:
         device = torch.device("cuda:{}".format(device_index))
         model.to(device)
-        model = nn.DataParallel(model, device_ids=device)
+        model = nn.DataParallel(model, device_ids=[device])
     else:
         model.cpu()
     net_dict = model.state_dict()
