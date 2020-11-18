@@ -365,6 +365,7 @@ class MRIDatasetImage(MRIDataset):
         data = self.__resize_data__(data, input_D, input_H, input_W)
         # normalization datas
         data = self.__itensity_normalize_one_volume__(data)
+        data = torch.from_numpy(data)
         image = data.unsqueeze(dim=0)
 
         sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
