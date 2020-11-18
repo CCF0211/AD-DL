@@ -11,6 +11,7 @@ from clinicadl.tools.inputs.filename_types import FILENAME_TYPE
 import os
 import nibabel as nib
 import torch.nn.functional as F
+from scipy import ndimage
 
 
 #################################
@@ -355,10 +356,59 @@ class MRIDatasetImage(MRIDataset):
             image = F.interpolate(image,
                                   size=self.resample_size)  # resize to resample_size * resample_size * resample_size
             image = image.squeeze(0)
+        # preprocessing data    
+        data = image.squeeze()
+        input_D, input_H, input_W = data.shape
+        # drop out the invalid range
+        data = self.__drop_invalid_range__(data)
+        # resize data
+        data = self.__resize_data__(data, input_D, input_H, input_W)
+        # normalization datas
+        data = self.__itensity_normalize_one_volume__(data)
+        image = data.unsqueeze(dim=0)
+
         sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
                   'image_path': image_path}
 
         return sample
+
+    def __drop_invalid_range__(self, volume):
+        """
+        Cut off the invalid area
+        """
+        zero_value = volume[0, 0, 0]
+        non_zeros_idx = np.where(volume != zero_value)
+        
+        [max_z, max_h, max_w] = np.max(np.array(non_zeros_idx), axis=1)
+        [min_z, min_h, min_w] = np.min(np.array(non_zeros_idx), axis=1)
+        
+        return volume[min_z:max_z, min_h:max_h, min_w:max_w]
+
+    def __resize_data__(self, data, input_D, input_H, input_W):
+        """
+        Resize the data to the input size
+        """ 
+        [depth, height, width] = data.shape
+        scale = [input_D*1.0/depth, input_H*1.0/height, input_W*1.0/width]  
+        data = ndimage.interpolation.zoom(data, scale, order=0)
+
+        return data
+    def __itensity_normalize_one_volume__(self, volume):
+        """
+        normalize the itensity of an nd volume based on the mean and std of nonzeor region
+        inputs:
+            volume: the input nd volume
+        outputs:
+            out: the normalized nd volume
+        """
+        
+        pixels = volume[volume > 0]
+        mean = pixels.mean()
+        std  = pixels.std()
+        out = (volume - mean)/std
+        out_random = np.random.normal(0, 1, size = volume.shape)
+        out[volume == 0] = out_random[volume == 0]
+        return out
 
     def num_elem_per_image(self):
         return 1
