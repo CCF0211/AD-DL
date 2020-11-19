@@ -12,7 +12,7 @@ from VoxCNN import VoxCNN
 from resnet50_3d import *
 
 __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_layer", "Conv5_FC3_DAM_last", "resnet50_3d", "resnet50_3d_nl", "UNet3D", "N_Net", "ResidualUNet3D", "VoxCNN", "ConvNet3D", "UNet3D_add_more_fc", "ResidualUNet3D_add_more_fc",
-'ResNet', 'resnet10', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'resnet200'，'resnet101_res_fc',]
+'ResNet', 'resnet10', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'resnet200', 'resnet101_res_fc',]
 
 """
 All the architectures are built here
