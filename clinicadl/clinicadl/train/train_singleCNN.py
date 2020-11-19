@@ -120,8 +120,8 @@ def train_single_cnn(params):
             parameters = {'base_parameters': base_parameters, 
                         'new_parameters': new_parameters}
             para = [
-                { 'params': parameters['base_parameters'], 'lr': params.learning_rate}, 
-                { 'params': parameters['new_parameters'], 'lr': params.learning_rate*100}
+                { 'params': parameters['base_parameters'], 'lr': params.learning_rate/10}, 
+                { 'params': parameters['new_parameters'], 'lr': params.learning_rate}
                 ]
             optimizer = eval("torch.optim." + params.optimizer)(para, weight_decay=params.weight_decay)
         else:
