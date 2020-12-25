@@ -376,7 +376,7 @@ class MRIDatasetImage(MRIDataset):
         image = data.unsqueeze(dim=0)
 
         sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
-                  'image_path': image_path}
+                  'image_path': image_path, 'num_fake_mri':self.num_fake_mri}
 
         return sample
 

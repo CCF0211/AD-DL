@@ -138,12 +138,12 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              '{}_model_valid_balanced_accuracy'.format(cnn_index): results_valid["balanced_accuracy"],
                              '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
                              'global_step': global_step})
-                        print("[{}]: ({}/{}) model {} level training accuracy is {} at the end of iteration {}"
+                        print("[{}]: ({}/{}) model {} level training accuracy is {} at the end of iteration {}-fake mri count:{}"
                               .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode,
-                                      results_train["balanced_accuracy"], i))
-                        print("[{}]: ({}/{}) model {} level validation accuracy is {} at the end of iteration {}"
+                                      results_train["balanced_accuracy"], i, data['num_fake_mri']))
+                        print("[{}]: ({}/{}) model {} level validation accuracy is {} at the end of iteration {}-fake mri count:{}"
                               .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode,
-                                      results_valid["balanced_accuracy"], i))
+                                      results_valid["balanced_accuracy"], i, data['num_fake_mri']))
 
             tend = time()
         print('[{}]: Mean time per batch loading (train):'.format(timeSince(train_begin_time)),
