@@ -121,10 +121,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              'valid_balanced_accuracy': results_valid["balanced_accuracy"],
                              'valid_loss': mean_loss_valid,
                              'global_step': global_step})
-                        print("[%s]: %s level training accuracy is %f at the end of iteration %d"
-                              % (timeSince(train_begin_time), options.mode, results_train["balanced_accuracy"], i))
-                        print("[%s]: %s level validation accuracy is %f at the end of iteration %d"
-                              % (timeSince(train_begin_time), options.mode, results_valid["balanced_accuracy"], i))
+                        print("[%s]: %s level training accuracy is %f at the end of iteration %d - fake mri count: %d"
+                              % (timeSince(train_begin_time), options.mode, results_train["balanced_accuracy"], i, data['num_fake_mri']))
+                        print("[%s]: %s level validation accuracy is %f at the end of iteration %d - fake mri count: %d"
+                              % (timeSince(train_begin_time), options.mode, results_valid["balanced_accuracy"], i, data['num_fake_mri']))
                     else:
                         writer_train.add_scalar('{}_model_balanced_accuracy'.format(cnn_index),
                                                 results_train["balanced_accuracy"], global_step)
