@@ -34,6 +34,7 @@ class MRIDataset(Dataset):
             'MCI': 1,
             'unlabeled': -1}
         self.preprocessing = preprocessing
+        self.num_fake_mri = 0
 
         if not hasattr(self, 'elem_index'):
             raise ValueError(
@@ -95,6 +96,7 @@ class MRIDataset(Dataset):
                 # first use fake image, because some image lacked in tsv but have in caps
                 if os.path.exists(fake_image_path):
                     image_path = fake_image_path
+                    self.num_fake_mri = self.num_fake_mri +1
                 elif os.path.exists(fake_nii_path):
                     image_array = nib.load(fake_nii_path).get_fdata()
                     image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
@@ -104,6 +106,7 @@ class MRIDataset(Dataset):
                         os.makedirs(save_dir)
                     torch.save(image_tensor.clone(), fake_image_path)
                     print('save fake image: {}'.format(fake_image_path))
+                    self.num_fake_mri = self.num_fake_mri +1
                     image_path = fake_image_path
                 elif os.path.exists(image_path):  # exist real pt file
                     None
@@ -155,6 +158,7 @@ class MRIDataset(Dataset):
                 # first use fake image, because some image lacked in tsv but have in caps
                 if os.path.exists(fake_image_path):
                     image_path = fake_image_path
+                    self.num_fake_mri = self.num_fake_mri +1
                 elif os.path.exists(fake_nii_path):
                     image_array = nib.load(fake_nii_path).get_fdata()
                     image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
@@ -165,6 +169,7 @@ class MRIDataset(Dataset):
                     torch.save(image_tensor.clone(), fake_image_path)
                     image_path = fake_image_path
                     print('save fake image: {}'.format(fake_image_path))
+                    self.num_fake_mri = self.num_fake_mri +1
                 elif os.path.exists(image_path):  # exist real pt file
                     None
                 elif os.path.exists(origin_nii_path):  # exist real pt file
@@ -214,6 +219,7 @@ class MRIDataset(Dataset):
                 # first use fake image, because some image lacked in tsv but have in caps
                 if os.path.exists(fake_image_path):
                     image_path = fake_image_path
+                    self.num_fake_mri = self.num_fake_mri +1
                 elif os.path.exists(fake_nii_path):
                     image_array = nib.load(fake_nii_path).get_fdata()
                     image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
@@ -224,6 +230,7 @@ class MRIDataset(Dataset):
                     torch.save(image_tensor.clone(), fake_image_path)
                     image_path = fake_image_path
                     print('save fake image: {}'.format(fake_image_path))
+                    self.num_fake_mri = self.num_fake_mri +1
                 elif os.path.exists(image_path):  # exist real pt file
                     None
                 elif os.path.exists(origin_nii_path):  # exist real pt file
