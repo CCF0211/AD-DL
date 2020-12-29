@@ -271,7 +271,8 @@ class Conv5_FC3(nn.Module):
             Flatten(),
             nn.Dropout(p=dropout),
 
-            nn.Linear(128 * 6 * 7 * 6, 1300),
+            # nn.Linear(128 * 6 * 7 * 6, 1300),
+            nn.Linear(128 * 4 * 4 * 4, 1300),
             nn.ReLU(),
 
             nn.Linear(1300, 50),
