@@ -860,6 +860,8 @@ def load_data(train_val_path, diagnoses_list,
             filted_df_train = train_df.loc[train_df['participant_id'] == subject].drop_duplicates().reset_index(drop=True)  
             if filted_df_train.shape[0] != 0:
                 filted_fake_df = fake_df.loc[fake_df['participant_id'] == subject].drop_duplicates().reset_index(drop=True) 
+                diagnosis = filted_df_train.loc[0]["diagnosis"]
+                filted_fake_df['diagnosis'] = diagnosis
                 train_fake_df = train_fake_df.append(filted_fake_df).drop_duplicates().reset_index(drop=True)
         print('use {} fake images for train!'.format(len(train_fake_df)))
         train_df = train_df.append(train_fake_df).drop_duplicates().reset_index(drop=True)
