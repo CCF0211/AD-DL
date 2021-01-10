@@ -5,6 +5,7 @@ import torch.nn as nn
 import sys
 
 sys.path.append('/root/fanchenchen/fanchenchen/MRI/code/paper')
+sys.path.append('/root/Downloads/code/MRI/paper')
 from networks import DAM_3d, UNet3D, ResidualUNet3D, ResidualUNet3D_add_more_fc, UNet3D_add_more_fc
 from Unet import N_Net
 from ConvNet3D import ConvNet3D
