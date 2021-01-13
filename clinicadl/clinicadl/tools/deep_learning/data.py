@@ -853,7 +853,7 @@ def load_data(train_val_path, diagnoses_list,
         for t in range(len(path_list)):
             if path_list[t] != 'subjects':
                 file_name = path_list[t]
-        fake_tsv_path = os.path.join(fake_caps_path, path_list[1])
+        fake_tsv_path = os.path.join(fake_caps_path, file_name)
         
         fake_df = pd.read_csv(fake_tsv_path, sep='\t')
         train_fake_df = pd.DataFrame(columns={"participant_id": "", "session_id": "", "diagnosis": ""})
