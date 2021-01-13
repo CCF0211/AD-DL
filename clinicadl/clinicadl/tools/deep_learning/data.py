@@ -732,7 +732,7 @@ def compute_num_cnn(input_dir, tsv_path, options, data="train"):
 
     if data == "train":
         example_df, _ = load_data(tsv_path, options.diagnoses, 0, options.n_splits, options.baseline)
-    elif data == "classify":load_da
+    elif data == "classify":
         example_df = pd.read_csv(tsv_path, sep='\t')
     else:
         example_df = load_data_test(tsv_path, options.diagnoses)
@@ -853,7 +853,7 @@ def load_data(train_val_path, diagnoses_list,
         for t in range(len(path_list)):
             if path_list[t] != 'subjects':
                 file_name = path_list[t]
-        fake_tsv_path = os.path.join(fake_caps_path, file_name)
+        fake_tsv_path = os.path.join(fake_caps_path, path_list[1])
         
         fake_df = pd.read_csv(fake_tsv_path, sep='\t')
         train_fake_df = pd.DataFrame(columns={"participant_id": "", "session_id": "", "diagnosis": ""})
