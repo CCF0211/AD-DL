@@ -40,7 +40,7 @@ def train_single_cnn(params):
     else:
         fold_iterator = [params.split]
 
-    matric_dict_list={}
+    matric_dict_list = {}
     for fi in fold_iterator:
 
         training_df, valid_df = load_data(
@@ -80,35 +80,51 @@ def train_single_cnn(params):
         print('Initialization of the model')
         if params.model == 'UNet3D':
             print('********** init UNet3D model! **********')
-            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
-                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
+                               in_channels=params.in_channels,
+                               out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order,
+                               num_groups=params.num_groups, num_levels=params.num_levels,
+                               pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         elif params.model == 'ResidualUNet3D':
             print('********** init ResidualUNet3D model! **********')
-            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
-                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
+                               in_channels=params.in_channels,
+                               out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order,
+                               num_groups=params.num_groups, num_levels=params.num_levels,
+                               pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         elif params.model == 'UNet3D_add_more_fc':
             print('********** init UNet3D_add_more_fc model! **********')
-            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
-                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
+                               in_channels=params.in_channels,
+                               out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order,
+                               num_groups=params.num_groups, num_levels=params.num_levels,
+                               pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         elif params.model == 'ResidualUNet3D_add_more_fc':
             print('********** init ResidualUNet3D_add_more_fc model! **********')
-            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, in_channels=params.in_channels,
-                 out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order, num_groups=params.num_groups, num_levels=params.num_levels, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)       
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
+                               in_channels=params.in_channels,
+                               out_channels=params.out_channels, f_maps=params.f_maps, layer_order=params.layer_order,
+                               num_groups=params.num_groups, num_levels=params.num_levels,
+                               pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         elif params.model == 'VoxCNN':
             print('********** init VoxCNN model! **********')
-            model = init_model(params.model, gpu=params.gpu, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
+            model = init_model(params.model, gpu=params.gpu, device_index=params.device,
+                               pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         elif params.model == 'ConvNet3D':
             print('********** init ConvNet3D model! **********')
-            model = init_model(params.model, gpu=params.gpu, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
+            model = init_model(params.model, gpu=params.gpu, device_index=params.device,
+                               pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         else:
-            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
+                               pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         model = transfer_learning(model, fi, source_path=params.transfer_learning_path,
-                                  gpu=params.gpu, selection=params.transfer_learning_selection, device_index=params.device)
+                                  gpu=params.gpu, selection=params.transfer_learning_selection,
+                                  device_index=params.device)
 
         # Define criterion and optimizer
         criterion = torch.nn.CrossEntropyLoss()
         if params.pretrain_resnet_path is not None:
-            new_parameters = [] 
+            new_parameters = []
             for pname, p in model.named_parameters():
                 for layer_name in params.new_layer_names:
                     if pname.find(layer_name) >= 0:
@@ -117,12 +133,12 @@ def train_single_cnn(params):
 
             new_parameters_id = list(map(id, new_parameters))
             base_parameters = list(filter(lambda p: id(p) not in new_parameters_id, model.parameters()))
-            parameters = {'base_parameters': base_parameters, 
-                        'new_parameters': new_parameters}
+            parameters = {'base_parameters': base_parameters,
+                          'new_parameters': new_parameters}
             para = [
-                { 'params': parameters['base_parameters'], 'lr': params.learning_rate/10}, 
-                { 'params': parameters['new_parameters'], 'lr': params.learning_rate}
-                ]
+                {'params': parameters['base_parameters'], 'lr': params.learning_rate / 10},
+                {'params': parameters['new_parameters'], 'lr': params.learning_rate}
+            ]
             optimizer = eval("torch.optim." + params.optimizer)(para, weight_decay=params.weight_decay)
         else:
             optimizer = eval("torch.optim." + params.optimizer)(filter(lambda x: x.requires_grad, model.parameters()),
@@ -144,20 +160,19 @@ def train_single_cnn(params):
         test_cnn(params.output_dir, train_loader, "train",
                  fi, criterion, params, gpu=params.gpu, train_begin_time=train_begin_time)
         metric_dict = test_cnn(params.output_dir, valid_loader, "validation",
-                 fi, criterion, params, gpu=params.gpu, train_begin_time=train_begin_time)
+                               fi, criterion, params, gpu=params.gpu, train_begin_time=train_begin_time)
         for key in metric_dict.keys():
             if key in matric_dict_list.keys():
                 matric_dict_list[key].append(metric_dict[key])
             else:
                 matric_dict_list[key] = [metric_dict[key]]
         torch.cuda.empty_cache()
-    for keys,values in matric_dict_list.items():
+    for keys, values in matric_dict_list.items():
         print('{}:'.format(keys))
         print(values)
     mean_matric_dict = {}
     for key in matric_dict_list.keys():
         mean_matric_dict.update({"mean_{}".format(key): np.mean(matric_dict_list[key])})
     wandb.log(mean_matric_dict)
-    for keys,values in mean_matric_dict.items():
-        print('{}:{}'.format(keys,values))
-
+    for keys, values in mean_matric_dict.items():
+        print('{}:{}'.format(keys, values))
