@@ -121,8 +121,10 @@ def train_single_cnn(params):
                                   gpu=params.gpu, selection=params.transfer_learning_selection,
                                   device_index=params.device)
 
+
         # Define criterion and optimizer
         criterion = torch.nn.CrossEntropyLoss()
+        wandb.watch(model, criterion, log="all", log_freq=5)
         if params.pretrain_resnet_path is not None:
             new_parameters = []
             for pname, p in model.named_parameters():
