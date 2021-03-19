@@ -20,7 +20,7 @@ model_urls = {
 }
 
 
-def resnet18(**kwargs):
+def resnet18_2d(**kwargs):
     """
     Construct a the ResNet-18 model with added dropout, FC and softmax layers.
 
