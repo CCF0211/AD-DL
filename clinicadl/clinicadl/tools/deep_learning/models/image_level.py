@@ -7,7 +7,7 @@ import os
 
 sys.path.append('/root/fanchenchen/fanchenchen/MRI/code/paper')
 sys.path.append('/root/Downloads/code/MRI/paper')
-sys.path.append('/data/fanchenchen/Project/MRI/code/MRI/paper')
+sys.path.append('/data/fanchenchen/Project/MRI/code/paper')
 
 from networks import DAM_3d, UNet3D, ResidualUNet3D, ResidualUNet3D_add_more_fc, UNet3D_add_more_fc, UNet3D_GCN
 from Unet import N_Net
