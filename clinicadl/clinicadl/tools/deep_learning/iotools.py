@@ -68,6 +68,7 @@ class Parameters:
             fake_caps_path: str = None,
             pretrain_resnet_path: str = None,
             new_layer_names: str= [],
+            gnn_type: str= '3gcn',
     ):
         """
         Optional parameters used for training CNN.
@@ -149,6 +150,7 @@ class Parameters:
         self.fake_caps_path = fake_caps_path
         self.pretrain_resnet_path = pretrain_resnet_path
         self.new_layer_names = new_layer_names
+        self.gnn_type = gnn_type
 
 
 def check_and_clean(d):
