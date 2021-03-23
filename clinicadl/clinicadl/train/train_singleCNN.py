@@ -114,13 +114,16 @@ def train_single_cnn(params):
             print('********** init ConvNet3D model! **********')
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
+        elif 'gcn' in params.model:
+            print('********** init {} model! **********'.format(params.model))
+            model = init_model(params.model, gpu=params.gpu, device_index=params.device,
+                               pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type)
         else:
             model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
                                pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         model = transfer_learning(model, fi, source_path=params.transfer_learning_path,
                                   gpu=params.gpu, selection=params.transfer_learning_selection,
                                   device_index=params.device)
-
 
         # Define criterion and optimizer
         criterion = torch.nn.CrossEntropyLoss()
