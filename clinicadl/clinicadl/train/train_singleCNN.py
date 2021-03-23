@@ -115,7 +115,7 @@ def train_single_cnn(params):
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         elif 'gcn' in params.model:
-            print('********** init {} model! **********'.format(params.model))
+            print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type)
         else:
