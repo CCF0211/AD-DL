@@ -341,8 +341,7 @@ class MRIDatasetImage(MRIDataset):
         self.resample_size = resample_size
         self.fake_caps_path = fake_caps_path
         super().__init__(caps_directory, data_file, preprocessing, transformations)
-        print('crop_padding_to_128 type:')
-        print(type(self.crop_padding_to_128))
+        print('crop_padding_to_128 type:{}'.format(self.crop_padding_to_128))
 
     def __getitem__(self, idx):
         participant, session, _, label = self._get_meta_data(idx)

@@ -175,6 +175,8 @@ def train_single_cnn(params):
     mean_matric_dict = {}
     for key in matric_dict_list.keys():
         mean_matric_dict.update({"mean_{}".format(key): np.mean(matric_dict_list[key])})
+        mean_matric_dict.update({"max_{}".format(key): np.max(matric_dict_list[key])})
+        mean_matric_dict.update({"std_{}".format(key): np.std(matric_dict_list[key])})
     wandb.log(mean_matric_dict)
     for keys, values in mean_matric_dict.items():
         print('{}:{}'.format(keys, values))
