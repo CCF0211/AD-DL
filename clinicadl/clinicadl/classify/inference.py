@@ -241,6 +241,8 @@ def inference_from_model(caps_dir,
     mean_matric_dict = {}
     for key in metric_dict_list.keys():
         mean_matric_dict.update({"mean_{}".format(key): np.mean(metric_dict_list[key])})
+        mean_matric_dict.update({"max_{}".format(key): np.max(metric_dict_list[key])})
+        mean_matric_dict.update({"std_{}".format(key): np.std(metric_dict_list[key])})
     try:
         wandb.log(mean_matric_dict)
     except:
