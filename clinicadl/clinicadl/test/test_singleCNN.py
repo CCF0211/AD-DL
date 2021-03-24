@@ -40,6 +40,9 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
         elif model_options.model == 'ConvNet3D':
             print('********** init ConvNet3D model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
+        elif 'gcn' in model_options.model:
+            print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
+            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
         else:
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
