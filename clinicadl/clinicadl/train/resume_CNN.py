@@ -89,6 +89,9 @@ def main(options):
     elif options.model == 'ConvNet3D':
         print('********** init ConvNet3D model for test! **********')
         model = create_model(options.model, gpu=options.gpu, device_index=options.device)
+    elif 'gcn' in model_options.model:
+        print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
+        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
     else:
         model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device)
     model_dir = path.join(options.model_path, "best_model_dir", "CNN", "fold_" + str(options.split))

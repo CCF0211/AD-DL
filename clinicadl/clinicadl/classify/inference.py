@@ -286,6 +286,9 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
     elif model_options.model == 'ConvNet3D':
         print('********** init ConvNet3D model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
+    elif 'gcn' in model_options.model:
+        print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
+        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
     else:
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
     transformations = get_transforms(model_options.mode,
