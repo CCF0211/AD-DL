@@ -14,6 +14,7 @@ from Unet import N_Net
 from ConvNet3D import ConvNet3D
 from VoxCNN import VoxCNN
 from resnet50_3d import *
+from ROI_GNN import ROI_GCN
 
 __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_layer", "Conv5_FC3_DAM_last",
            "resnet50_3d", "resnet50_3d_gcn", "resnet50_3d_nl", "UNet3D", "N_Net", "ResidualUNet3D", "VoxCNN",
@@ -21,7 +22,8 @@ __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_lay
            'ResNet', 'resnet10', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'resnet200',
            'resnet101_res_fc', 'resnet101_fc', 'resnet101_mult_crop',
            'resnet10_gcn', 'resnet18_gcn', 'resnet34_gcn', 'resnet50_gcn', 'resnet101_gcn', 'resnet152_gcn',
-           'resnet200_gcn', 'resnet101_fc_gcn', 'resnet101_res_fc_gcn']
+           'resnet200_gcn', 'resnet101_fc_gcn', 'resnet101_res_fc_gcn',
+           "ROI_GCN"]
 
 """
 All the architectures are built here

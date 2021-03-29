@@ -44,6 +44,7 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
             print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
         else:
+            print('********** init model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
