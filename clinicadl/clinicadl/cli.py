@@ -184,6 +184,16 @@ def train_func(args):
                 pretrain_resnet_path = args.pretrain_resnet_path,
                 new_layer_names = args.new_layer_names,
                 gnn_type = args.gnn_type,
+                nodel_vetor_layer = args.nodel_vetor_layer,
+                classify_layer = args.classify_layer,
+                num_node_features = args.num_node_features,
+                num_class = args.num_class,
+                roi_size = args.roi_size,
+                num_nodes = args.num_nodes,
+                layers = args.layers,
+                shortcut_type = args.shortcut_type,
+                use_nl = args.use_nl,
+
             )
             train_single_cnn(train_params_cnn)
     elif args.mode == 'slice':

@@ -69,6 +69,15 @@ class Parameters:
             pretrain_resnet_path: str = None,
             new_layer_names: str= [],
             gnn_type: str= '3gcn',
+            nodel_vetor_layer: str= 'basic',
+            classify_layer: str= 'basic',
+            num_node_features: int= 512,
+            num_class: int= 2,
+            roi_size:  int= 32,
+            num_nodes:  int= 116,
+            layers: str= [],
+            shortcut_type: str= 'B',
+            use_nl: bool = False,
     ):
         """
         Optional parameters used for training CNN.
