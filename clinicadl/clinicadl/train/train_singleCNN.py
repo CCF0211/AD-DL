@@ -119,7 +119,7 @@ def train_single_cnn(params):
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type)
         elif params.model == 'ROI_GCN':
-            print('********** init ROI_GCN model for test! **********')
+            print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                     gnn_type=params.gnn_type,
                                     nodel_vetor_layer=params.nodel_vetor_layer,

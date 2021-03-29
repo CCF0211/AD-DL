@@ -72,11 +72,11 @@ class Parameters:
             nodel_vetor_layer: str= 'basic',
             classify_layer: str= 'basic',
             num_node_features: int= 512,
-            num_class: int= 2,
-            roi_size:  int= 32,
-            num_nodes:  int= 116,
-            layers: str= [],
-            shortcut_type: str= 'B',
+            num_class: int = 2,
+            roi_size:  int = 32,
+            num_nodes:  int = 116,
+            layers: str = None,
+            shortcut_type: str = 'B',
             use_nl: bool = False,
     ):
         """
@@ -160,6 +160,15 @@ class Parameters:
         self.pretrain_resnet_path = pretrain_resnet_path
         self.new_layer_names = new_layer_names
         self.gnn_type = gnn_type
+        self.nodel_vetor_layer= nodel_vetor_layer
+        self.classify_layer= classify_layer
+        self.num_node_features= num_node_features
+        self.num_class= num_class
+        self.roi_size= roi_size
+        self.num_nodes= num_nodes
+        self.layers= layers
+        self.shortcut_type= shortcut_type
+        self.use_nl= use_nl
 
 
 def check_and_clean(d):
