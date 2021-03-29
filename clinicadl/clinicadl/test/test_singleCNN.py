@@ -20,20 +20,32 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
         # load the best trained model during the training
         if model_options.model == 'UNet3D':
             print('********** init UNet3D model for test! **********')
-            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                 out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                                 device_index=model_options.device, in_channels=model_options.in_channels,
+                                 out_channels=model_options.out_channels, f_maps=model_options.f_maps,
+                                 layer_order=model_options.layer_order, num_groups=model_options.num_groups,
+                                 num_levels=model_options.num_levels)
         elif model_options.model == 'ResidualUNet3D':
             print('********** init ResidualUNet3D model for test! **********')
-            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                    out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                                 device_index=model_options.device, in_channels=model_options.in_channels,
+                                 out_channels=model_options.out_channels, f_maps=model_options.f_maps,
+                                 layer_order=model_options.layer_order, num_groups=model_options.num_groups,
+                                 num_levels=model_options.num_levels)
         elif model_options.model == 'UNet3D_add_more_fc':
             print('********** init UNet3D_add_more_fc model for test! **********')
-            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                 out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                                 device_index=model_options.device, in_channels=model_options.in_channels,
+                                 out_channels=model_options.out_channels, f_maps=model_options.f_maps,
+                                 layer_order=model_options.layer_order, num_groups=model_options.num_groups,
+                                 num_levels=model_options.num_levels)
         elif model_options.model == 'ResidualUNet3D_add_more_fc':
             print('********** init ResidualUNet3D_add_more_fc model for test! **********')
-            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                    out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                                 device_index=model_options.device, in_channels=model_options.in_channels,
+                                 out_channels=model_options.out_channels, f_maps=model_options.f_maps,
+                                 layer_order=model_options.layer_order, num_groups=model_options.num_groups,
+                                 num_levels=model_options.num_levels)
         elif model_options.model == 'VoxCNN':
             print('********** init VoxCNN model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
@@ -41,16 +53,32 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
             print('********** init ConvNet3D model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
         elif 'gcn' in model_options.model:
-            print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
-            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
+            print(
+                '********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
+            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
+                                 gnn_type=model_options.gnn_type)
+        elif model_options.model == 'ROI_GCN':
+            print('********** init ROI_GCN model for test! **********')
+            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
+                                 gnn_type=model_options.gnn_type,
+                                 nodel_vetor_layer=model_options.nodel_vetor_layer,
+                                 classify_layer=model_options.classify_layer,
+                                 num_node_features=model_options.num_node_features, num_class=model_options.num_class,
+                                 roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
+                                 layers=model_options.layers,
+                                 shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
+                                 dropout=model_options.dropout)
         else:
             print('********** init model for test! **********')
-            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                                 device_index=model_options.device)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
 
-        results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode, device_index=model_options.device, train_begin_time=train_begin_time)
-        print("[%s]: %s level balanced accuracy is %f" % (timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
+        results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode,
+                                   device_index=model_options.device, train_begin_time=train_begin_time)
+        print("[%s]: %s level balanced accuracy is %f" % (
+            timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
         print('[{}]: {}_{}_result_df:'.format(timeSince(train_begin_time), subset_name, selection))
         print(results_df)
         print('[{}]: {}_{}_metrics:\n{}'.format(timeSince(train_begin_time), subset_name, selection, metrics))
@@ -71,15 +99,17 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
                                 selection_threshold=model_options.selection_threshold)
         # return metric dict
         metric_temp_dict = {'{}_accuracy_{}_singel_model'.format(subset_name, selection): metrics['accuracy'],
-                   '{}_balanced_accuracy_{}_singel_model'.format(subset_name, selection): metrics['balanced_accuracy'],
-                   '{}_sensitivity_{}_singel_model'.format(subset_name, selection): metrics['sensitivity'],
-                   '{}_specificity_{}_singel_model'.format(subset_name, selection): metrics['specificity'],
-                   '{}_ppv_{}_singel_model'.format(subset_name, selection): metrics['ppv'],
-                   '{}_npv_{}_singel_model'.format(subset_name, selection): metrics['npv'],
-                   '{}_total_loss_{}_singel_model'.format(subset_name, selection): metrics['total_loss'],
-                   }
+                            '{}_balanced_accuracy_{}_singel_model'.format(subset_name, selection): metrics[
+                                'balanced_accuracy'],
+                            '{}_sensitivity_{}_singel_model'.format(subset_name, selection): metrics['sensitivity'],
+                            '{}_specificity_{}_singel_model'.format(subset_name, selection): metrics['specificity'],
+                            '{}_ppv_{}_singel_model'.format(subset_name, selection): metrics['ppv'],
+                            '{}_npv_{}_singel_model'.format(subset_name, selection): metrics['npv'],
+                            '{}_total_loss_{}_singel_model'.format(subset_name, selection): metrics['total_loss'],
+                            }
         metric_dict.update(metric_temp_dict)
     return metric_dict
+
 
 parser = argparse.ArgumentParser(description="Argparser for evaluation of classifiers")
 

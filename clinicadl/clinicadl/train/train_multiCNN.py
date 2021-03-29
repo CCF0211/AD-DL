@@ -105,6 +105,17 @@ def train_multi_cnn(params):
                 print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
                 model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                 pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type)
+            elif params.model == 'ROI_GCN':
+                print('********** init ROI_GCN model for test! **********')
+                model = init_model(params.model, gpu=params.gpu, device_index=params.device,
+                                        gnn_type=params.gnn_type,
+                                        nodel_vetor_layer=params.nodel_vetor_layer,
+                                        classify_layer=params.classify_layer,
+                                        num_node_features=params.num_node_features, num_class=params.num_class,
+                                        roi_size=params.roi_size, num_nodes=params.num_nodes,
+                                        layers=params.layers,
+                                        shortcut_type=params.shortcut_type, use_nl=params.use_nl,
+                                        dropout=params.dropout)
             else:
                 model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
             model = transfer_learning(model, fi, source_path=params.transfer_learning_path,

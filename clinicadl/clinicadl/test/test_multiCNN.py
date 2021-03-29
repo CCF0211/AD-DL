@@ -46,6 +46,17 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, cnn_index, 
         elif 'gcn' in model_options.model:
             print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
+        elif model_options.model == 'ROI_GCN':
+            print('********** init ROI_GCN model for test! **********')
+            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
+                                    gnn_type=model_options.gnn_type,
+                                    nodel_vetor_layer=model_options.nodel_vetor_layer,
+                                    classify_layer=model_options.classify_layer,
+                                    num_node_features=model_options.num_node_features, num_class=model_options.num_class,
+                                    roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
+                                    layers=model_options.layers,
+                                    shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
+                                    dropout=model_options.dropout)
         else:
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models',
