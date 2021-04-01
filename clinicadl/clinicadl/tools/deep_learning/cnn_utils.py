@@ -329,7 +329,7 @@ def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, t
                 inputs, labels = data['image'].to(device), data['label'].to(device)
             else:
                 inputs, labels = data['image'], data['label']
-            if model_options.model == "ROI_GCN":
+            if model_options.model == "ROI_GCN" and model_options is not None:
                 roi_image = data['roi_image'].to(device)
                 outputs = model(inputs, roi_image)
             else:
