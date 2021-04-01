@@ -326,7 +326,7 @@ class MRIDatasetImage(MRIDataset):
 
     def __init__(self, caps_directory, data_file,
                  preprocessing='t1-linear', transformations=None, crop_padding_to_128=False, resample_size=None,
-                 fake_caps_path=None):
+                 fake_caps_path=None, roi=False, roi_size=32):
         """
         Args:
             caps_directory (string): Directory of all the images.
@@ -340,6 +340,11 @@ class MRIDatasetImage(MRIDataset):
         self.crop_padding_to_128 = crop_padding_to_128
         self.resample_size = resample_size
         self.fake_caps_path = fake_caps_path
+        self.roi = roi
+        self.roi_size = roi_size
+        if self.roi:
+            aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
+            self.aal_mask_dict = np.load(aal_mask_dict_dir, allow_pickle=True).item()  # 116; (181,217,181)
         super().__init__(caps_directory, data_file, preprocessing, transformations)
         print('crop_padding_to_128 type:{}'.format(self.crop_padding_to_128))
 
@@ -364,7 +369,7 @@ class MRIDatasetImage(MRIDataset):
                                   size=self.resample_size)  # resize to resample_size * resample_size * resample_size
             image = image.squeeze(0)
         # preprocessing data    
-        data = image.squeeze()
+        data = image.squeeze()  # [128, 128, 128]
         input_D, input_H, input_W = data.shape
         # drop out the invalid range
         data = self.__drop_invalid_range__(data)
@@ -373,10 +378,18 @@ class MRIDatasetImage(MRIDataset):
         # normalization datas
         data = self.__itensity_normalize_one_volume__(data)
         data = torch.from_numpy(data)
-        image = data.unsqueeze(dim=0)
+        if self.roi:
+            image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+            data = self.roi_extract(data, roi_size=self.roi_size)
+            ROI_image = data.unsqueeze(dim=0)  # [1, num_roi, 128, 128, 128]
+            sample = {'image': image, 'roi_image': ROI_image, 'label': label, 'participant_id': participant,
+                      'session_id': session,
+                      'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+        else:
+            image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
 
-        sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
-                  'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+            sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
+                      'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
 
         return sample
 
@@ -421,6 +434,25 @@ class MRIDatasetImage(MRIDataset):
 
     def num_elem_per_image(self):
         return 1
+
+    def roi_extract(self, MRI, roi_size=32):
+        roi_data_list = []
+        roi_label_list = []
+        for key in self.aal_mask_dict.keys():
+            # useful_data = self.__drop_invalid_range__(self.aal_mask_dict[key])
+            # useful_data = resize_data(useful_data, target_size=[128, 128, 128])
+            # useful_data = useful_data[np.newaxis, np.newaxis, :, :, :]  # 1,1,128,128,128
+            # roi_batch_data = MRI.cpu().numpy() * useful_data  # batch, 1, 128,128,128
+            mask = self.aal_mask_dict[key]
+            roi_data = MRI * mask.squeeze()  # batch, 1, 128,128,128
+            roi_label_list.append(key)
+
+            roi_data = self.__drop_invalid_range__(roi_data)  # xx,xx,xx
+            roi_data = self.__resize_data__(roi_data, roi_size, roi_size, roi_size)  # roi_size, roi_size, roi_size
+            roi_data = torch.from_numpy(roi_data)
+            roi_data_list.append(roi_data)  # roi_size, roi_size, roi_size
+        roi_batch = torch.stack(roi_data_list).type(torch.float32)  # num_roi, roi_size, roi_size, roi_size
+        return roi_batch
 
 
 class MRIDatasetPatch(MRIDataset):
@@ -686,7 +718,10 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
 
     if cnn_index is not None and mode in ["image", "roi", "slice"]:
         raise ValueError("Multi-CNN is not implemented for %s mode." % mode)
-
+    if params.model == "ROI_GCN":
+        use_roi = True
+    else:
+        use_roi = False
     if mode == "image":
         return MRIDatasetImage(
             input_dir,
@@ -696,6 +731,8 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
             crop_padding_to_128=params.crop_padding_to_128,
             resample_size=params.resample_size,
             fake_caps_path=params.fake_caps_path,
+            roi=use_roi,
+            roi_size=params.roi_size,
         )
     if mode == "patch":
         return MRIDatasetPatch(

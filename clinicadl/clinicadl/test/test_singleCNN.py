@@ -74,9 +74,8 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
                                  device_index=model_options.device)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
-
         results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode,
-                                   device_index=model_options.device, train_begin_time=train_begin_time)
+                                   device_index=model_options.device, train_begin_time=train_begin_time, model_options=model_options)
         print("[%s]: %s level balanced accuracy is %f" % (
             timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
         print('[{}]: {}_{}_result_df:'.format(timeSince(train_begin_time), subset_name, selection))

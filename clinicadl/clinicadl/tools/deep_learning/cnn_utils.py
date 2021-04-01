@@ -61,7 +61,7 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
     while epoch < options.epochs and not early_stopping.step(mean_loss_valid):
         if fi is not None and options.n_splits is not None:
             print("[%s]: At (%d/%d) fold (%d/%d) epoch." % (
-            timeSince(train_begin_time), fi, options.n_splits, epoch, options.epochs))
+                timeSince(train_begin_time), fi, options.n_splits, epoch, options.epochs))
         else:
             print("[%s]: At (%d/%d) epoch." % (timeSince(train_begin_time), epoch, options.epochs))
 
@@ -79,7 +79,11 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                 imgs, labels = data['image'].to(device), data['label'].to(device)
             else:
                 imgs, labels = data['image'], data['label']
-            train_output = model(imgs)
+            if options.model == 'ROI_GCN':
+                roi_image = data['roi_image'].to(device)
+                train_output = model(imgs, roi_image)
+            else:
+                train_output = model(imgs)
             _, predict_batch = train_output.topk(1)
             loss = criterion(train_output, labels)
 
@@ -122,9 +126,11 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              'valid_loss': mean_loss_valid,
                              'global_step': global_step})
                         print("[%s]: %s level training accuracy is %f at the end of iteration %d - fake mri count: %d"
-                              % (timeSince(train_begin_time), options.mode, results_train["balanced_accuracy"], i, data['num_fake_mri']))
+                              % (timeSince(train_begin_time), options.mode, results_train["balanced_accuracy"], i,
+                                 data['num_fake_mri']))
                         print("[%s]: %s level validation accuracy is %f at the end of iteration %d - fake mri count: %d"
-                              % (timeSince(train_begin_time), options.mode, results_valid["balanced_accuracy"], i, data['num_fake_mri']))
+                              % (timeSince(train_begin_time), options.mode, results_valid["balanced_accuracy"], i,
+                                 data['num_fake_mri']))
                     else:
                         writer_train.add_scalar('{}_model_balanced_accuracy'.format(cnn_index),
                                                 results_train["balanced_accuracy"], global_step)
@@ -138,12 +144,14 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                              '{}_model_valid_balanced_accuracy'.format(cnn_index): results_valid["balanced_accuracy"],
                              '{}_model_valid_loss'.format(cnn_index): mean_loss_valid,
                              'global_step': global_step})
-                        print("[{}]: ({}/{}) model {} level training accuracy is {} at the end of iteration {}-fake mri count:{}"
-                              .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode,
-                                      results_train["balanced_accuracy"], i, data['num_fake_mri']))
-                        print("[{}]: ({}/{}) model {} level validation accuracy is {} at the end of iteration {}-fake mri count:{}"
-                              .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode,
-                                      results_valid["balanced_accuracy"], i, data['num_fake_mri']))
+                        print(
+                            "[{}]: ({}/{}) model {} level training accuracy is {} at the end of iteration {}-fake mri count:{}"
+                                .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode,
+                                        results_train["balanced_accuracy"], i, data['num_fake_mri']))
+                        print(
+                            "[{}]: ({}/{}) model {} level validation accuracy is {} at the end of iteration {}-fake mri count:{}"
+                                .format(timeSince(train_begin_time), cnn_index, num_cnn, options.mode,
+                                        results_valid["balanced_accuracy"], i, data['num_fake_mri']))
 
             tend = time()
         print('[{}]: Mean time per batch loading (train):'.format(timeSince(train_begin_time)),
@@ -163,11 +171,11 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         print('[%s]: Last checkpoint at the end of the epoch %d' % (timeSince(train_begin_time), epoch))
 
         _, results_train = test(model, train_loader, options.gpu, criterion, device_index=options.device,
-                                train_begin_time=train_begin_time)
+                                train_begin_time=train_begin_time, model_options=options)
         mean_loss_train = results_train["total_loss"] / (len(train_loader) * train_loader.batch_size)
 
         _, results_valid = test(model, valid_loader, options.gpu, criterion, device_index=options.device,
-                                train_begin_time=train_begin_time)
+                                train_begin_time=train_begin_time, model_options=options)
         mean_loss_valid = results_valid["total_loss"] / (len(valid_loader) * valid_loader.batch_size)
         model.train()
 
@@ -283,7 +291,8 @@ def evaluate_prediction(y, y_pred):
     return results
 
 
-def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, train_begin_time=None):
+def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, train_begin_time=None,
+         model_options=None):
     """
     Computes the predictions and evaluation metrics.
 
@@ -320,7 +329,11 @@ def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, t
                 inputs, labels = data['image'].to(device), data['label'].to(device)
             else:
                 inputs, labels = data['image'], data['label']
-            outputs = model(inputs)
+            if model_options.model == "ROI_GCN":
+                roi_image = data['roi_image'].to(device)
+                outputs = model(inputs, roi_image)
+            else:
+                outputs = model(inputs)
             loss = criterion(outputs, labels)
             total_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
