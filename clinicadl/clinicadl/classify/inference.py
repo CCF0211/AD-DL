@@ -195,14 +195,14 @@ def inference_from_model(caps_dir,
         # Write output files at %mode level
         print("Prediction results and metrics are written in the "
               "following folder: %s" % performance_dir)
-        metric_dict = {'test_accuracy_best_BA_singel_model' : metrics['accuracy'].iloc[0],
-                   'test_balanced_accuracy_best_BA_singel_model' : metrics['balanced_accuracy'].iloc[0],
-                   'test_sensitivity_best_BA_singel_model' : metrics['sensitivity'].iloc[0],
-                   'test_specificity_best_BA_singel_model' : metrics['specificity'].iloc[0],
-                   'test_ppv_best_BA_singel_model' : metrics['ppv'].iloc[0],
-                   'test_npv_best_BA_singel_model' : metrics['npv'].iloc[0],
-                   'test_total_loss_best_BA_singel_model' : metrics['total_loss'].iloc[0],
-                   }
+        metric_dict = {'test_accuracy_best_BA_singel_model': metrics['accuracy'].iloc[0],
+                       'test_balanced_accuracy_best_BA_singel_model': metrics['balanced_accuracy'].iloc[0],
+                       'test_sensitivity_best_BA_singel_model': metrics['sensitivity'].iloc[0],
+                       'test_specificity_best_BA_singel_model': metrics['specificity'].iloc[0],
+                       'test_ppv_best_BA_singel_model': metrics['ppv'].iloc[0],
+                       'test_npv_best_BA_singel_model': metrics['npv'].iloc[0],
+                       'test_total_loss_best_BA_singel_model': metrics['total_loss'].iloc[0],
+                       }
         print(metric_dict)
         try:
             wandb.log(metric_dict)
@@ -213,11 +213,11 @@ def inference_from_model(caps_dir,
         #     print(values)
 
         # log test result to a list for each fold
-        for key in  metric_dict.keys():
+        for key in metric_dict.keys():
             if key in metric_dict_list.keys():
-                metric_dict_list[key].append( metric_dict[key])
+                metric_dict_list[key].append(metric_dict[key])
             else:
-                metric_dict_list[key] = [ metric_dict[key]]
+                metric_dict_list[key] = [metric_dict[key]]
 
         mode_level_to_tsvs(currentDirectory, infered_classes, metrics, fold, best_model['best_acc'], options.mode,
                            dataset=usr_prefix)
@@ -266,20 +266,32 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
     # Initialize the model
     if model_options.model == 'UNet3D':
         print('********** init UNet3D model for test! **********')
-        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                             device_index=model_options.device, in_channels=model_options.in_channels,
+                             out_channels=model_options.out_channels, f_maps=model_options.f_maps,
+                             layer_order=model_options.layer_order, num_groups=model_options.num_groups,
+                             num_levels=model_options.num_levels)
     elif model_options.model == 'ResidualUNet3D':
         print('********** init ResidualUNet3D model for test! **********')
-        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                             device_index=model_options.device, in_channels=model_options.in_channels,
+                             out_channels=model_options.out_channels, f_maps=model_options.f_maps,
+                             layer_order=model_options.layer_order, num_groups=model_options.num_groups,
+                             num_levels=model_options.num_levels)
     elif model_options.model == 'UNet3D_add_more_fc':
         print('********** init UNet3D_add_more_fc model for test! **********')
-        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                             device_index=model_options.device, in_channels=model_options.in_channels,
+                             out_channels=model_options.out_channels, f_maps=model_options.f_maps,
+                             layer_order=model_options.layer_order, num_groups=model_options.num_groups,
+                             num_levels=model_options.num_levels)
     elif model_options.model == 'ResidualUNet3D_add_more_fc':
         print('********** init ResidualUNet3D_add_more_fc model for test! **********')
-        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device, in_channels=model_options.in_channels,
-                out_channels=model_options.out_channels, f_maps=model_options.f_maps, layer_order=model_options.layer_order, num_groups=model_options.num_groups, num_levels=model_options.num_levels)
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                             device_index=model_options.device, in_channels=model_options.in_channels,
+                             out_channels=model_options.out_channels, f_maps=model_options.f_maps,
+                             layer_order=model_options.layer_order, num_groups=model_options.num_groups,
+                             num_levels=model_options.num_levels)
     elif model_options.model == 'VoxCNN':
         print('********** init VoxCNN model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
@@ -288,20 +300,22 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
         model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
     elif 'gcn' in model_options.model:
         print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
-        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
+        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
+                             gnn_type=model_options.gnn_type)
     elif model_options.model == 'ROI_GCN':
         print('********** init ROI_GCN model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
-                                gnn_type=model_options.gnn_type,
-                                nodel_vetor_layer=model_options.nodel_vetor_layer,
-                                classify_layer=model_options.classify_layer,
-                                num_node_features=model_options.num_node_features, num_class=model_options.num_class,
-                                roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
-                                layers=model_options.layers,
-                                shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
-                                dropout=model_options.dropout)
+                             gnn_type=model_options.gnn_type,
+                             nodel_vetor_layer=model_options.nodel_vetor_layer,
+                             classify_layer=model_options.classify_layer,
+                             num_node_features=model_options.num_node_features, num_class=model_options.num_class,
+                             roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
+                             layers=model_options.layers,
+                             shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
+                             dropout=model_options.dropout)
     else:
-        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout, device_index=model_options.device)
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                             device_index=model_options.device)
     transformations = get_transforms(model_options.mode,
                                      model_options.minmaxnormalization)
 
@@ -372,12 +386,12 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
         print('test data size:{}'.format(len(data_to_test)))
         # Load the data
         test_loader = DataLoader(
-        data_to_test,
-        batch_size=model_options.batch_size,
-        shuffle=False,
-        num_workers=model_options.nproc,
-        pin_memory=True,
-        drop_last=model_options.drop_last)
+            data_to_test,
+            batch_size=model_options.batch_size,
+            shuffle=False,
+            num_workers=model_options.nproc,
+            pin_memory=True,
+            drop_last=model_options.drop_last)
 
         # Run the model on the data
         predictions_df, metrics = test(
@@ -386,7 +400,8 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
             gpu,
             criterion,
             mode=model_options.mode,
-            device_index=model_options.device)
+            device_index=model_options.device,
+            model_options=model_options)
 
         metrics_df = pd.DataFrame(metrics, index=[0])
 

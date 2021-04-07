@@ -79,11 +79,12 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                 imgs, labels = data['image'].to(device), data['label'].to(device)
             else:
                 imgs, labels = data['image'], data['label']
-            if options.model == 'ROI_GCN':
-                roi_image = data['roi_image'].to(device)
-                train_output = model(imgs, roi_image)
-            else:
-                train_output = model(imgs)
+            # if options.model == 'ROI_GCN':
+            #     roi_image = data['roi_image'].to(device)
+            #     train_output = model(imgs, roi_image)
+            # else:
+            #     train_output = model(imgs)
+            train_output = model(imgs)
             _, predict_batch = train_output.topk(1)
             loss = criterion(train_output, labels)
 
@@ -329,11 +330,12 @@ def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, t
                 inputs, labels = data['image'].to(device), data['label'].to(device)
             else:
                 inputs, labels = data['image'], data['label']
-            if model_options.model == "ROI_GCN" and model_options is not None:
-                roi_image = data['roi_image'].to(device)
-                outputs = model(inputs, roi_image)
-            else:
-                outputs = model(inputs)
+            # if model_options.model == "ROI_GCN" and model_options is not None:
+            #     roi_image = data['roi_image'].to(device)
+            #     outputs = model(inputs, roi_image)
+            # else:
+            #     outputs = model(inputs)
+            outputs = model(inputs)
             loss = criterion(outputs, labels)
             total_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)

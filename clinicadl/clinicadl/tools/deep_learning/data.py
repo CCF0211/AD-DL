@@ -352,6 +352,14 @@ class MRIDatasetImage(MRIDataset):
         participant, session, _, label = self._get_meta_data(idx)
 
         image_path = self._get_path(participant, session, "image", fake_caps_path=self.fake_caps_path)
+        roi_image_path = image_path.replace('image_based', 'AAL_roi_based')
+        if os.path.exists(roi_image_path) and self.roi:
+            ROI_image = torch.load(roi_image_path)
+            sample = {'image': ROI_image, 'label': label, 'participant_id': participant,
+                      'session_id': session,
+                      'image_path': roi_image_path, 'num_fake_mri': self.num_fake_mri}
+            return sample
+
         image = torch.load(image_path)
 
         if self.transformations:
@@ -379,12 +387,22 @@ class MRIDatasetImage(MRIDataset):
         data = self.__itensity_normalize_one_volume__(data)
         data = torch.from_numpy(data)
         if self.roi:
-            image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+            # image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
             data = self.roi_extract(data, roi_size=self.roi_size)
             ROI_image = data.unsqueeze(dim=0)  # [1, num_roi, 128, 128, 128]
-            sample = {'image': image, 'roi_image': ROI_image, 'label': label, 'participant_id': participant,
+            # sample = {'image': image, 'roi_image': ROI_image, 'label': label, 'participant_id': participant,
+            #           'session_id': session,
+            #           'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+            dir, file = os.path.split(roi_image_path)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            torch.save(ROI_image, roi_image_path)
+            print('Save roi image: {}'.format(roi_image_path))
+            sample = {'image': ROI_image, 'label': label, 'participant_id': participant,
                       'session_id': session,
                       'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+
+
         else:
             image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
 
@@ -438,7 +456,7 @@ class MRIDatasetImage(MRIDataset):
     def roi_extract(self, MRI, roi_size=32):
         roi_data_list = []
         roi_label_list = []
-        for key in self.aal_mask_dict.keys():
+        for i, key in enumerate(self.aal_mask_dict.keys()):
             # useful_data = self.__drop_invalid_range__(self.aal_mask_dict[key])
             # useful_data = resize_data(useful_data, target_size=[128, 128, 128])
             # useful_data = useful_data[np.newaxis, np.newaxis, :, :, :]  # 1,1,128,128,128
@@ -451,6 +469,8 @@ class MRIDatasetImage(MRIDataset):
             roi_data = self.__resize_data__(roi_data, roi_size, roi_size, roi_size)  # roi_size, roi_size, roi_size
             roi_data = torch.from_numpy(roi_data)
             roi_data_list.append(roi_data)  # roi_size, roi_size, roi_size
+            if i >= 89:
+                break
         roi_batch = torch.stack(roi_data_list).type(torch.float32)  # num_roi, roi_size, roi_size, roi_size
         return roi_batch
 
