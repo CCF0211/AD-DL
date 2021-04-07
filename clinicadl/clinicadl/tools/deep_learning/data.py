@@ -12,6 +12,7 @@ import os
 import nibabel as nib
 import torch.nn.functional as F
 from scipy import ndimage
+import socket
 
 
 #################################
@@ -343,7 +344,10 @@ class MRIDatasetImage(MRIDataset):
         self.roi = roi
         self.roi_size = roi_size
         if self.roi:
-            aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
+            if socket.gethostname() == 'zkyd':
+                aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
+            elif socket.gethostname() == 'tian-W320-G10':
+                aal_mask_dict_dir = '/home/tian/pycharm_project/MRI_GNN/atlas/aal_mask_dict_128.npy'
             self.aal_mask_dict = np.load(aal_mask_dict_dir, allow_pickle=True).item()  # 116; (181,217,181)
         super().__init__(caps_directory, data_file, preprocessing, transformations)
         print('crop_padding_to_128 type:{}'.format(self.crop_padding_to_128))
