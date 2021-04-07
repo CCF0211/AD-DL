@@ -343,12 +343,12 @@ class MRIDatasetImage(MRIDataset):
         self.fake_caps_path = fake_caps_path
         self.roi = roi
         self.roi_size = roi_size
-        if self.roi:
-            if socket.gethostname() == 'zkyd':
-                aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
-            elif socket.gethostname() == 'tian-W320-G10':
-                aal_mask_dict_dir = '/home/tian/pycharm_project/MRI_GNN/atlas/aal_mask_dict_128.npy'
-            self.aal_mask_dict = np.load(aal_mask_dict_dir, allow_pickle=True).item()  # 116; (181,217,181)
+        # if self.roi:
+        #     if socket.gethostname() == 'zkyd':
+        #         aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
+        #     elif socket.gethostname() == 'tian-W320-G10':
+        #         aal_mask_dict_dir = '/home/tian/pycharm_project/MRI_GNN/atlas/aal_mask_dict_128.npy'
+        #     self.aal_mask_dict = np.load(aal_mask_dict_dir, allow_pickle=True).item()  # 116; (181,217,181)
         super().__init__(caps_directory, data_file, preprocessing, transformations)
         print('crop_padding_to_128 type:{}'.format(self.crop_padding_to_128))
 
@@ -460,6 +460,11 @@ class MRIDatasetImage(MRIDataset):
     def roi_extract(self, MRI, roi_size=32):
         roi_data_list = []
         roi_label_list = []
+        if socket.gethostname() == 'zkyd':
+            aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
+        elif socket.gethostname() == 'tian-W320-G10':
+            aal_mask_dict_dir = '/home/tian/pycharm_project/MRI_GNN/atlas/aal_mask_dict_128.npy'
+        self.aal_mask_dict = np.load(aal_mask_dict_dir, allow_pickle=True).item()  # 116; (181,217,181)
         for i, key in enumerate(self.aal_mask_dict.keys()):
             # useful_data = self.__drop_invalid_range__(self.aal_mask_dict[key])
             # useful_data = resize_data(useful_data, target_size=[128, 128, 128])
