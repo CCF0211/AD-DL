@@ -306,7 +306,7 @@ class MRIDataset(Dataset):
                     # image_path = os.path.join(self.caps_directory,'sub-ADNI002S0295_ses-M00_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.nii.gz')
                     # image_nii = nib.load(image_path)
                     # image_np = image_nii.get_fdata()
-                    # image = ToTensor()(image_np) 
+                    # image = ToTensor()(image_np)
                     image = torch.zeros([169, 208, 179])  # in those segm data, size : [169, 208, 179]
         elif self.preprocessing in ["t1-spm-whitematter", "t1-spm-whitematter", "t1-spm-csf"]:
             image = torch.zeros([121, 145, 121])  # in those segm data, size : [121, 145, 121]
@@ -327,7 +327,7 @@ class MRIDatasetImage(MRIDataset):
 
     def __init__(self, caps_directory, data_file,
                  preprocessing='t1-linear', transformations=None, crop_padding_to_128=False, resample_size=None,
-                 fake_caps_path=None, roi=False, roi_size=32):
+                 fake_caps_path=None, roi=False, roi_size=32, model=None):
         """
         Args:
             caps_directory (string): Directory of all the images.
@@ -338,6 +338,7 @@ class MRIDatasetImage(MRIDataset):
         """
         self.elem_index = None
         self.mode = "image"
+        self.model = model
         self.crop_padding_to_128 = crop_padding_to_128
         self.resample_size = resample_size
         self.fake_caps_path = fake_caps_path
@@ -380,16 +381,19 @@ class MRIDatasetImage(MRIDataset):
             image = F.interpolate(image,
                                   size=self.resample_size)  # resize to resample_size * resample_size * resample_size
             image = image.squeeze(0)
-        # preprocessing data    
+        # preprocessing data
         data = image.squeeze()  # [128, 128, 128]
         input_D, input_H, input_W = data.shape
-        # drop out the invalid range
-        data = self.__drop_invalid_range__(data)
-        # resize data
-        data = self.__resize_data__(data, input_D, input_H, input_W)
-        # normalization datas
-        data = self.__itensity_normalize_one_volume__(data)
-        data = torch.from_numpy(data)
+        if self.model not in ["ConvNet3D", "VoxCNN", "Conv5_FC3"]:
+            # drop out the invalid range
+            data = self.__drop_invalid_range__(data)
+            # resize data
+            data = self.__resize_data__(data, input_D, input_H, input_W)
+            # normalization datas
+            data = self.__itensity_normalize_one_volume__(data)
+            # if self.transformations and self.model in ["ConvNet3D", "VoxCNN"]:
+            #     data = self.transformations(data)
+            data = torch.from_numpy(data)
         if self.roi:
             # image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
             data = self.roi_extract(data, roi_size=self.roi_size)
@@ -762,6 +766,7 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
             fake_caps_path=params.fake_caps_path,
             roi=use_roi,
             roi_size=params.roi_size,
+            model=params.model,
         )
     if mode == "patch":
         return MRIDatasetPatch(

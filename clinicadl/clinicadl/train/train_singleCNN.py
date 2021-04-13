@@ -135,7 +135,7 @@ def train_single_cnn(params):
         model = transfer_learning(model, fi, source_path=params.transfer_learning_path,
                                   gpu=params.gpu, selection=params.transfer_learning_selection,
                                   device_index=params.device)
-
+        print(model)
         # Define criterion and optimizer
         criterion = torch.nn.CrossEntropyLoss()
         wandb.watch(model, criterion, log="all", log_freq=5)
