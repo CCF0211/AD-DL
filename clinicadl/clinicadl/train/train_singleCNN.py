@@ -75,7 +75,6 @@ def train_single_cnn(params):
             pin_memory=True,
             drop_last=params.drop_last
         )
-
         # Initialize the model
         print('Initialization of the model')
         if params.model == 'UNet3D':
@@ -114,28 +113,43 @@ def train_single_cnn(params):
             print('********** init ConvNet3D model! **********')
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
-        elif 'gcn' in params.model:
-            print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
-            model = init_model(params.model, gpu=params.gpu, device_index=params.device,
-                               pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type)
         elif params.model == 'ROI_GCN':
+            print('ok')
             print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                     gnn_type=params.gnn_type,
+                                    gnn_dropout=params.gnn_dropout,
+                                    gnn_dropout_adj=params.gnn_dropout_adj,
+                                    gnn_non_linear=params.gnn_non_linear,
+                                    gnn_undirected=params.gnn_undirected,
+                                    gnn_self_loop=params.gnn_self_loop,
+                                    gnn_threshold=params.gnn_threshold,
                                     nodel_vetor_layer=params.nodel_vetor_layer,
                                     classify_layer=params.classify_layer,
                                     num_node_features=params.num_node_features, num_class=params.num_class,
                                     roi_size=params.roi_size, num_nodes=params.num_nodes,
+                                    gnn_pooling_layers=params.gnn_pooling_layers, global_sort_pool_k=params.global_sort_pool_k,
                                     layers=params.layers,
                                     shortcut_type=params.shortcut_type, use_nl=params.use_nl,
                                     dropout=params.dropout)
+        elif 'gcn' in params.model:
+            print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
+            model = init_model(params.model, gpu=params.gpu, device_index=params.device,
+                                pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type,
+                                gnn_dropout=params.gnn_dropout, 
+                                gnn_dropout_adj=params.gnn_dropout_adj,
+                                gnn_non_linear=params.gnn_non_linear, 
+                                gnn_undirected=params.gnn_undirected, 
+                                gnn_self_loop=params.gnn_self_loop,
+                                gnn_threshold=params.gnn_threshold,)
+
         else:
             model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
                                pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
         model = transfer_learning(model, fi, source_path=params.transfer_learning_path,
                                   gpu=params.gpu, selection=params.transfer_learning_selection,
                                   device_index=params.device)
-        print(model)
+        # print(model)
         # Define criterion and optimizer
         criterion = torch.nn.CrossEntropyLoss()
         wandb.watch(model, criterion, log="all", log_freq=5)

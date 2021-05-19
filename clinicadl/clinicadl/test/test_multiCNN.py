@@ -45,15 +45,28 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, cnn_index, 
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
         elif 'gcn' in model_options.model:
             print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
-            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
+            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type,
+                             gnn_dropout=model_options.gnn_dropout, 
+                             gnn_dropout_adj=model_options.gnn_dropout_adj,
+                             gnn_non_linear=model_options.gnn_non_linear, 
+                             gnn_undirected=model_options.gnn_undirected, 
+                             gnn_self_loop=model_options.gnn_self_loop,
+                             gnn_threshold = model_options.gnn_threshold,)
         elif model_options.model == 'ROI_GCN':
             print('********** init ROI_GCN model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
                                     gnn_type=model_options.gnn_type,
+                                    gnn_dropout=model_options.gnn_dropout, 
+                                    gnn_dropout_adj=model_options.gnn_dropout_adj,
+                                    gnn_non_linear=model_options.gnn_non_linear, 
+                                    gnn_undirected=model_options.gnn_undirected, 
+                                    gnn_self_loop=model_options.gnn_self_loop,
+                                    gnn_threshold = model_options.gnn_threshold,
                                     nodel_vetor_layer=model_options.nodel_vetor_layer,
                                     classify_layer=model_options.classify_layer,
                                     num_node_features=model_options.num_node_features, num_class=model_options.num_class,
                                     roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
+                                    gnn_pooling_layers=model_options.gnn_pooling_layers, global_sort_pool_k=model_options.global_sort_pool_k,
                                     layers=model_options.layers,
                                     shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
                                     dropout=model_options.dropout)

@@ -1,8 +1,10 @@
 # coding: utf8
 
+from _typeshed import OpenBinaryMode
 import argparse
 from os import path
 from time import time
+from typing import Optional
 import torch
 from torch.utils.data import DataLoader
 
@@ -89,20 +91,33 @@ def main(options):
     elif options.model == 'ConvNet3D':
         print('********** init ConvNet3D model for test! **********')
         model = create_model(options.model, gpu=options.gpu, device_index=options.device)
-    elif 'gcn' in model_options.model:
-        print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
-        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device, gnn_type=model_options.gnn_type)
-    elif model_options.model == 'ROI_GCN':
+    elif 'gcn' in options.model:
+        print('********** init {}-{} model for test! **********'.format(options.model, options.gnn_type))
+        model = create_model(options.model, gpu=options.gpu, device_index=options.device, gnn_type=options.gnn_type,
+                                gnn_dropout=options.gnn_dropout, 
+                                gnn_dropout_adj=options.gnn_dropout_adj,
+                                gnn_non_linear=options.gnn_non_linear, 
+                                gnn_undirected=options.gnn_undirected, 
+                                gnn_self_loop=options.gnn_self_loop,
+                                gnn_threshold = options.gnn_threshold,)
+    elif options.model == 'ROI_GCN':
         print('********** init ROI_GCN model for test! **********')
-        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
-                                gnn_type=model_options.gnn_type,
-                                nodel_vetor_layer=model_options.nodel_vetor_layer,
-                                classify_layer=model_options.classify_layer,
-                                num_node_features=model_options.num_node_features, num_class=model_options.num_class,
-                                roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
-                                layers=model_options.layers,
-                                shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
-                                dropout=model_options.dropout)
+        model = create_model(options.model, gpu=options.gpu, device_index=options.device,
+                                gnn_type=options.gnn_type,
+                                gnn_dropout=options.gnn_dropout, 
+                                gnn_dropout_adj=options.gnn_dropout_adj,
+                                gnn_non_linear=options.gnn_non_linear, 
+                                gnn_undirected=options.gnn_undirected, 
+                                gnn_self_loop=options.gnn_self_loop,
+                                gnn_threshold = options.gnn_threshold,
+                                nodel_vetor_layer=options.nodel_vetor_layer,
+                                classify_layer=options.classify_layer,
+                                num_node_features=options.num_node_features, num_class=options.num_class,
+                                roi_size=options.roi_size, num_nodes=options.num_nodes,
+                                gnn_pooling_layers=options.gnn_pooling_layers, global_sort_pool_k=options.global_sort_pool_k,
+                                layers=options.layers,
+                                shortcut_type=options.shortcut_type, use_nl=options.use_nl,
+                                dropout=options.dropout)
     else:
         model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device)
     model_dir = path.join(options.model_path, "best_model_dir", "CNN", "fold_" + str(options.split))

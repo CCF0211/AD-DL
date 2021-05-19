@@ -78,6 +78,14 @@ class Parameters:
             layers: str = None,
             shortcut_type: str = 'B',
             use_nl: bool = False,
+            gnn_dropout: float = 0,
+            gnn_dropout_adj: float = 0,
+            gnn_non_linear: str = 'relu',
+            gnn_undirected: bool = True,
+            gnn_self_loop: bool = True,
+            gnn_threshold: float = 0.5,
+            gnn_pooling_layers: str = 'global_mean_pool',
+            global_sort_pool_k: int = 10,
     ):
         """
         Optional parameters used for training CNN.
@@ -169,6 +177,14 @@ class Parameters:
         self.layers= layers
         self.shortcut_type= shortcut_type
         self.use_nl= use_nl
+        self.gnn_dropout = gnn_dropout
+        self.gnn_dropout_adj = gnn_dropout_adj
+        self.gnn_non_linear  = gnn_non_linear
+        self.gnn_undirected = gnn_undirected
+        self.gnn_self_loop  = gnn_self_loop
+        self.gnn_threshold = gnn_threshold
+        self.gnn_pooling_layers = gnn_pooling_layers
+        self.global_sort_pool_k = global_sort_pool_k
 
 
 def check_and_clean(d):

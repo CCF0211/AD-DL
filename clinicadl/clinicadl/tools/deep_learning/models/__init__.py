@@ -6,7 +6,6 @@ from .slice_level import resnet18_2d
 import torch
 from torch import nn
 
-
 def create_model(model_name, gpu=False, device_index=0, pretrain_resnet_path=None, new_layer_names=[], **kwargs):
     """
     Creates model object from the model_name.

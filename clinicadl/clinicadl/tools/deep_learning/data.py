@@ -13,6 +13,7 @@ import nibabel as nib
 import torch.nn.functional as F
 from scipy import ndimage
 import socket
+from utils import get_dynamic_image
 
 
 #################################
@@ -367,8 +368,15 @@ class MRIDatasetImage(MRIDataset):
 
         image = torch.load(image_path)
 
+        # if self.transformations and self.model not in ["Dynamic2D_net_Alex", "Dynamic2D_net_Res34",
+        #                                                "Dynamic2D_net_Res18",
+        #                                                "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11",
+        #                                                "Dynamic2D_net_Mobile"]:
+        #     image = self.transformations(image)
+
         if self.transformations:
             image = self.transformations(image)
+
         if self.crop_padding_to_128 and image.shape[1] != 128:
             image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
             image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
@@ -380,20 +388,52 @@ class MRIDatasetImage(MRIDataset):
             image = image.unsqueeze(0)
             image = F.interpolate(image,
                                   size=self.resample_size)  # resize to resample_size * resample_size * resample_size
+            image = self.transformations(image)
+            image = image.squeeze(0)
+        if self.model in ['DeepCNN', 'DeepCNN_gcn']:
+            image = image.unsqueeze(0)
+            image = F.interpolate(image, size=[49, 39, 38])
+            image = image.squeeze(0)
+        elif self.model in ['CNN2020', 'CNN2020_gcn']:
+            image = image.unsqueeze(0)
+            image = F.interpolate(image, size=[139, 177, 144])
             image = image.squeeze(0)
         # preprocessing data
         data = image.squeeze()  # [128, 128, 128]
-        input_D, input_H, input_W = data.shape
-        if self.model not in ["ConvNet3D", "VoxCNN", "Conv5_FC3"]:
+        # print(data.shape)
+        input_W, input_H, input_D = data.shape
+        if self.model not in ["ConvNet3D", "ConvNet3D_gcn", "VoxCNN", "Conv5_FC3", 'DeepCNN', 'CNN2020', 'CNN2020_gcn',
+                              "VoxCNN_gcn", 'DeepCNN_gcn', "ConvNet3D_v2", "ConvNet3D_ori", "Dynamic2D_net_Alex",
+                              "Dynamic2D_net_Res34", "Dynamic2D_net_Res18", "Dynamic2D_net_Vgg16",
+                              "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
             # drop out the invalid range
+            # if self.preprocessing in ['t1-spm-graymatter', 't1-spm-whitematter', 't1-spm-csf']:
             data = self.__drop_invalid_range__(data)
             # resize data
-            data = self.__resize_data__(data, input_D, input_H, input_W)
+            data = self.__resize_data__(data, input_W, input_H, input_D)
             # normalization datas
+            data = np.array(data)
             data = self.__itensity_normalize_one_volume__(data)
             # if self.transformations and self.model in ["ConvNet3D", "VoxCNN"]:
             #     data = self.transformations(data)
             data = torch.from_numpy(data)
+        if self.model in ['CNN2020', 'CNN2020_gcn']:
+            data = np.array(data)
+            data = self.__itensity_normalize_one_volume__(data, normalize_all=True)
+            data = torch.from_numpy(data)
+        if self.model in ["Dynamic2D_net_Alex", "Dynamic2D_net_Res34", "Dynamic2D_net_Res18",
+                          "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
+            image_np = np.array(data)
+            image_np = np.expand_dims(image_np, 0)  # 0,w,h,d
+            image_np = np.swapaxes(image_np, 0, 3)  # w,h,d,0
+            im = get_dynamic_image(image_np)
+            im = np.expand_dims(im, 0)
+            im = np.concatenate([im, im, im], 0)
+            im = torch.from_numpy(im)
+            im = im.float()
+            sample = {'image': im, 'label': label, 'participant_id': participant, 'session_id': session,
+                      'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+            return sample
         if self.roi:
             # image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
             data = self.roi_extract(data, roi_size=self.roi_size)
@@ -431,17 +471,17 @@ class MRIDatasetImage(MRIDataset):
 
         return volume[min_z:max_z, min_h:max_h, min_w:max_w]
 
-    def __resize_data__(self, data, input_D, input_H, input_W):
+    def __resize_data__(self, data, input_W, input_H, input_D):
         """
         Resize the data to the input size
         """
         [depth, height, width] = data.shape
-        scale = [input_D * 1.0 / depth, input_H * 1.0 / height, input_W * 1.0 / width]
+        scale = [input_W * 1.0 / depth, input_H * 1.0 / height, input_D * 1.0 / width]
         data = ndimage.interpolation.zoom(data, scale, order=0)
 
         return data
 
-    def __itensity_normalize_one_volume__(self, volume):
+    def __itensity_normalize_one_volume__(self, volume, normalize_all=False):
         """
         normalize the itensity of an nd volume based on the mean and std of nonzeor region
         inputs:
@@ -449,13 +489,16 @@ class MRIDatasetImage(MRIDataset):
         outputs:
             out: the normalized nd volume
         """
-
-        pixels = volume[volume > 0]
+        if normalize_all:
+            pixels = volume
+        else:
+            pixels = volume[volume > 0]
         mean = pixels.mean()
         std = pixels.std()
         out = (volume - mean) / std
-        out_random = np.random.normal(0, 1, size=volume.shape)
-        out[volume == 0] = out_random[volume == 0]
+        if not normalize_all:
+            out_random = np.random.normal(0, 1, size=volume.shape)
+            out[volume == 0] = out_random[volume == 0]
         return out
 
     def num_elem_per_image(self):
@@ -464,10 +507,12 @@ class MRIDatasetImage(MRIDataset):
     def roi_extract(self, MRI, roi_size=32):
         roi_data_list = []
         roi_label_list = []
-        if socket.gethostname() == 'zkyd':
+        if 'slave' in socket.gethostname():
             aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
         elif socket.gethostname() == 'tian-W320-G10':
             aal_mask_dict_dir = '/home/tian/pycharm_project/MRI_GNN/atlas/aal_mask_dict_128.npy'
+        elif socket.gethostname() == 'zkyd':
+            aal_mask_dict_dir = '/data/fanchenchen/atlas/aal_mask_dict_128.npy'
         self.aal_mask_dict = np.load(aal_mask_dict_dir, allow_pickle=True).item()  # 116; (181,217,181)
         for i, key in enumerate(self.aal_mask_dict.keys()):
             # useful_data = self.__drop_invalid_range__(self.aal_mask_dict[key])

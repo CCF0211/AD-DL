@@ -193,6 +193,15 @@ def train_func(args):
                 layers = args.layers,
                 shortcut_type = args.shortcut_type,
                 use_nl = args.use_nl,
+                gnn_dropout = args.gnn_dropout,
+                gnn_dropout_adj = args.gnn_dropout_adj,
+                gnn_non_linear = args.gnn_non_linear,
+                gnn_undirected = args.gnn_undirected,
+                gnn_self_loop = args.gnn_self_loop,
+                gnn_threshold = args.gnn_threshold,
+                gnn_pooling_layers = args.gnn_pooling_layers,
+                global_sort_pool_k = args.global_sort_pool_k,
+                
 
             )
             train_single_cnn(train_params_cnn)

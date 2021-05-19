@@ -101,11 +101,23 @@ def train_select_patch(params):
         elif 'gcn' in params.model:
             print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
-                               pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type)
+                                pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type,
+                                gnn_dropout=params.gnn_dropout, 
+                                gnn_dropout_adj=params.gnn_dropout_adj,
+                                gnn_non_linear=params.gnn_non_linear, 
+                                gnn_undirected=params.gnn_undirected, 
+                                gnn_self_loop=params.gnn_self_loop,
+                                gnn_threshold=params.gnn_threshold,)
         elif params.model == 'ROI_GCN':
             print('********** init ROI_GCN model for test! **********')
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
                                     gnn_type=params.gnn_type,
+                                    gnn_dropout=params.gnn_dropout, 
+                                    gnn_dropout_adj=params.gnn_dropout_adj,
+                                    gnn_non_linear=params.gnn_non_linear, 
+                                    gnn_undirected=params.gnn_undirected, 
+                                    gnn_self_loop=params.gnn_self_loop,
+                                    gnn_threshold=params.gnn_threshold,
                                     nodel_vetor_layer=params.nodel_vetor_layer,
                                     classify_layer=params.classify_layer,
                                     num_node_features=params.num_node_features, num_class=params.num_class,

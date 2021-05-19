@@ -11,14 +11,16 @@ sys.path.append('/data/fanchenchen/Project/MRI/code/paper')
 sys.path.append('/home/tian/pycharm_project/MRI_GNN/code')
 sys.path.append('/home/tian/pycharm_project/MRI_GNN/code/paper')
 
-
-
 from networks import DAM_3d, UNet3D, ResidualUNet3D, ResidualUNet3D_add_more_fc, UNet3D_add_more_fc, UNet3D_GCN
 from Unet import N_Net
-from ConvNet3D import ConvNet3D
-from VoxCNN import VoxCNN
+from ConvNet3D import ConvNet3D, ConvNet3D_gcn, ConvNet3D_v2, ConvNet3D_ori
+from VoxCNN import VoxCNN, VoxCNN_gcn
 from resnet50_3d import *
 from ROI_GNN import ROI_GCN
+from DeepCNN import DeepCNN, DeepCNN_gcn
+from CNN2020 import CNN2020, CNN2020_gcn
+from DenseNet_3d import *
+from Dynamic2D_net import *
 
 __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_layer", "Conv5_FC3_DAM_last",
            "resnet50_3d", "resnet50_3d_gcn", "resnet50_3d_nl", "UNet3D", "N_Net", "ResidualUNet3D", "VoxCNN",
@@ -27,7 +29,11 @@ __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_lay
            'resnet101_res_fc', 'resnet101_fc', 'resnet101_mult_crop',
            'resnet10_gcn', 'resnet18_gcn', 'resnet34_gcn', 'resnet50_gcn', 'resnet101_gcn', 'resnet152_gcn',
            'resnet200_gcn', 'resnet101_fc_gcn', 'resnet101_res_fc_gcn',
-           "ROI_GCN"]
+           "ROI_GCN", "ConvNet3D_v2", "ConvNet3D_ori",
+           "DeepCNN", "CNN2020", "ConvNet3D_gcn", "CNN2020_gcn", "VoxCNN_gcn", "DeepCNN_gcn",
+           "DenseNet121_3d", "DenseNet161_3d", "DenseNet201_3d", "DenseNet121_3d_gcn", "DenseNet161_3d_gcn",
+           "DenseNet201_3d_gcn", "Dynamic2D_net_Alex", "Dynamic2D_net_Res34", "Dynamic2D_net_Res18",
+           "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]
 
 """
 All the architectures are built here
