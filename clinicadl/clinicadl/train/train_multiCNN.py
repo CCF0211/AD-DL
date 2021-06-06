@@ -128,7 +128,26 @@ def train_multi_cnn(params):
                                         gnn_pooling_layers=params.gnn_pooling_layers, global_sort_pool_k=params.global_sort_pool_k,
                                         layers=params.layers,
                                         shortcut_type=params.shortcut_type, use_nl=params.use_nl,
-                                        dropout=params.dropout)
+                                        dropout=params.dropout,
+                                        device=params.device)
+            elif params.model == 'SwinTransformer3d':
+                print('********** init SwinTransformer3d model for test! **********')
+                model = init_model(params.model, gpu=params.gpu, dropout=params.dropout,
+                                device_index=params.device, 
+                                sw_patch_size=params.sw_patch_size, 
+                                window_size = params.window_size,
+                                mlp_ratio = params.mlp_ratio,
+                                drop_rate = params.drop_rate,
+                                attn_drop_rate = params.attn_drop_rate,
+                                drop_path_rate = params.drop_path_rate,
+                                qk_scale = params.qk_scale,
+                                embed_dim = params.embed_dim,
+                                depths = params.depths,
+                                num_heads = params.num_heads,
+                                qkv_bias = params.qkv_bias,
+                                ape = params.ape,
+                                patch_norm = params.patch_norm,
+                                )
             else:
                 model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
             model = transfer_learning(model, fi, source_path=params.transfer_learning_path,

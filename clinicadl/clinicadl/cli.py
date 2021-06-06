@@ -201,6 +201,19 @@ def train_func(args):
                 gnn_threshold = args.gnn_threshold,
                 gnn_pooling_layers = args.gnn_pooling_layers,
                 global_sort_pool_k = args.global_sort_pool_k,
+                sw_patch_size = args.sw_patch_size, 
+                window_size = args.window_size,
+                mlp_ratio = args.mlp_ratio,
+                drop_rate = args.drop_rate,
+                attn_drop_rate = args.attn_drop_rate,
+                drop_path_rate = args.drop_path_rate,
+                qk_scale = args.qk_scale,
+                embed_dim = args.embed_dim,
+                depths = args.depths,
+                num_heads = args.num_heads,
+                qkv_bias = args.qkv_bias,
+                ape = args.ape,
+                patch_norm = args.patch_norm,
                 
 
             )

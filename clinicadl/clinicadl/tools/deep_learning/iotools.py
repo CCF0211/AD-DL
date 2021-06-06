@@ -86,6 +86,21 @@ class Parameters:
             gnn_threshold: float = 0.5,
             gnn_pooling_layers: str = 'global_mean_pool',
             global_sort_pool_k: int = 10,
+            sw_patch_size: int = 3,
+            window_size: int = 4,
+            mlp_ratio: float = 4.,
+            drop_rate: float = 0.,
+            attn_drop_rate: float = 0.,
+            drop_path_rate: float = 0.1,
+            qk_scale: float = None,
+            embed_dim: int = 96,
+            depths: str = None,
+            num_heads: str = None,
+            qkv_bias:  bool = True,
+            ape:  bool = False,
+            patch_norm:  bool = True,
+
+
     ):
         """
         Optional parameters used for training CNN.
@@ -185,7 +200,19 @@ class Parameters:
         self.gnn_threshold = gnn_threshold
         self.gnn_pooling_layers = gnn_pooling_layers
         self.global_sort_pool_k = global_sort_pool_k
-
+        self.sw_patch_size = sw_patch_size
+        self.window_size = window_size
+        self.mlp_ratio = mlp_ratio
+        self.drop_rate = drop_rate
+        self.attn_drop_rate = attn_drop_rate
+        self.drop_path_rate = drop_path_rate
+        self.qk_scale = qk_scale
+        self.embed_dim = embed_dim
+        self.depths = depths
+        self.num_heads = num_heads
+        self.qkv_bias = qkv_bias
+        self.ape = ape
+        self.patch_norm = patch_norm
 
 def check_and_clean(d):
     import shutil

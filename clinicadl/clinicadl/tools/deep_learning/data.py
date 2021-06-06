@@ -358,7 +358,7 @@ class MRIDatasetImage(MRIDataset):
         participant, session, _, label = self._get_meta_data(idx)
 
         image_path = self._get_path(participant, session, "image", fake_caps_path=self.fake_caps_path)
-        roi_image_path = image_path.replace('image_based', 'AAL_roi_based')
+        roi_image_path = image_path.replace('image_based', 'AAL_roi_based_{}'.format(self.roi_size))
         if os.path.exists(roi_image_path) and self.roi:
             ROI_image = torch.load(roi_image_path)
             sample = {'image': ROI_image, 'label': label, 'participant_id': participant,

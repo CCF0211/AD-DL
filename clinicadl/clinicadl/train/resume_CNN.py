@@ -117,7 +117,26 @@ def main(options):
                                 gnn_pooling_layers=options.gnn_pooling_layers, global_sort_pool_k=options.global_sort_pool_k,
                                 layers=options.layers,
                                 shortcut_type=options.shortcut_type, use_nl=options.use_nl,
-                                dropout=options.dropout)
+                                dropout=options.dropout,
+                                device=options.device)
+    elif options.model == 'SwinTransformer3d':
+        print('********** init SwinTransformer3d model for test! **********')
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout,
+                        device_index=options.device, 
+                        sw_patch_size=options.sw_patch_size, 
+                        window_size = options.window_size,
+                        mlp_ratio = options.mlp_ratio,
+                        drop_rate = options.drop_rate,
+                        attn_drop_rate = options.attn_drop_rate,
+                        drop_path_rate = options.drop_path_rate,
+                        qk_scale = options.qk_scale,
+                        embed_dim = options.embed_dim,
+                        depths = options.depths,
+                        num_heads = options.num_heads,
+                        qkv_bias = options.qkv_bias,
+                        ape = options.ape,
+                        patch_norm = options.patch_norm,
+                        )
     else:
         model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device)
     model_dir = path.join(options.model_path, "best_model_dir", "CNN", "fold_" + str(options.split))

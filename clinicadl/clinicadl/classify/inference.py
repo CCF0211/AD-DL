@@ -325,10 +325,29 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
                              gnn_pooling_layers=model_options.gnn_pooling_layers, global_sort_pool_k=model_options.global_sort_pool_k,
                              layers=model_options.layers,
                              shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
-                             dropout=model_options.dropout)
+                             dropout=model_options.dropout,
+                             device=model_options.device)
+    elif model_options.model == 'SwinTransformer3d':
+        print('********** init SwinTransformer3d model for test! **********')
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                        device_index=model_options.device, 
+                        sw_patch_size=model_options.sw_patch_size, 
+                        window_size = model_options.window_size,
+                        mlp_ratio = model_options.mlp_ratio,
+                        drop_rate = model_options.drop_rate,
+                        attn_drop_rate = model_options.attn_drop_rate,
+                        drop_path_rate = model_options.drop_path_rate,
+                        qk_scale = model_options.qk_scale,
+                        embed_dim = model_options.embed_dim,
+                        depths = model_options.depths,
+                        num_heads = model_options.num_heads,
+                        qkv_bias = model_options.qkv_bias,
+                        ape = model_options.ape,
+                        patch_norm = model_options.patch_norm,
+                        )
     else:
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
-                             device_index=model_options.device)
+                             device_index=model_options.device,)
     transformations = get_transforms(model_options.mode,
                                      model_options.minmaxnormalization)
 

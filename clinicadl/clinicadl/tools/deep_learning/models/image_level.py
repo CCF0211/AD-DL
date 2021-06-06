@@ -21,6 +21,7 @@ from DeepCNN import DeepCNN, DeepCNN_gcn
 from CNN2020 import CNN2020, CNN2020_gcn
 from DenseNet_3d import *
 from Dynamic2D_net import *
+from swin_transformer_3d import SwinTransformer3d
 
 __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_layer", "Conv5_FC3_DAM_last",
            "resnet50_3d", "resnet50_3d_gcn", "resnet50_3d_nl", "UNet3D", "N_Net", "ResidualUNet3D", "VoxCNN",
@@ -33,7 +34,8 @@ __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_lay
            "DeepCNN", "CNN2020", "ConvNet3D_gcn", "CNN2020_gcn", "VoxCNN_gcn", "DeepCNN_gcn",
            "DenseNet121_3d", "DenseNet161_3d", "DenseNet201_3d", "DenseNet121_3d_gcn", "DenseNet161_3d_gcn",
            "DenseNet201_3d_gcn", "Dynamic2D_net_Alex", "Dynamic2D_net_Res34", "Dynamic2D_net_Res18",
-           "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]
+           "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile",
+           "SwinTransformer3d"]
 
 """
 All the architectures are built here

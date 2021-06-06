@@ -76,22 +76,30 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
             total_time = total_time + t0 - tend
             if options.gpu:
                 device = torch.device("cuda:{}".format(options.device))
-                imgs, labels = data['image'].to(device), data['label'].to(device)
+                imgs, labels, participant_id, session_id = data['image'].to(device), data['label'].to(device), data[
+                    'participant_id'], data['session_id']
             else:
-                imgs, labels = data['image'], data['label']
-            # if options.model == 'ROI_GCN':
-            #     roi_image = data['roi_image'].to(device)
-            #     train_output = model(imgs, roi_image)
-            # else:
-            #     train_output = model(imgs)
-            train_output = model(imgs)
+                imgs, labels, participant_id, session_id = data['image'], data['label'], data['participant_id'], data[
+                    'session_id']
+            if options.model == 'ROI_GCN' or 'gcn' in options.model:
+                # roi_image = data['roi_image'].to(device)
+                train_output = model(imgs, label_list=labels, id=participant_id, session=session_id, fi=fi, epoch=epoch)
+            else:
+                train_output = model(imgs)
+            # train_output = model(imgs)
             _, predict_batch = train_output.topk(1)
             loss = criterion(train_output, labels)
 
             # Back propagation
             loss.backward()
-
-            del imgs, labels
+            # for name, param in model.named_parameters():
+            #     if param.requires_grad:
+            #         if param.grad is not None:
+            #             pass
+            #             # print("{}, gradient: {}".format(name, param.grad.mean()))
+            #         else:
+            #             print("{} has not gradient".format(name))
+            # del imgs, labels
 
             if (i + 1) % options.accumulation_steps == 0:
                 step_flag = False
@@ -293,7 +301,7 @@ def evaluate_prediction(y, y_pred):
 
 
 def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, train_begin_time=None,
-         model_options=None):
+         model_options=None, fi=None):
     """
     Computes the predictions and evaluation metrics.
 
@@ -327,15 +335,17 @@ def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, t
             total_time = total_time + t0 - tend
             if use_cuda:
                 device = torch.device("cuda:{}".format(device_index))
-                inputs, labels = data['image'].to(device), data['label'].to(device)
+                inputs, labels, participant_id, session_id = data['image'].to(device), data['label'].to(device), data[
+                    'participant_id'], data['session_id']
             else:
-                inputs, labels = data['image'], data['label']
-            # if model_options.model == "ROI_GCN" and model_options is not None:
-            #     roi_image = data['roi_image'].to(device)
-            #     outputs = model(inputs, roi_image)
-            # else:
-            #     outputs = model(inputs)
-            outputs = model(inputs)
+                inputs, labels, participant_id, session_id = data['image'], data['label'], data['participant_id'], data[
+                    'session_id']
+            if model_options.model == 'ROI_GCN' or 'gcn' in model_options.model:
+                # roi_image = data['roi_image'].to(device)
+                outputs = model(inputs, label_list=labels, id=participant_id, session=session_id, fi=fi, epoch=None)
+            else:
+                outputs = model(inputs)
+            # train_output = model(imgs)
             loss = criterion(outputs, labels)
             total_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)

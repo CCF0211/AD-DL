@@ -80,7 +80,26 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
                                 gnn_pooling_layers=model_options.gnn_pooling_layers, global_sort_pool_k=model_options.global_sort_pool_k,
                                 layers=model_options.layers,
                                 shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
-                                dropout=model_options.dropout)
+                                dropout=model_options.dropout,
+                                device=model_options.device)
+        elif model_options.model == 'SwinTransformer3d':
+            print('********** init SwinTransformer3d model for test! **********')
+            model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                            device_index=model_options.device, 
+                            sw_patch_size=model_options.sw_patch_size, 
+                            window_size = model_options.window_size,
+                            mlp_ratio = model_options.mlp_ratio,
+                            drop_rate = model_options.drop_rate,
+                            attn_drop_rate = model_options.attn_drop_rate,
+                            drop_path_rate = model_options.drop_path_rate,
+                            qk_scale = model_options.qk_scale,
+                            embed_dim = model_options.embed_dim,
+                            depths = model_options.depths,
+                            num_heads = model_options.num_heads,
+                            qkv_bias = model_options.qkv_bias,
+                            ape = model_options.ape,
+                            patch_norm = model_options.patch_norm,
+                            )
         else:
             print('********** init model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
@@ -88,7 +107,7 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
         results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode,
-                                   device_index=model_options.device, train_begin_time=train_begin_time, model_options=model_options)
+                                   device_index=model_options.device, train_begin_time=train_begin_time, model_options=model_options, fi=split)
         print("[%s]: %s level balanced accuracy is %f" % (
             timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
         print('[{}]: {}_{}_result_df:'.format(timeSince(train_begin_time), subset_name, selection))
