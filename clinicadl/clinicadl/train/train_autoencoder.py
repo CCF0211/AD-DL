@@ -26,7 +26,8 @@ def train_autoencoder(params):
     of the last epoch that was completed before the crash.
     """
 
-    transformations = get_transforms(params.mode, params.minmaxnormalization)
+    train_transformations = get_transforms(params, is_training=True)
+    test_transformations = get_transforms(params, is_training=False)
     criterion = torch.nn.MSELoss()
     train_begin_time = time.time()
 
@@ -51,9 +52,9 @@ def train_autoencoder(params):
         print("[%s]: Running for the %d-th fold" % (timeSince(train_begin_time), fi))
 
         data_train = return_dataset(params.mode, params.input_dir, training_df, params.preprocessing,
-                                    transformations, params)
+                                    train_transformations, params)
         data_valid = return_dataset(params.mode, params.input_dir, valid_df, params.preprocessing,
-                                    transformations, params)
+                                    test_transformations, params)
 
         # Use argument load to distinguish training and testing
         train_loader = DataLoader(

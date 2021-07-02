@@ -29,7 +29,8 @@ def train_multi_cnn(params):
     of the last epoch that was completed before the crash.
     """
 
-    transformations = get_transforms(params.mode, params.minmaxnormalization)
+    train_transformations = get_transforms(params, is_training=True)
+    test_transformations = get_transforms(params, is_training=False)
     train_begin_time = time.time()
 
     num_cnn = compute_num_cnn(params.input_dir, params.tsv_path, params, data="train")
@@ -56,9 +57,9 @@ def train_multi_cnn(params):
                 baseline=params.baseline)
 
             data_train = return_dataset(params.mode, params.input_dir, training_df, params.preprocessing,
-                                        transformations, params, cnn_index=cnn_index)
+                                        train_transformations, params, cnn_index=cnn_index)
             data_valid = return_dataset(params.mode, params.input_dir, valid_df, params.preprocessing,
-                                        transformations, params, cnn_index=cnn_index)
+                                        test_transformations, params, cnn_index=cnn_index)
 
             # Use argument load to distinguish training and testing
             train_loader = DataLoader(data_train,

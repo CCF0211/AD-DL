@@ -162,7 +162,7 @@ def main(options):
         options.diagnoses = model_options.diagnoses
 
     test_df = load_data_test(options.tsv_path, options.diagnoses)
-    transformations = get_transforms(model_options.mode, model_options.minmaxnormalization)
+    test_transformations = get_transforms(options, is_training=False)
     criterion = torch.nn.CrossEntropyLoss()
 
     # Loop on all folds trained
@@ -176,7 +176,7 @@ def main(options):
 
         for cnn_index in range(num_cnn):
             dataset = return_dataset(model_options.mode, options.input_dir, test_df, options.preprocessing,
-                                     transformations, options, cnn_index=cnn_index)
+                                     test_transformations, options, cnn_index=cnn_index)
 
             test_loader = DataLoader(
                 dataset,

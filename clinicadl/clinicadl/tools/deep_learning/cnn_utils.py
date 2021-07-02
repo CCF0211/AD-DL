@@ -20,7 +20,7 @@ from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
 def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_dir, model_dir, options, fi=None,
           cnn_index=None,
           num_cnn=None,
-          train_begin_time=None):
+          train_begin_time=None, lr_scheduler=None):
     """
     Function used to train a CNN.
     The best model and checkpoint will be found in the 'best_model_dir' of options.output_dir.
@@ -70,6 +70,7 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         step_flag = True
         tend = time()
         total_time = 0
+        num_steps = len(train_loader)
 
         for i, data in enumerate(train_loader, 0):
             t0 = time()
@@ -92,6 +93,12 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
 
             # Back propagation
             loss.backward()
+            # Clips gradient
+            if options.clip_grad:
+                grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), options.clip_grad)
+            else:
+                grad_norm = get_grad_norm(model.parameters())
+
             # for name, param in model.named_parameters():
             #     if param.requires_grad:
             #         if param.grad is not None:
@@ -105,7 +112,8 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                 step_flag = False
                 optimizer.step()
                 optimizer.zero_grad()
-
+                lr_scheduler.step_update(epoch * num_steps + i)
+                wandb.log({'grad_norm': grad_norm})
                 del loss
 
                 # Evaluate the model only when no gradients are accumulated
@@ -165,7 +173,9 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
             tend = time()
         print('[{}]: Mean time per batch loading (train):'.format(timeSince(train_begin_time)),
               total_time / len(train_loader) * train_loader.batch_size)
-
+        learn_rate = optimizer.param_groups[0]['lr']
+        print('lr:{}'.format(learn_rate))
+        wandb.log({'lr': learn_rate})
         # If no step has been performed, raise Exception
         if step_flag:
             raise Exception('The model has not been updated once in the epoch. The accumulation step may be too large.')
@@ -226,7 +236,6 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
         loss_is_best = mean_loss_valid < best_valid_loss
         best_valid_accuracy = max(results_valid["balanced_accuracy"], best_valid_accuracy)
         best_valid_loss = min(mean_loss_valid, best_valid_loss)
-
         save_checkpoint({'model': model.state_dict(),
                          'epoch': epoch,
                          'valid_loss': mean_loss_valid,
@@ -298,6 +307,19 @@ def evaluate_prediction(y, y_pred):
                }
 
     return results
+
+
+def get_grad_norm(parameters, norm_type=2):
+    if isinstance(parameters, torch.Tensor):
+        parameters = [parameters]
+    parameters = list(filter(lambda p: p.grad is not None, parameters))
+    norm_type = float(norm_type)
+    total_norm = 0
+    for p in parameters:
+        param_norm = p.grad.data.norm(norm_type)
+        total_norm += param_norm.item() ** norm_type
+    total_norm = total_norm ** (1. / norm_type)
+    return total_norm
 
 
 def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, train_begin_time=None,

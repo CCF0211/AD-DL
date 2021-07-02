@@ -5,7 +5,6 @@ import argparse
 from clinicadl.tools.deep_learning.iotools import Parameters
 from colorama import Fore
 
-
 TRAIN_CATEGORIES = {
     # General parent group
     'POSITIONAL': '%sPositional arguments%s' % (Fore.BLUE, Fore.RESET),
@@ -161,7 +160,6 @@ def train_func(args):
                 learning_rate=args.learning_rate,
                 patience=args.patience,
                 tolerance=args.tolerance,
-                optimizer='Adam',
                 weight_decay=args.weight_decay,
                 dropout=args.dropout,
                 gpu=not args.use_cpu,
@@ -181,40 +179,67 @@ def train_func(args):
                 resample_size=args.resample_size,
                 drop_last=args.drop_last,
                 fake_caps_path=args.fake_caps_path,
-                pretrain_resnet_path = args.pretrain_resnet_path,
-                new_layer_names = args.new_layer_names,
-                gnn_type = args.gnn_type,
-                nodel_vetor_layer = args.nodel_vetor_layer,
-                classify_layer = args.classify_layer,
-                num_node_features = args.num_node_features,
-                num_class = args.num_class,
-                roi_size = args.roi_size,
-                num_nodes = args.num_nodes,
-                layers = args.layers,
-                shortcut_type = args.shortcut_type,
-                use_nl = args.use_nl,
-                gnn_dropout = args.gnn_dropout,
-                gnn_dropout_adj = args.gnn_dropout_adj,
-                gnn_non_linear = args.gnn_non_linear,
-                gnn_undirected = args.gnn_undirected,
-                gnn_self_loop = args.gnn_self_loop,
-                gnn_threshold = args.gnn_threshold,
-                gnn_pooling_layers = args.gnn_pooling_layers,
-                global_sort_pool_k = args.global_sort_pool_k,
-                sw_patch_size = args.sw_patch_size, 
-                window_size = args.window_size,
-                mlp_ratio = args.mlp_ratio,
-                drop_rate = args.drop_rate,
-                attn_drop_rate = args.attn_drop_rate,
-                drop_path_rate = args.drop_path_rate,
-                qk_scale = args.qk_scale,
-                embed_dim = args.embed_dim,
-                depths = args.depths,
-                num_heads = args.num_heads,
-                qkv_bias = args.qkv_bias,
-                ape = args.ape,
-                patch_norm = args.patch_norm,
-                
+                pretrain_resnet_path=args.pretrain_resnet_path,
+                new_layer_names=args.new_layer_names,
+                gnn_type=args.gnn_type,
+                nodel_vetor_layer=args.nodel_vetor_layer,
+                classify_layer=args.classify_layer,
+                num_node_features=args.num_node_features,
+                num_class=args.num_class,
+                roi_size=args.roi_size,
+                num_nodes=args.num_nodes,
+                layers=args.layers,
+                shortcut_type=args.shortcut_type,
+                use_nl=args.use_nl,
+                gnn_dropout=args.gnn_dropout,
+                gnn_dropout_adj=args.gnn_dropout_adj,
+                gnn_non_linear=args.gnn_non_linear,
+                gnn_undirected=args.gnn_undirected,
+                gnn_self_loop=args.gnn_self_loop,
+                gnn_threshold=args.gnn_threshold,
+                gnn_pooling_layers=args.gnn_pooling_layers,
+                global_sort_pool_k=args.global_sort_pool_k,
+                sw_patch_size=args.sw_patch_size,
+                window_size=args.window_size,
+                mlp_ratio=args.mlp_ratio,
+                drop_rate=args.drop_rate,
+                attn_drop_rate=args.attn_drop_rate,
+                drop_path_rate=args.drop_path_rate,
+                qk_scale=args.qk_scale,
+                embed_dim=args.embed_dim,
+                depths=args.depths,
+                num_heads=args.num_heads,
+                qkv_bias=args.qkv_bias,
+                ape=args.ape,
+                patch_norm=args.patch_norm,
+                data_preprocess=args.data_preprocess,
+                data_Augmentation=args.data_Augmentation,
+                ContrastAugmentationTransform=args.ContrastAugmentationTransform,
+                BrightnessTransform=args.BrightnessTransform,
+                GammaTransform=args.GammaTransform,
+                BrightnessGradientAdditiveTransform=args.BrightnessGradientAdditiveTransform,
+                LocalSmoothingTransform=args.LocalSmoothingTransform,
+                CenterCropTransform=args.CenterCropTransform,
+                RandomCropTransform=args.RandomCropTransform,
+                RandomShiftTransform=args.RandomShiftTransform,
+                RicianNoiseTransform=args.RicianNoiseTransform,
+                GaussianNoiseTransform=args.GaussianNoiseTransform,
+                GaussianBlurTransform=args.GaussianBlurTransform,
+                Rot90Transform=args.Rot90Transform,
+                MirrorTransform=args.MirrorTransform,
+                SpatialTransform=args.SpatialTransform,
+                clip_grad=args.clip_grad,
+                warmup_lr=args.warmup_lr,
+                min_lr=args.min_lr,
+                warmup_epochs=args.warmup_epochs,
+                label_smoothing=args.label_smoothing,
+                LR_scheduler=args.LR_scheduler,
+                decay_epochs=args.decay_epochs,
+                decay_rate=args.decay_rate,
+                optimizer=args.optimizer,
+                optimizer_eps=args.optimizer_eps,
+                optimizer_betas=args.optimizer_betas,
+                optimizer_momentum=args.optimizer_momentum
 
             )
             train_single_cnn(train_params_cnn)
@@ -478,6 +503,7 @@ def train_func(args):
     else:
         print('Mode not detected in clinicadl')
 
+
 # Function to dispatch command line options from classify to corresponding
 # function
 
@@ -493,6 +519,7 @@ def classify_func(args):
         prepare_dl=args.use_extracted_features,
         device=args.device,
     )
+
 
 # Functions to dispatch command line options from tsvtool to corresponding
 # function

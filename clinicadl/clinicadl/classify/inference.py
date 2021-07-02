@@ -348,8 +348,7 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
     else:
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                              device_index=model_options.device,)
-    transformations = get_transforms(model_options.mode,
-                                     model_options.minmaxnormalization)
+    test_transformations = get_transforms(model_options, is_training=False)
 
     # Define loss and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -365,7 +364,7 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
                 caps_dir,
                 tsv_path,
                 model_options.preprocessing,
-                transformations,
+                test_transformations,
                 model_options,
                 cnn_index=n)
             print('test data size:{}'.format(len(dataset)))
@@ -413,7 +412,7 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
             caps_dir,
             tsv_path,
             model_options.preprocessing,
-            transformations,
+            test_transformations,
             model_options)
         print('test data size:{}'.format(len(data_to_test)))
         # Load the data

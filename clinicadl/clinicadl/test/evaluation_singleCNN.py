@@ -36,7 +36,8 @@ if __name__ == "__main__":
     json_path = path.join(options.model_path, "commandline_cnn.json")
     model_options = read_json(model_options, json_path=json_path)
 
-    transformations = get_transforms(model_options.mode, model_options.minmaxnormalization)
+    train_transformations = get_transforms(model_options, is_training=True)
+    test_transformations = get_transforms(model_options, is_training=False)
     criterion = nn.CrossEntropyLoss()
 
     # Loop on all folds trained
@@ -52,9 +53,9 @@ if __name__ == "__main__":
                                           split, model_options.n_splits, model_options.baseline)
 
         data_train = return_dataset(model_options.mode, model_options.input_dir, training_df,
-                                    model_options.preprocessing, transformations, model_options)
+                                    model_options.preprocessing, train_transformations, model_options)
         data_valid = return_dataset(model_options.mode, model_options.input_dir, valid_df,
-                                    model_options.preprocessing, transformations, model_options)
+                                    model_options.preprocessing, test_transformations, model_options)
 
         train_loader = DataLoader(
             data_train,

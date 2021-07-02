@@ -182,7 +182,7 @@ if __name__ == "__main__":
         options.diagnoses = model_options.diagnoses
 
     test_df = load_data_test(options.tsv_path, options.diagnoses)
-    transformations = get_transforms(model_options.mode, model_options.minmaxnormalization)
+    test_transformations = get_transforms(options, is_training=False)
     criterion = nn.CrossEntropyLoss()
 
     # Loop on all folds trained
@@ -194,7 +194,7 @@ if __name__ == "__main__":
         print("Fold %i" % split)
 
         dataset = return_dataset(model_options.mode, options.input_dir, test_df, options.preprocessing,
-                                 transformations, model_options)
+                                 test_transformations, model_options)
         test_loader = DataLoader(
             dataset,
             batch_size=options.batch_size,

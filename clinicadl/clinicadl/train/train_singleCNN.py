@@ -14,6 +14,9 @@ from ..tools.deep_learning.data import (get_transforms,
                                         return_dataset)
 from ..tools.deep_learning.cnn_utils import train
 from clinicadl.test.test_singleCNN import test_cnn
+from .optimizer import return_optimizer
+from .criterion import return_criterion
+from .lr_scheduler import return_scheduler
 
 
 def train_single_cnn(params):
@@ -29,7 +32,8 @@ def train_single_cnn(params):
     of the last epoch that was completed before the crash.
     """
 
-    transformations = get_transforms(params.mode, params.minmaxnormalization)
+    train_transformations = get_transforms(params, is_training=True)
+    test_transformations = get_transforms(params, is_training=False)
     train_begin_time = time.time()
 
     if params.split is None:
@@ -40,7 +44,7 @@ def train_single_cnn(params):
     else:
         fold_iterator = [params.split]
 
-    matric_dict_list = {}
+    metric_dict_list = {}
     for fi in fold_iterator:
 
         training_df, valid_df = load_data(
@@ -51,9 +55,9 @@ def train_single_cnn(params):
             baseline=params.baseline,
             fake_caps_path=params.fake_caps_path)
         data_train = return_dataset(params.mode, params.input_dir, training_df, params.preprocessing,
-                                    transformations, params)
+                                    train_transformations, params)
         data_valid = return_dataset(params.mode, params.input_dir, valid_df, params.preprocessing,
-                                    transformations, params)
+                                    test_transformations, params)
         print('use baseline:{}'.format(params.baseline))
         print(type(params.baseline))
         print('train data size:{} valid data size:{}'.format(len(data_train), len(data_valid)))
@@ -117,50 +121,51 @@ def train_single_cnn(params):
             print('ok')
             print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
-                                    gnn_type=params.gnn_type,
-                                    gnn_dropout=params.gnn_dropout,
-                                    gnn_dropout_adj=params.gnn_dropout_adj,
-                                    gnn_non_linear=params.gnn_non_linear,
-                                    gnn_undirected=params.gnn_undirected,
-                                    gnn_self_loop=params.gnn_self_loop,
-                                    gnn_threshold=params.gnn_threshold,
-                                    nodel_vetor_layer=params.nodel_vetor_layer,
-                                    classify_layer=params.classify_layer,
-                                    num_node_features=params.num_node_features, num_class=params.num_class,
-                                    roi_size=params.roi_size, num_nodes=params.num_nodes,
-                                    gnn_pooling_layers=params.gnn_pooling_layers, global_sort_pool_k=params.global_sort_pool_k,
-                                    layers=params.layers,
-                                    shortcut_type=params.shortcut_type, use_nl=params.use_nl,
-                                    dropout=params.dropout,
-                                    device=params.device)
+                               gnn_type=params.gnn_type,
+                               gnn_dropout=params.gnn_dropout,
+                               gnn_dropout_adj=params.gnn_dropout_adj,
+                               gnn_non_linear=params.gnn_non_linear,
+                               gnn_undirected=params.gnn_undirected,
+                               gnn_self_loop=params.gnn_self_loop,
+                               gnn_threshold=params.gnn_threshold,
+                               nodel_vetor_layer=params.nodel_vetor_layer,
+                               classify_layer=params.classify_layer,
+                               num_node_features=params.num_node_features, num_class=params.num_class,
+                               roi_size=params.roi_size, num_nodes=params.num_nodes,
+                               gnn_pooling_layers=params.gnn_pooling_layers,
+                               global_sort_pool_k=params.global_sort_pool_k,
+                               layers=params.layers,
+                               shortcut_type=params.shortcut_type, use_nl=params.use_nl,
+                               dropout=params.dropout,
+                               device=params.device)
         elif params.model == 'SwinTransformer3d':
-            print('********** init SwinTransformer3d model for test! **********')
+            print('********** init SwinTransformer3d model! **********')
             model = init_model(params.model, gpu=params.gpu, dropout=params.dropout,
-                            device_index=params.device, 
-                            sw_patch_size=params.sw_patch_size, 
-                            window_size = params.window_size,
-                            mlp_ratio = params.mlp_ratio,
-                            drop_rate = params.drop_rate,
-                            attn_drop_rate = params.attn_drop_rate,
-                            drop_path_rate = params.drop_path_rate,
-                            qk_scale = params.qk_scale,
-                            embed_dim = params.embed_dim,
-                            depths = params.depths,
-                            num_heads = params.num_heads,
-                            qkv_bias = params.qkv_bias,
-                            ape = params.ape,
-                            patch_norm = params.patch_norm,
-                            )
+                               device_index=params.device,
+                               sw_patch_size=params.sw_patch_size,
+                               window_size=params.window_size,
+                               mlp_ratio=params.mlp_ratio,
+                               drop_rate=params.drop_rate,
+                               attn_drop_rate=params.attn_drop_rate,
+                               drop_path_rate=params.drop_path_rate,
+                               qk_scale=params.qk_scale,
+                               embed_dim=params.embed_dim,
+                               depths=params.depths,
+                               num_heads=params.num_heads,
+                               qkv_bias=params.qkv_bias,
+                               ape=params.ape,
+                               patch_norm=params.patch_norm,
+                               )
         elif 'gcn' in params.model:
             print('********** init {}-{} model! **********'.format(params.model, params.gnn_type))
             model = init_model(params.model, gpu=params.gpu, device_index=params.device,
-                                pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type,
-                                gnn_dropout=params.gnn_dropout, 
-                                gnn_dropout_adj=params.gnn_dropout_adj,
-                                gnn_non_linear=params.gnn_non_linear, 
-                                gnn_undirected=params.gnn_undirected, 
-                                gnn_self_loop=params.gnn_self_loop,
-                                gnn_threshold=params.gnn_threshold,)
+                               pretrain_resnet_path=params.pretrain_resnet_path, gnn_type=params.gnn_type,
+                               gnn_dropout=params.gnn_dropout,
+                               gnn_dropout_adj=params.gnn_dropout_adj,
+                               gnn_non_linear=params.gnn_non_linear,
+                               gnn_undirected=params.gnn_undirected,
+                               gnn_self_loop=params.gnn_self_loop,
+                               gnn_threshold=params.gnn_threshold, )
 
         else:
             model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
@@ -170,29 +175,34 @@ def train_single_cnn(params):
                                   device_index=params.device)
         # print(model)
         # Define criterion and optimizer
-        criterion = torch.nn.CrossEntropyLoss()
-        wandb.watch(model, criterion, log="all", log_freq=5)
-        if params.pretrain_resnet_path is not None:
-            new_parameters = []
-            for pname, p in model.named_parameters():
-                for layer_name in params.new_layer_names:
-                    if pname.find(layer_name) >= 0:
-                        new_parameters.append(p)
-                        break
+        criterion = return_criterion(params)
+        optimizer = return_optimizer(params, model)
+        lr_scheduler = return_scheduler(params, optimizer, len(train_loader))
+        # criterion = torch.nn.CrossEntropyLoss()
 
-            new_parameters_id = list(map(id, new_parameters))
-            base_parameters = list(filter(lambda p: id(p) not in new_parameters_id, model.parameters()))
-            parameters = {'base_parameters': base_parameters,
-                          'new_parameters': new_parameters}
-            para = [
-                {'params': parameters['base_parameters'], 'lr': params.learning_rate / 10},
-                {'params': parameters['new_parameters'], 'lr': params.learning_rate}
-            ]
-            optimizer = eval("torch.optim." + params.optimizer)(para, weight_decay=params.weight_decay)
-        else:
-            optimizer = eval("torch.optim." + params.optimizer)(filter(lambda x: x.requires_grad, model.parameters()),
-                                                                lr=params.learning_rate,
-                                                                weight_decay=params.weight_decay)
+        wandb.watch(model, criterion, log="all", log_freq=5)
+
+        # if params.pretrain_resnet_path is not None:
+        #     new_parameters = []
+        #     for pname, p in model.named_parameters():
+        #         for layer_name in params.new_layer_names:
+        #             if pname.find(layer_name) >= 0:
+        #                 new_parameters.append(p)
+        #                 break
+        #
+        #     new_parameters_id = list(map(id, new_parameters))
+        #     base_parameters = list(filter(lambda p: id(p) not in new_parameters_id, model.parameters()))
+        #     parameters = {'base_parameters': base_parameters,
+        #                   'new_parameters': new_parameters}
+        #     para = [
+        #         {'params': parameters['base_parameters'], 'lr': params.learning_rate / 10},
+        #         {'params': parameters['new_parameters'], 'lr': params.learning_rate}
+        #     ]
+        #     optimizer = eval("torch.optim." + params.optimizer)(para, weight_decay=params.weight_decay)
+        # else:
+        #     optimizer = eval("torch.optim." + params.optimizer)(filter(lambda x: x.requires_grad, model.parameters()),
+        #                                                         lr=params.learning_rate,
+        #                                                         weight_decay=params.weight_decay)
         setattr(params, 'beginning_epoch', 0)
 
         # Define output directories
@@ -203,7 +213,8 @@ def train_single_cnn(params):
 
         print('Beginning the training task')
         train(model, train_loader, valid_loader, criterion,
-              optimizer, False, log_dir, model_dir, params, fi, train_begin_time=train_begin_time)
+              optimizer, False, log_dir, model_dir, params, fi, train_begin_time=train_begin_time,
+              lr_scheduler=lr_scheduler)
 
         params.model_path = params.output_dir
         test_cnn(params.output_dir, train_loader, "train",
@@ -211,19 +222,26 @@ def train_single_cnn(params):
         metric_dict = test_cnn(params.output_dir, valid_loader, "validation",
                                fi, criterion, params, gpu=params.gpu, train_begin_time=train_begin_time)
         for key in metric_dict.keys():
-            if key in matric_dict_list.keys():
-                matric_dict_list[key].append(metric_dict[key])
+            if key in metric_dict_list.keys():
+                metric_dict_list[key].append(metric_dict[key])
             else:
-                matric_dict_list[key] = [metric_dict[key]]
+                metric_dict_list[key] = [metric_dict[key]]
+
         torch.cuda.empty_cache()
-    for keys, values in matric_dict_list.items():
+        if metric_dict['validation_balanced_accuracy_best_balanced_accuracy_singel_model'] < 0.7 and fi != 4:
+            print('[Early Stoped!]validation_balanced_accuracy_best_balanced_accuracy_singel_model:{}'.format(
+                metric_dict['validation_balanced_accuracy_best_balanced_accuracy_singel_model']))
+            wandb.log({'Early Stop fold': fi})
+            break
+
+    for keys, values in metric_dict_list.items():
         print('{}:'.format(keys))
         print(values)
     mean_matric_dict = {}
-    for key in matric_dict_list.keys():
-        mean_matric_dict.update({"mean_{}".format(key): np.mean(matric_dict_list[key])})
-        mean_matric_dict.update({"max_{}".format(key): np.max(matric_dict_list[key])})
-        mean_matric_dict.update({"std_{}".format(key): np.std(matric_dict_list[key])})
+    for key in metric_dict_list.keys():
+        mean_matric_dict.update({"mean_{}".format(key): np.mean(metric_dict_list[key])})
+        mean_matric_dict.update({"max_{}".format(key): np.max(metric_dict_list[key])})
+        mean_matric_dict.update({"std_{}".format(key): np.std(metric_dict_list[key])})
     wandb.log(mean_matric_dict)
     for keys, values in mean_matric_dict.items():
         print('{}:{}'.format(keys, values))

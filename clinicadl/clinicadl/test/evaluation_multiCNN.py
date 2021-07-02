@@ -38,7 +38,8 @@ if __name__ == "__main__":
     model_options = read_json(model_options, json_path=json_path)
     num_cnn = compute_num_cnn(model_options.input_dir, model_options.tsv_path, model_options, data="train")
 
-    transformations = get_transforms(model_options.mode, model_options.minmaxnormalization)
+    train_transformations = get_transforms(model_options, is_training=True)
+    test_transformations = get_transforms(model_options, is_training=False)
     criterion = nn.CrossEntropyLoss()
 
     # Loop on all folds trained
@@ -55,10 +56,10 @@ if __name__ == "__main__":
 
         for cnn_index in range(num_cnn):
             data_train = return_dataset(model_options.mode, model_options.input_dir, training_df,
-                                        model_options.preprocessing, transformations, model_options,
+                                        model_options.preprocessing, train_transformations, model_options,
                                         cnn_index=cnn_index)
             data_valid = return_dataset(model_options.mode, model_options.input_dir, valid_df,
-                                        model_options.preprocessing, transformations, model_options,
+                                        model_options.preprocessing, test_transformations, model_options,
                                         cnn_index=cnn_index)
 
             train_loader = DataLoader(

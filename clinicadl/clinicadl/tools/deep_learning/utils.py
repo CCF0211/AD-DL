@@ -2,6 +2,25 @@ import time
 import math
 import cv2
 import numpy as np
+import platform
+import ctypes
+import os
+
+
+def get_free_space_mb(folder):
+    """
+    获取磁盘剩余空间
+    :param folder: 磁盘路径 例如 D:\\
+    :return: 剩余空间 单位 G
+    """
+    if platform.system() == 'Windows':
+        free_bytes = ctypes.c_ulonglong(0)
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(folder), None, None, ctypes.pointer(free_bytes))
+        return free_bytes.value / 1024 / 1024 // 1024
+    else:
+        st = os.statvfs(folder)
+        return st.f_bavail * st.f_frsize / 1024 // 1024
+
 
 def timeSince(since):
     if since is not None:
@@ -12,6 +31,7 @@ def timeSince(since):
         return '%dm %ds' % (m, s)
     else:
         return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
 
 def get_dynamic_image(frames, normalized=True):
     """ Adapted from https://github.com/tcvrick/Python-Dynamic-Images-for-Action-Recognition"""

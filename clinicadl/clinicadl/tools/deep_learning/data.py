@@ -14,6 +14,15 @@ import torch.nn.functional as F
 from scipy import ndimage
 import socket
 from utils import get_dynamic_image
+from .batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessTransform, \
+    GammaTransform, BrightnessGradientAdditiveTransform, LocalSmoothingTransform
+from .batchgenerators.transforms.crop_and_pad_transforms import CenterCropTransform, RandomCropTransform, \
+    RandomShiftTransform
+from .batchgenerators.transforms.noise_transforms import RicianNoiseTransform, GaussianNoiseTransform, \
+    GaussianBlurTransform
+from .batchgenerators.transforms.spatial_transforms import Rot90Transform, MirrorTransform, SpatialTransform
+from .batchgenerators.transforms.abstract_transforms import Compose
+from .batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 
 
 #################################
@@ -328,7 +337,8 @@ class MRIDatasetImage(MRIDataset):
 
     def __init__(self, caps_directory, data_file,
                  preprocessing='t1-linear', transformations=None, crop_padding_to_128=False, resample_size=None,
-                 fake_caps_path=None, roi=False, roi_size=32, model=None):
+                 fake_caps_path=None, roi=False, roi_size=32, model=None, data_preprocess='MinMax',
+                 data_Augmentation=False):
         """
         Args:
             caps_directory (string): Directory of all the images.
@@ -340,6 +350,8 @@ class MRIDatasetImage(MRIDataset):
         self.elem_index = None
         self.mode = "image"
         self.model = model
+        self.data_preprocess = data_preprocess
+        self.data_Augmentation = data_Augmentation
         self.crop_padding_to_128 = crop_padding_to_128
         self.resample_size = resample_size
         self.fake_caps_path = fake_caps_path
@@ -356,71 +368,137 @@ class MRIDatasetImage(MRIDataset):
 
     def __getitem__(self, idx):
         participant, session, _, label = self._get_meta_data(idx)
-
         image_path = self._get_path(participant, session, "image", fake_caps_path=self.fake_caps_path)
         roi_image_path = image_path.replace('image_based', 'AAL_roi_based_{}'.format(self.roi_size))
         if os.path.exists(roi_image_path) and self.roi:
-            ROI_image = torch.load(roi_image_path)
+            try:
+                ROI_image = torch.load(roi_image_path)
+            except:
+                print('Wrong file:{}'.format(roi_image_path))
             sample = {'image': ROI_image, 'label': label, 'participant_id': participant,
                       'session_id': session,
                       'image_path': roi_image_path, 'num_fake_mri': self.num_fake_mri}
             return sample
 
+        if self.preprocessing == 't1-linear':
+            ori_name = 't1_linear'
+        else:
+            ori_name = 't1_spm'
+        resampled_image_path = image_path.replace(ori_name, '{}_{}_resample_{}'.format(ori_name, self.data_preprocess,
+                                                                                       self.resample_size))
+
+        if os.path.exists(resampled_image_path) and self.model not in ["ConvNet3D",
+                                                                       "ConvNet3D_gcn",
+                                                                       "VoxCNN",
+                                                                       "Conv5_FC3",
+                                                                       'DeepCNN',
+                                                                       'CNN2020',
+                                                                       'CNN2020_gcn',
+                                                                       "VoxCNN_gcn",
+                                                                       'DeepCNN_gcn',
+                                                                       "ConvNet3D_v2",
+                                                                       "ConvNet3D_ori",
+                                                                       "Dynamic2D_net_Alex",
+                                                                       "Dynamic2D_net_Res34",
+                                                                       "Dynamic2D_net_Res18",
+                                                                       "Dynamic2D_net_Vgg16",
+                                                                       "Dynamic2D_net_Vgg11",
+                                                                       "Dynamic2D_net_Mobile",
+                                                                       'ROI_GCN']:
+
+            resampled_image = torch.load(resampled_image_path)
+            if self.data_Augmentation and self.transformations:
+                dict = {}
+                dict['data'] = resampled_image
+                begin_trans_indx = 0
+                for i in range(len(self.transformations.transforms)):
+                    if self.transformations.transforms[i].__class__.__name__ in ['ItensityNormalizeNonzeorVolume',
+                                                                                 'ItensityNormalizeNonzeorVolume',
+                                                                                 'MinMaxNormalization']:
+                        begin_trans_indx = i + 1
+                resampled_image = self.transformations(begin_trans_indx=begin_trans_indx, **dict)
+            sample = {'image': resampled_image, 'label': label, 'participant_id': participant,
+                      'session_id': session,
+                      'image_path': resampled_image_path, 'num_fake_mri': self.num_fake_mri}
+            return sample
         image = torch.load(image_path)
-
-        # if self.transformations and self.model not in ["Dynamic2D_net_Alex", "Dynamic2D_net_Res34",
-        #                                                "Dynamic2D_net_Res18",
-        #                                                "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11",
-        #                                                "Dynamic2D_net_Mobile"]:
-        #     image = self.transformations(image)
-
         if self.transformations:
-            image = self.transformations(image)
-
-        if self.crop_padding_to_128 and image.shape[1] != 128:
-            image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
-            image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
-            pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
-            image = pad(image)  # [1, 1, 128, 128, 128]
-            image = image.squeeze(0)  # [1, 128, 128, 128]
-        if self.resample_size is not None:
-            assert self.resample_size > 0, 'resample_size should be a int positive number'
-            image = image.unsqueeze(0)
-            image = F.interpolate(image,
-                                  size=self.resample_size)  # resize to resample_size * resample_size * resample_size
-            image = self.transformations(image)
-            image = image.squeeze(0)
-        if self.model in ['DeepCNN', 'DeepCNN_gcn']:
-            image = image.unsqueeze(0)
-            image = F.interpolate(image, size=[49, 39, 38])
-            image = image.squeeze(0)
-        elif self.model in ['CNN2020', 'CNN2020_gcn']:
-            image = image.unsqueeze(0)
-            image = F.interpolate(image, size=[139, 177, 144])
-            image = image.squeeze(0)
-        # preprocessing data
+            dict = {}
+            dict['data'] = image
+            image = self.transformations(begin_trans_indx=0, **dict)
         data = image.squeeze()  # [128, 128, 128]
-        # print(data.shape)
-        input_W, input_H, input_D = data.shape
-        if self.model not in ["ConvNet3D", "ConvNet3D_gcn", "VoxCNN", "Conv5_FC3", 'DeepCNN', 'CNN2020', 'CNN2020_gcn',
-                              "VoxCNN_gcn", 'DeepCNN_gcn', "ConvNet3D_v2", "ConvNet3D_ori", "Dynamic2D_net_Alex",
-                              "Dynamic2D_net_Res34", "Dynamic2D_net_Res18", "Dynamic2D_net_Vgg16",
-                              "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
-            # drop out the invalid range
-            # if self.preprocessing in ['t1-spm-graymatter', 't1-spm-whitematter', 't1-spm-csf']:
-            data = self.__drop_invalid_range__(data)
-            # resize data
-            data = self.__resize_data__(data, input_W, input_H, input_D)
-            # normalization datas
-            data = np.array(data)
-            data = self.__itensity_normalize_one_volume__(data)
-            # if self.transformations and self.model in ["ConvNet3D", "VoxCNN"]:
-            #     data = self.transformations(data)
-            data = torch.from_numpy(data)
-        if self.model in ['CNN2020', 'CNN2020_gcn']:
-            data = np.array(data)
-            data = self.__itensity_normalize_one_volume__(data, normalize_all=True)
-            data = torch.from_numpy(data)
+        # print(self.transformations)
+        # print(self.transformations[0])
+        # if self.crop_padding_to_128 and image.shape[1] != 128:
+        #     image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
+        #     image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
+        #     pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
+        #     image = pad(image)  # [1, 1, 128, 128, 128]
+        #     image = image.squeeze(0)  # [1, 128, 128, 128]
+        # if self.resample_size is not None:
+        #     assert self.resample_size > 0, 'resample_size should be a int positive number'
+        #     image = image.unsqueeze(0)
+        #     image = F.interpolate(image,
+        #                           size=self.resample_size)  # resize to resample_size * resample_size * resample_size
+        #     print('resample before trans shape:{}'.format(image.shape))
+        #     print('resample before trans mean:{}'.format(image.mean()))
+        #     print('resample before trans std:{}'.format(image.std()))
+        #     print('resample before trans max:{}'.format(image.max()))
+        #     print('resample before trans min:{}'.format(image.min()))
+        #     # image = self.transformations(image)
+        #     # print('resample after trans shape:{}'.format(image.shape))
+        #     # print('resample after trans mean:{}'.format(image.mean()))
+        #     # print('resample after trans std:{}'.format(image.std()))
+        #     # print('resample after trans max:{}'.format(image.max()))
+        #     # print('resample after trans min:{}'.format(image.min()))
+        #     image = image.squeeze(0)
+        #
+        # if self.model in ['DeepCNN', 'DeepCNN_gcn']:
+        #     image = image.unsqueeze(0)
+        #     image = F.interpolate(image, size=[49, 39, 38])
+        #     image = image.squeeze(0)
+        # elif self.model in ['CNN2020', 'CNN2020_gcn']:
+        #     image = image.unsqueeze(0)
+        #     image = F.interpolate(image, size=[139, 177, 144])
+        #     image = image.squeeze(0)
+        # # preprocessing data
+        # data = image.squeeze()  # [128, 128, 128]
+        # # print(data.shape)
+        # input_W, input_H, input_D = data.shape
+        # if self.model not in ["ConvNet3D", "ConvNet3D_gcn", "VoxCNN", "Conv5_FC3", 'DeepCNN', 'CNN2020', 'CNN2020_gcn',
+        #                       "VoxCNN_gcn", 'DeepCNN_gcn', "ConvNet3D_v2", "ConvNet3D_ori", "Dynamic2D_net_Alex",
+        #                       "Dynamic2D_net_Res34", "Dynamic2D_net_Res18", "Dynamic2D_net_Vgg16",
+        #                       "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
+        #     # drop out the invalid range
+        #     # if self.preprocessing in ['t1-spm-graymatter', 't1-spm-whitematter', 't1-spm-csf']:
+        #     data = self.__drop_invalid_range__(data)
+        #     print('drop_invalid_range shape:{}'.format(data.shape))
+        #     print('drop_invalid_range mean:{}'.format(data.mean()))
+        #     print('drop_invalid_range std:{}'.format(data.std()))
+        #     print('drop_invalid_range max:{}'.format(data.max()))
+        #     print('drop_invalid_range min:{}'.format(data.min()))
+        #     # resize data
+        #     data = self.__resize_data__(data, input_W, input_H, input_D)
+        #     print('resize_data shape:{}'.format(data.shape))
+        #     print('resize_data mean:{}'.format(data.mean()))
+        #     print('resize_data std:{}'.format(data.std()))
+        #     print('resize_data max:{}'.format(data.max()))
+        #     print('resize_data min:{}'.format(data.min()))
+        #     # normalization datas
+        #     data = np.array(data)
+        #     data = self.__itensity_normalize_one_volume__(data)
+        #     print('itensity_normalize shape:{}'.format(data.shape))
+        #     print('itensity_normalize mean:{}'.format(data.mean()))
+        #     print('itensity_normalize std:{}'.format(data.std()))
+        #     print('itensity_normalize max:{}'.format(data.max()))
+        #     print('itensity_normalize min:{}'.format(data.min()))
+        #     # if self.transformations and self.model in ["ConvNet3D", "VoxCNN"]:
+        #     #     data = self.transformations(data)
+        #     data = torch.from_numpy(data)
+        # if self.model in ['CNN2020', 'CNN2020_gcn']:
+        #     data = np.array(data)
+        #     data = self.__itensity_normalize_one_volume__(data, normalize_all=True)
+        #     data = torch.from_numpy(data)
         if self.model in ["Dynamic2D_net_Alex", "Dynamic2D_net_Res34", "Dynamic2D_net_Res18",
                           "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
             image_np = np.array(data)
@@ -434,6 +512,7 @@ class MRIDatasetImage(MRIDataset):
             sample = {'image': im, 'label': label, 'participant_id': participant, 'session_id': session,
                       'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
             return sample
+
         if self.roi:
             # image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
             data = self.roi_extract(data, roi_size=self.roi_size)
@@ -450,12 +529,19 @@ class MRIDatasetImage(MRIDataset):
                       'session_id': session,
                       'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
 
-
         else:
-            image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
-
+            try:
+                image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+            except:
+                image = np.expand_dims(data, 0)
+            if not self.data_Augmentation:
+                dir, file = os.path.split(resampled_image_path)
+                if not os.path.exists(dir):
+                    os.makedirs(dir)
+                torch.save(image, resampled_image_path)
+                print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
             sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
-                      'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+                      'image_path': resampled_image_path, 'num_fake_mri': self.num_fake_mri}
 
         return sample
 
@@ -812,6 +898,8 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
             roi=use_roi,
             roi_size=params.roi_size,
             model=params.model,
+            data_preprocess=params.data_preprocess,
+            data_Augmentation=params.data_Augmentation,
         )
     if mode == "patch":
         return MRIDatasetPatch(
@@ -845,7 +933,7 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
 
 
 def compute_num_cnn(input_dir, tsv_path, options, data="train"):
-    transformations = get_transforms(options.mode, options.minmaxnormalization)
+    transformations = get_transforms(options)
 
     if data == "train":
         example_df, _ = load_data(tsv_path, options.diagnoses, 0, options.n_splits, options.baseline)
@@ -879,6 +967,9 @@ class GaussianSmoothing(object):
 
         return sample
 
+    def __repr__(self):
+        return self.__class__.__name__ + '(sigma={})'.format(self.sigma)
+
 
 class ToTensor(object):
     """Convert image type to Tensor and diagnosis to diagnosis code"""
@@ -889,23 +980,271 @@ class ToTensor(object):
 
         return torch.from_numpy(image[np.newaxis, :]).float()
 
+    def __repr__(self):
+        return self.__class__.__name__
+
 
 class MinMaxNormalization(object):
     """Normalizes a tensor between 0 and 1"""
 
-    def __call__(self, image):
-        return (image - image.min()) / (image.max() - image.min())
+    def __call__(self, **data_dict):
+        image = data_dict['data']
+        image = (image - image.min()) / (image.max() - image.min())
+        data_dict['data'] = image
+        return data_dict
+
+    def __repr__(self):
+        return self.__class__.__name__
 
 
-def get_transforms(mode, minmaxnormalization=True):
-    if mode in ["image", "patch", "roi"]:
-        if minmaxnormalization:
-            transformations = MinMaxNormalization()
+class ItensityNormalizeNonzeorVolume(object):
+    """
+    normalize the itensity of an nd volume based on the mean and std of nonzeor region
+    inputs:
+        volume: the input nd volume
+    outputs:
+        out: the normalized nd volume
+    """
+
+    def __call__(self, **data_dict):
+        image = data_dict['data']
+        image = image.squeeze()
+        image = np.array(image)
+        pixels = image[image > 0]
+        mean = pixels.mean()
+        std = pixels.std()
+        out = (image - mean) / std
+        out_random = np.random.normal(0, 1, size=image.shape)
+
+        out[image == 0] = out_random[image == 0]
+        out = torch.from_numpy(out.copy())
+        data_dict['data'] = out.unsqueeze(0)
+        return data_dict
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
+class ItensityNormalizeAllVolume(object):
+    """
+    normalize the itensity of an nd volume based on the mean and std of all region
+    inputs:
+        volume: the input nd volume
+    outputs:
+        out: the normalized nd volume
+    """
+
+    def __call__(self, **data_dict):
+        image = data_dict['data']
+        image = (image - image.mean()) / image.std()
+        data_dict['data'] = image
+        return data_dict
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
+class CropPpadding128(object):
+    """
+    crop padding image to 128
+    """
+
+    def __call__(self, **data_dict):
+        image = data_dict['data']
+        assert image.shape[1] == 121 and image.shape[2] == 145 and image.shape[
+            3] == 121, "image shape must be 1*121*145*122, but given shape:{}".format(image.shape)
+        image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
+        image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
+        pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
+        image = pad(image)  # [1, 1, 128, 128, 128]
+        image = image.squeeze(0)  # [1, 128, 128, 128]
+
+        data_dict['data'] = image
+        return data_dict
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
+class Resize(torch.nn.Module):
+    """
+    Resize data to target size
+    """
+
+    def __init__(self, resample_size):
+        super().__init__()
+        assert resample_size > 0, 'resample_size should be a int positive number'
+        self.resample_size = resample_size
+
+    def forward(self, **data_dict):
+        image = data_dict['data']
+        image = image.unsqueeze(0)
+        image = F.interpolate(image, size=self.resample_size)
+        image = image.squeeze(0)
+        data_dict['data'] = image
+        return data_dict
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(resample_size={0})'.format(self.resample_size)
+
+
+class CheckDictSize(object):
+    """
+    check dict size to dim 5 :1,1,128,128,128
+    """
+
+    def __call__(self, **dict):
+        image = dict['data']
+        if len(image.shape) == 4:
+            image = np.array(image.unsqueeze(0))
+        elif len(image.shape) == 3:
+            image = np.array(image.unsqueeze(0).unsqueeze(0))
+        assert len(image.shape) == 5
+        dict['data'] = image
+
+        return dict
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
+class DictToImage(object):
+    """
+    dict 2 data
+    """
+
+    def __call__(self, **dict):
+        image = dict['data']
+        if len(image.shape) == 5:
+            image = image.squeeze(0)
+        elif len(image.shape) == 3:
+            image = image.unsqueeze(0)
+        return image
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
+class DropInvalidRange(torch.nn.Module):
+    """
+    Cut off the invalid area
+    """
+
+    def __init__(self, keep_size=True):
+        super().__init__()
+        self.keep_size = keep_size
+
+    def __call__(self, **data_dict):
+        image = data_dict['data']
+        image = image.squeeze(0)
+        zero_value = image[0, 0, 0]
+        z, h, w = image.shape
+        non_zeros_idx = np.where(image != zero_value)
+        [max_z, max_h, max_w] = np.max(np.array(non_zeros_idx), axis=1)
+        [min_z, min_h, min_w] = np.min(np.array(non_zeros_idx), axis=1)
+        image = image[min_z:max_z, min_h:max_h, min_w:max_w].unsqueeze(0)
+        if self.keep_size:
+            image = image.unsqueeze(0)
+            image = F.interpolate(image, size=[z, h, w])
+            image = image.squeeze(0)
+        data_dict['data'] = image
+        return data_dict
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(keep_size={})'.format(self.keep_size)
+
+
+def get_transforms(params, is_training=True):
+    if params.mode == 'image':
+        trans_list = []
+        trans_list.append(MinMaxNormalization())
+        if params.preprocessing != 't1-linear':
+            trans_list.append(CropPpadding128())
+            trans_list.append(DropInvalidRange(keep_size=True))
+        if params.resample_size is not None:
+            trans_list.append(Resize(params.resample_size))
+        if params.data_preprocess == 'MinMax':
+            trans_list.append(MinMaxNormalization())
+        elif params.data_preprocess == 'NonzeorZscore':
+            trans_list.append(ItensityNormalizeNonzeorVolume())
+        elif params.data_preprocess == 'AllzeorZscore':
+            trans_list.append(ItensityNormalizeAllVolume())
+        if is_training:
+            if params.ContrastAugmentationTransform > 0:
+                trans_list.append(CheckDictSize())  # for this code library, input data must be dim=5, 1,1,128,128,128
+                trans_list.append(ContrastAugmentationTransform((0.3, 3.), preserve_range=True,
+                                                                p_per_sample=params.ContrastAugmentationTransform))
+            if params.BrightnessTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(
+                    BrightnessTransform(mu=0, sigma=1, per_channel=False, p_per_sample=params.BrightnessTransform))
+            if params.GammaTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(
+                    GammaTransform(gamma_range=(0.5, 2), invert_image=False, per_channel=False, retain_stats=False,
+                                   p_per_sample=params.GammaTransform))
+            if params.BrightnessGradientAdditiveTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(BrightnessGradientAdditiveTransform(scale=(5, 5),
+                                                                      p_per_sample=params.BrightnessGradientAdditiveTransform))
+            if params.LocalSmoothingTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(LocalSmoothingTransform(scale=(5, 5),
+                                                          p_per_sample=params.LocalSmoothingTransform))
+            if params.RandomShiftTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(
+                    RandomShiftTransform(shift_mu=0, shift_sigma=3, p_per_sample=params.RandomShiftTransform))
+            if params.RicianNoiseTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(
+                    RicianNoiseTransform(noise_variance=(0, 0.1), p_per_sample=params.RicianNoiseTransform))
+            if params.GaussianNoiseTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(
+                    GaussianNoiseTransform(noise_variance=(0, 0.1), p_per_sample=params.RicianNoiseTransform))
+            if params.GaussianBlurTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(
+                    GaussianBlurTransform(blur_sigma=(1, 5), different_sigma_per_channel=False,
+                                          p_per_sample=params.RicianNoiseTransform))
+            if params.Rot90Transform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(Rot90Transform(num_rot=(1, 2, 3), axes=(0, 1, 2), p_per_sample=params.Rot90Transform))
+            if params.MirrorTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(MirrorTransform(axes=(0, 1, 2), p_per_sample=params.MirrorTransform))
+            if params.SpatialTransform > 0:
+                trans_list.append(CheckDictSize())
+                trans_list.append(
+                    SpatialTransform(patch_size=(params.resample_size, params.resample_size, params.resample_size),
+                                     p_el_per_sample=params.SpatialTransform,
+                                     p_rot_per_axis=params.SpatialTransform,
+                                     p_scale_per_sample=params.SpatialTransform,
+                                     p_rot_per_sample=params.SpatialTransform))
+        trans_list.append(DictToImage())
+        transformations = Compose(trans_list)
+        if params.model in ['DeepCNN', 'DeepCNN_gcn']:
+            trans_list = []
+            trans_list.append(MinMaxNormalization())
+            trans_list.append(Resize(resample_size=[49, 39, 38]))
+            trans_list.append(DictToImage())
+            transformations = Compose(trans_list)
+        if params.model in ['CNN2020', 'CNN2020_gcn']:
+            trans_list = []
+            trans_list.append(MinMaxNormalization())
+            trans_list.append(Resize(resample_size=[139, 177, 144]))
+            trans_list.append(ItensityNormalizeAllVolume())
+            trans_list.append(DictToImage())
+            transformations = Compose(trans_list)
+    elif params.mode in ["patch", "roi"]:
+        if params.minmaxnormalization:
+            transformations = Compose([MinMaxNormalization(), DictToImage()])
         else:
             transformations = None
-    elif mode == "slice":
+    elif params.mode == "slice":
         trg_size = (224, 224)
-        if minmaxnormalization:
+        if params.minmaxnormalization:
             transformations = transforms.Compose([MinMaxNormalization(),
                                                   transforms.ToPILImage(),
                                                   transforms.Resize(trg_size),
@@ -915,8 +1254,8 @@ def get_transforms(mode, minmaxnormalization=True):
                                                   transforms.Resize(trg_size),
                                                   transforms.ToTensor()])
     else:
-        raise ValueError("Transforms for mode %s are not implemented." % mode)
-
+        raise ValueError("Transforms for mode %s are not implemented." % params.mode)
+    print('transformer:{}'.format(transformations.__repr__))
     return transformations
 
 

@@ -37,7 +37,6 @@ class Parameters:
             learning_rate: float = 1e-4,
             patience: int = 10,
             tolerance: float = 0.05,
-            optimizer: str = "Adam",
             weight_decay: float = 1e-4,
             dropout: float = 0,
             gpu: bool = False,
@@ -67,14 +66,14 @@ class Parameters:
             drop_last: bool = False,
             fake_caps_path: str = None,
             pretrain_resnet_path: str = None,
-            new_layer_names: str= [],
-            gnn_type: str= '3gcn',
-            nodel_vetor_layer: str= 'basic',
-            classify_layer: str= 'basic',
-            num_node_features: int= 512,
+            new_layer_names: str = [],
+            gnn_type: str = '3gcn',
+            nodel_vetor_layer: str = 'basic',
+            classify_layer: str = 'basic',
+            num_node_features: int = 512,
             num_class: int = 2,
-            roi_size:  int = 32,
-            num_nodes:  int = 116,
+            roi_size: int = 32,
+            num_nodes: int = 116,
             layers: str = None,
             shortcut_type: str = 'B',
             use_nl: bool = False,
@@ -96,10 +95,37 @@ class Parameters:
             embed_dim: int = 96,
             depths: str = None,
             num_heads: str = None,
-            qkv_bias:  bool = True,
-            ape:  bool = False,
-            patch_norm:  bool = True,
-
+            qkv_bias: bool = True,
+            ape: bool = False,
+            patch_norm: bool = True,
+            data_preprocess: str = None,
+            data_Augmentation: bool = False,
+            ContrastAugmentationTransform: float = 0,
+            BrightnessTransform: float = 0,
+            GammaTransform: float = 0,
+            BrightnessGradientAdditiveTransform: float = 0,
+            LocalSmoothingTransform: float = 0,
+            CenterCropTransform: float = 0,
+            RandomCropTransform: float = 0,
+            RandomShiftTransform: float = 0,
+            RicianNoiseTransform: float = 0,
+            GaussianNoiseTransform: float = 0,
+            GaussianBlurTransform: float = 0,
+            Rot90Transform: float = 0,
+            MirrorTransform: float = 0,
+            SpatialTransform: float = 0,
+            clip_grad: float = 5.0,
+            warmup_lr: float = 5e-8,
+            min_lr: float = 5e-6,
+            warmup_epochs: int = 20,
+            label_smoothing: float = 0.1,
+            LR_scheduler: str = 'cosine',
+            decay_epochs: int = 30,
+            decay_rate: float = 0.1,
+            optimizer: str = 'adamw',
+            optimizer_eps: float = 1e-8,
+            optimizer_betas: str = (0.9, 0.999),
+            optimizer_momentum: float = 0.9,
 
     ):
         """
@@ -151,7 +177,6 @@ class Parameters:
         self.learning_rate = learning_rate
         self.patience = patience
         self.tolerance = tolerance
-        self.optimizer = optimizer
         self.weight_decay = weight_decay
         self.dropout = dropout
         self.gpu = gpu
@@ -183,20 +208,20 @@ class Parameters:
         self.pretrain_resnet_path = pretrain_resnet_path
         self.new_layer_names = new_layer_names
         self.gnn_type = gnn_type
-        self.nodel_vetor_layer= nodel_vetor_layer
-        self.classify_layer= classify_layer
-        self.num_node_features= num_node_features
-        self.num_class= num_class
-        self.roi_size= roi_size
-        self.num_nodes= num_nodes
-        self.layers= layers
-        self.shortcut_type= shortcut_type
-        self.use_nl= use_nl
+        self.nodel_vetor_layer = nodel_vetor_layer
+        self.classify_layer = classify_layer
+        self.num_node_features = num_node_features
+        self.num_class = num_class
+        self.roi_size = roi_size
+        self.num_nodes = num_nodes
+        self.layers = layers
+        self.shortcut_type = shortcut_type
+        self.use_nl = use_nl
         self.gnn_dropout = gnn_dropout
         self.gnn_dropout_adj = gnn_dropout_adj
-        self.gnn_non_linear  = gnn_non_linear
+        self.gnn_non_linear = gnn_non_linear
         self.gnn_undirected = gnn_undirected
-        self.gnn_self_loop  = gnn_self_loop
+        self.gnn_self_loop = gnn_self_loop
         self.gnn_threshold = gnn_threshold
         self.gnn_pooling_layers = gnn_pooling_layers
         self.global_sort_pool_k = global_sort_pool_k
@@ -213,6 +238,35 @@ class Parameters:
         self.qkv_bias = qkv_bias
         self.ape = ape
         self.patch_norm = patch_norm
+        self.data_preprocess = data_preprocess
+        self.data_Augmentation = data_Augmentation
+        self.ContrastAugmentationTransform = ContrastAugmentationTransform
+        self.BrightnessTransform = BrightnessTransform
+        self.GammaTransform = GammaTransform
+        self.BrightnessGradientAdditiveTransform = BrightnessGradientAdditiveTransform
+        self.LocalSmoothingTransform = LocalSmoothingTransform
+        self.CenterCropTransform = CenterCropTransform
+        self.RandomCropTransform = RandomCropTransform
+        self.RandomShiftTransform = RandomShiftTransform
+        self.RicianNoiseTransform = RicianNoiseTransform
+        self.GaussianNoiseTransform = GaussianNoiseTransform
+        self.GaussianBlurTransform = GaussianBlurTransform
+        self.Rot90Transform = Rot90Transform
+        self.MirrorTransform = MirrorTransform
+        self.SpatialTransform = SpatialTransform
+        self.clip_grad = clip_grad
+        self.warmup_lr = warmup_lr
+        self.min_lr = min_lr
+        self.warmup_epochs = warmup_epochs
+        self.label_smoothing = label_smoothing
+        self.LR_scheduler = LR_scheduler
+        self.decay_epochs = decay_epochs
+        self.decay_rate = decay_rate
+        self.optimizer = optimizer
+        self.optimizer_eps = optimizer_eps
+        self.optimizer_betas = optimizer_betas
+        self.optimizer_momentum = optimizer_momentum
+
 
 def check_and_clean(d):
     import shutil
@@ -295,7 +349,7 @@ def read_json(options, json_path=None, test=False, read_all_para=False):
                 pass
             else:
                 setattr(options, key, item)
-            
+
     else:
         for key, item in json_data.items():
             # We do not change computational options
@@ -409,3 +463,16 @@ def cpuStats():
     py = psutil.Process(pid)
     memoryUse = py.memory_info()[0] / 2. ** 30  # memory use in GB...I think
     print('memory GB:', memoryUse)
+
+def print_commandline(commandline):
+    """
+    print commandline
+    """
+    import json
+    import os
+
+    commandline_arg_dic = vars(commandline)
+
+    # save to json file
+    # json = json.dumps(commandline_arg_dic, skipkeys=True, indent=4)
+    print(json.dumps(commandline_arg_dic, sort_keys=True, indent=4, separators=(', ', ': '), ensure_ascii=False))
