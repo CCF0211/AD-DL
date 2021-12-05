@@ -6,7 +6,10 @@ import sys
 import os
 
 sys.path.append('/root/fanchenchen/fanchenchen/MRI/code/paper')
+sys.path.append('/root/fanchenchen_v2/fanchenchen/MRI/code/paper')
 sys.path.append('/root/Downloads/code/MRI/paper')
+sys.path.append('/root/Downloads/MRI/paper')
+sys.path.append('/root/Downloads/MRI')
 sys.path.append('/data/fanchenchen/Project/MRI/code/paper')
 sys.path.append('/home/tian/pycharm_project/MRI_GNN/code')
 sys.path.append('/home/tian/pycharm_project/MRI_GNN/code/paper')
@@ -22,6 +25,7 @@ from CNN2020 import CNN2020, CNN2020_gcn
 from DenseNet_3d import *
 from Dynamic2D_net import *
 from swin_transformer_3d import SwinTransformer3d
+from vgg import vgg_3d
 
 __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_layer", "Conv5_FC3_DAM_last",
            "resnet50_3d", "resnet50_3d_gcn", "resnet50_3d_nl", "UNet3D", "N_Net", "ResidualUNet3D", "VoxCNN",
@@ -35,7 +39,7 @@ __all__ = ["Conv5_FC3", "Conv5_FC3_mni", "Conv5_FC3_DAM", "Conv5_FC3_DAM_all_lay
            "DenseNet121_3d", "DenseNet161_3d", "DenseNet201_3d", "DenseNet121_3d_gcn", "DenseNet161_3d_gcn",
            "DenseNet201_3d_gcn", "Dynamic2D_net_Alex", "Dynamic2D_net_Res34", "Dynamic2D_net_Res18",
            "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile",
-           "SwinTransformer3d"]
+           "SwinTransformer3d", "vgg_3d"]
 
 """
 All the architectures are built here

@@ -11,6 +11,7 @@ import wandb
 from clinicadl.tools.deep_learning.utils import timeSince
 from clinicadl.tools.deep_learning.iotools import check_and_clean
 from clinicadl.tools.deep_learning import EarlyStopping, save_checkpoint
+from sklearn import metrics
 
 
 #####################
@@ -79,12 +80,21 @@ def train(model, train_loader, valid_loader, criterion, optimizer, resume, log_d
                 device = torch.device("cuda:{}".format(options.device))
                 imgs, labels, participant_id, session_id = data['image'].to(device), data['label'].to(device), data[
                     'participant_id'], data['session_id']
+                if options.model == 'ROI_GCN':
+                    all_image = data['all_image'].to(device)
             else:
                 imgs, labels, participant_id, session_id = data['image'], data['label'], data['participant_id'], data[
                     'session_id']
-            if options.model == 'ROI_GCN' or 'gcn' in options.model:
+                if options.model == 'ROI_GCN':
+                    all_image = data['all_image']
+            if options.model == 'ROI_GCN':
+                # roi_image = data['roi_image'].to(device)
+                train_output = model(imgs, all_image, label_list=labels, id=participant_id, session=session_id, fi=fi,
+                                     epoch=epoch)
+            elif 'gcn' in options.model:
                 # roi_image = data['roi_image'].to(device)
                 train_output = model(imgs, label_list=labels, id=participant_id, session=session_id, fi=fi, epoch=epoch)
+
             else:
                 train_output = model(imgs)
             # train_output = model(imgs)
@@ -268,42 +278,75 @@ def evaluate_prediction(y, y_pred):
     Returns:
         (dict) ensemble of metrics
     """
+    # print(max(y))
+    if max(y) == 2:
+        true_class_0 = np.sum((y_pred == 0) & (y == 0))
+        true_class_1 = np.sum((y_pred == 1) & (y == 1))
+        true_class_2 = np.sum((y_pred == 2) & (y == 2))
+        false_class_0 = np.sum((y_pred != 0) & (y == 0))
+        false_class_1 = np.sum((y_pred != 1) & (y == 1))
+        false_class_2 = np.sum((y_pred != 2) & (y == 2))
 
-    true_positive = np.sum((y_pred == 1) & (y == 1))
-    true_negative = np.sum((y_pred == 0) & (y == 0))
-    false_positive = np.sum((y_pred == 1) & (y == 0))
-    false_negative = np.sum((y_pred == 0) & (y == 1))
-
-    accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
-
-    if (true_positive + false_negative) != 0:
-        sensitivity = true_positive / (true_positive + false_negative)
-    else:
-        sensitivity = 0.0
-
-    if (false_positive + true_negative) != 0:
-        specificity = true_negative / (false_positive + true_negative)
-    else:
+        right_class_0 = true_class_0 / (true_class_0 + false_class_0)
+        right_class_1 = true_class_1 / (true_class_1 + false_class_1)
+        right_class_2 = true_class_2 / (true_class_2 + false_class_2)
+        balanced_accuracy = (right_class_0 + right_class_1 + right_class_2) / 3
+        accuracy = metrics.accuracy_score(y, y_pred)
+        f1_score = metrics.f1_score(y, y_pred, average='micro')
+        recall = metrics.recall_score(y, y_pred, average='micro')
+        precision = metrics.precision_score(y, y_pred, average='micro')
+        # print('y:{}'.format(y))
+        # print('y_pred:{}'.format(y_pred))
+        # print('y:{}'.format(y.shape))
+        # print('y_pred:{}'.format(y_pred.shape))
+        # roc_auc = metrics.roc_auc_score(y, y_pred, average='micro', multi_class='ovr')
+        sensitivity = recall
         specificity = 0.0
-
-    if (true_positive + false_positive) != 0:
-        ppv = true_positive / (true_positive + false_positive)
-    else:
-        ppv = 0.0
-
-    if (true_negative + false_negative) != 0:
-        npv = true_negative / (true_negative + false_negative)
-    else:
+        ppv = precision
         npv = 0.0
+    else:
+        true_positive = np.sum((y_pred == 1) & (y == 1))
+        true_negative = np.sum((y_pred == 0) & (y == 0))
+        false_positive = np.sum((y_pred == 1) & (y == 0))
+        false_negative = np.sum((y_pred == 0) & (y == 1))
 
-    balanced_accuracy = (sensitivity + specificity) / 2
+        accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
 
+        if (true_positive + false_negative) != 0:
+            sensitivity = true_positive / (true_positive + false_negative)
+        else:
+            sensitivity = 0.0
+
+        if (false_positive + true_negative) != 0:
+            specificity = true_negative / (false_positive + true_negative)
+        else:
+            specificity = 0.0
+
+        if (true_positive + false_positive) != 0:
+            ppv = true_positive / (true_positive + false_positive)
+        else:
+            ppv = 0.0
+
+        if (true_negative + false_negative) != 0:
+            npv = true_negative / (true_negative + false_negative)
+        else:
+            npv = 0.0
+
+        balanced_accuracy = (sensitivity + specificity) / 2
+        recall = metrics.recall_score(y, y_pred)
+        precision = metrics.precision_score(y, y_pred)
+        f1_score = metrics.f1_score(y, y_pred)
+        # roc_auc = metrics.roc_auc_score(y, y_pred)
     results = {'accuracy': accuracy,
                'balanced_accuracy': balanced_accuracy,
                'sensitivity': sensitivity,
                'specificity': specificity,
                'ppv': ppv,
                'npv': npv,
+               'f1': f1_score,
+               # 'roc_auc': roc_auc,
+               'precision': precision,
+               'recall': recall,
                }
 
     return results
@@ -359,10 +402,17 @@ def test(model, dataloader, use_cuda, criterion, mode="image", device_index=0, t
                 device = torch.device("cuda:{}".format(device_index))
                 inputs, labels, participant_id, session_id = data['image'].to(device), data['label'].to(device), data[
                     'participant_id'], data['session_id']
+                if model_options.model == 'ROI_GCN':
+                    all_image = data['all_image'].to(device)
             else:
                 inputs, labels, participant_id, session_id = data['image'], data['label'], data['participant_id'], data[
                     'session_id']
-            if model_options.model == 'ROI_GCN' or 'gcn' in model_options.model:
+                if model_options.model == 'ROI_GCN':
+                    all_image = data['all_image']
+            if model_options.model == 'ROI_GCN':
+                outputs = model(inputs, all_image, label_list=labels, id=participant_id, session=session_id, fi=fi,
+                                epoch=None)
+            elif 'gcn' in model_options.model:
                 # roi_image = data['roi_image'].to(device)
                 outputs = model(inputs, label_list=labels, id=participant_id, session=session_id, fi=fi, epoch=None)
             else:
@@ -527,6 +577,10 @@ def soft_voting_to_tsvs(output_dir, fold, selection, mode, dataset='test', num_c
                        'balanced_accuracy'],
                    'image_level_{}_sensitivity_{}_singel_model'.format(dataset, selection): metrics['sensitivity'],
                    'image_level_{}_specificity_{}_singel_model'.format(dataset, selection): metrics['specificity'],
+                   'image_level_{}_precision_{}_singel_model'.format(dataset, selection): metrics['precision'],
+                   'image_level_{}_recall_{}_singel_model'.format(dataset, selection): metrics['recall'],
+                   'image_level_{}_f1_{}_singel_model'.format(dataset, selection): metrics['f1'],
+                   # 'image_level_{}_roc_auc_{}_singel_model'.format(dataset, selection): metrics['roc_auc'],
                    'image_level_{}_ppv_{}_singel_model'.format(dataset, selection): metrics['ppv'],
                    'image_level_{}_npv_{}_singel_model'.format(dataset, selection): metrics['npv'],
                    })

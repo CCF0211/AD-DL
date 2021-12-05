@@ -11,6 +11,7 @@ from os import path
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 import nibabel as nib
+from sklearn import metrics
 
 __author__ = "Junhao Wen"
 __copyright__ = "Copyright 2018 The Aramis Lab Team"
@@ -55,7 +56,8 @@ class CAPSInput(base.MLInput):
         self._diagnoses = list(diagnoses.diagnosis)
 
         if image_type not in ['T1', 'fdg', 'av45', 'pib', 'flute', 'dwi']:
-            raise Exception("Incorrect image type. It must be one of the values 'T1', 'fdg', 'av45', 'pib', 'flute' or 'dwi'")
+            raise Exception(
+                "Incorrect image type. It must be one of the values 'T1', 'fdg', 'av45', 'pib', 'flute' or 'dwi'")
 
         if precomputed_kernel is not None:
             if type(precomputed_kernel) == np.ndarray:
@@ -234,7 +236,6 @@ class KFoldCV(base.MLValidation):
         async_result = {}
 
         for i in range(n_folds):
-
             train_index, test_index = self._cv[i]
             async_result[i] = async_pool.apply_async(self._ml_algorithm.evaluate, (train_index, test_index))
 
@@ -273,6 +274,10 @@ class KFoldCV(base.MLValidation):
                                        'accuracy': self._fold_results[i]['evaluation']['accuracy'],
                                        'sensitivity': self._fold_results[i]['evaluation']['sensitivity'],
                                        'specificity': self._fold_results[i]['evaluation']['specificity'],
+                                       'precision': self._fold_results[i]['evaluation']['precision'],
+                                       'recall': self._fold_results[i]['evaluation']['recall'],
+                                       'f1': self._fold_results[i]['evaluation']['f1'],
+                                       # 'roc_auc': self._fold_results[i]['evaluation']['roc_auc'],
                                        'ppv': self._fold_results[i]['evaluation']['ppv'],
                                        'npv': self._fold_results[i]['evaluation']['npv']}, index=['i', ])
             results_df.to_csv(path.join(container_dir, 'results_fold-' + str(i) + '.tsv'),
@@ -294,6 +299,10 @@ class KFoldCV(base.MLValidation):
         print("Balanced accuracy: %s" % (mean_results['balanced_accuracy'].to_string(index=False)))
         print("specificity: %s" % (mean_results['specificity'].to_string(index=False)))
         print("sensitivity: %s" % (mean_results['sensitivity'].to_string(index=False)))
+        print("precision: %s" % (mean_results['precision'].to_string(index=False)))
+        print("recall: %s" % (mean_results['recall'].to_string(index=False)))
+        print("f1: %s" % (mean_results['f1'].to_string(index=False)))
+        # print("roc_auc: %s" % (mean_results['roc_auc'].to_string(index=False)))
         print("auc: %s" % (mean_results['auc'].to_string(index=False)))
 
 
@@ -350,13 +359,15 @@ def extract_indices_from_5_fold(diagnosis_tsv_folder, n_splits, output_dir, base
         for j in range(len(train_df)):
             row = train_df.iloc[j]
             for index, row_all in all_df.iterrows():
-                if row['participant_id'] == row_all['participant_id'] and row['session_id'] == row_all['session_id'] and row['diagnosis'] == row_all['diagnosis']:
+                if row['participant_id'] == row_all['participant_id'] and row['session_id'] == row_all['session_id'] and \
+                        row['diagnosis'] == row_all['diagnosis']:
                     train_index.append(index)
 
         for k in range(len(valid_df)):
             row = valid_df.iloc[k]
             for index, row_all in all_df.iterrows():
-                if row['participant_id'] == row_all['participant_id'] and row['session_id'] == row_all['session_id'] and row['diagnosis'] == row_all['diagnosis']:
+                if row['participant_id'] == row_all['participant_id'] and row['session_id'] == row_all['session_id'] and \
+                        row['diagnosis'] == row_all['diagnosis']:
                     valid_index.append(index)
 
         # convert the list of index to be an array
@@ -411,74 +422,98 @@ def revert_mask(weights, mask, shape):
     """
 
     z = np.zeros(np.prod(shape))
-    z[mask] = weights  # ValueError: NumPy boolean array indexing assignment cannot assign 1636161 input values to the 1634188 output values where the mask is true
+    z[
+        mask] = weights  # ValueError: NumPy boolean array indexing assignment cannot assign 1636161 input values to the 1634188 output values where the mask is true
 
     new_weights = np.reshape(z, shape)
 
     return new_weights
 
 
-def evaluate_prediction(y, y_hat):
+def evaluate_prediction(y, y_pred):
+    """
+    Evaluates different metrics based on the list of true labels and predicted labels.
 
-    true_positive = 0.0
-    true_negative = 0.0
-    false_positive = 0.0
-    false_negative = 0.0
+    Args:
+        y: (list) true labels
+        y_pred: (list) corresponding predictions
 
-    tp = []
-    tn = []
-    fp = []
-    fn = []
+    Returns:
+        (dict) ensemble of metrics
+    """
+    # print(max(y))
+    if max(y) == 2:
+        true_class_0 = np.sum((y_pred == 0) & (y == 0))
+        true_class_1 = np.sum((y_pred == 1) & (y == 1))
+        true_class_2 = np.sum((y_pred == 2) & (y == 2))
+        false_class_0 = np.sum((y_pred != 0) & (y == 0))
+        false_class_1 = np.sum((y_pred != 1) & (y == 1))
+        false_class_2 = np.sum((y_pred != 2) & (y == 2))
 
-    for i in range(len(y)):
-        if y[i] == 1:
-            if y_hat[i] == 1:
-                true_positive += 1
-                tp.append(i)
-            else:
-                false_negative += 1
-                fn.append(i)
-        else:  # -1
-            if y_hat[i] == 0:
-                true_negative += 1
-                tn.append(i)
-            else:
-                false_positive += 1
-                fp.append(i)
-
-    accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
-
-    if (true_positive + false_negative) != 0:
-        sensitivity = true_positive / (true_positive + false_negative)
-    else:
-        sensitivity = 0.0
-
-    if (false_positive + true_negative) != 0:
-        specificity = true_negative / (false_positive + true_negative)
-    else:
+        right_class_0 = true_class_0 / (true_class_0 + false_class_0)
+        right_class_1 = true_class_1 / (true_class_1 + false_class_1)
+        right_class_2 = true_class_2 / (true_class_2 + false_class_2)
+        balanced_accuracy = (right_class_0 + right_class_1 + right_class_2) / 3
+        accuracy = metrics.accuracy_score(y, y_pred)
+        f1_score = metrics.f1_score(y, y_pred, average='micro')
+        recall = metrics.recall_score(y, y_pred, average='micro')
+        precision = metrics.precision_score(y, y_pred, average='micro')
+        # print('y:{}'.format(y))
+        # print('y_pred:{}'.format(y_pred))
+        # print('y:{}'.format(y.shape))
+        # print('y_pred:{}'.format(y_pred.shape))
+        # roc_auc = metrics.roc_auc_score(y, y_pred, average='micro', multi_class='ovr')
+        sensitivity = recall
         specificity = 0.0
-
-    if (true_positive + false_positive) != 0:
-        ppv = true_positive / (true_positive + false_positive)
-    else:
-        ppv = 0.0
-
-    if (true_negative + false_negative) != 0:
-        npv = true_negative / (true_negative + false_negative)
-    else:
+        ppv = precision
         npv = 0.0
+    else:
+        true_positive = np.sum((y_pred == 1) & (y == 1))
+        true_negative = np.sum((y_pred == 0) & (y == 0))
+        false_positive = np.sum((y_pred == 1) & (y == 0))
+        false_negative = np.sum((y_pred == 0) & (y == 1))
 
-    balanced_accuracy = (sensitivity + specificity) / 2
+        accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
 
+        if (true_positive + false_negative) != 0:
+            sensitivity = true_positive / (true_positive + false_negative)
+        else:
+            sensitivity = 0.0
+
+        if (false_positive + true_negative) != 0:
+            specificity = true_negative / (false_positive + true_negative)
+        else:
+            specificity = 0.0
+
+        if (true_positive + false_positive) != 0:
+            ppv = true_positive / (true_positive + false_positive)
+        else:
+            ppv = 0.0
+
+        if (true_negative + false_negative) != 0:
+            npv = true_negative / (true_negative + false_negative)
+        else:
+            npv = 0.0
+
+        balanced_accuracy = (sensitivity + specificity) / 2
+        recall = metrics.recall_score(y, y_pred)
+        precision = metrics.precision_score(y, y_pred)
+        f1_score = metrics.f1_score(y, y_pred)
+        # roc_auc = metrics.roc_auc_score(y, y_pred)
     results = {'accuracy': accuracy,
                'balanced_accuracy': balanced_accuracy,
                'sensitivity': sensitivity,
                'specificity': specificity,
                'ppv': ppv,
-               'npv': npv
+               'npv': npv,
+               'f1': f1_score,
+               # 'roc_auc': roc_auc,
+               'precision': precision,
+               'recall': recall,
                }
 
     return results
+
 
 
 def save_data(df, output_dir, folder_name):
@@ -502,7 +537,6 @@ def save_data(df, output_dir, folder_name):
 
 
 def save_weights(classifier, x, output_dir):
-
     dual_coefficients = classifier.dual_coef_
     sv_indices = classifier.support_
 

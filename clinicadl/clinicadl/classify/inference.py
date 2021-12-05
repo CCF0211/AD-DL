@@ -199,6 +199,9 @@ def inference_from_model(caps_dir,
                        'test_balanced_accuracy_best_BA_singel_model': metrics['balanced_accuracy'].iloc[0],
                        'test_sensitivity_best_BA_singel_model': metrics['sensitivity'].iloc[0],
                        'test_specificity_best_BA_singel_model': metrics['specificity'].iloc[0],
+                       'test_precision_best_BA_singel_model': metrics['precision'].iloc[0],
+                       'test_recall_best_BA_singel_model': metrics['recall'].iloc[0],
+                       'test_f1_best_BA_singel_model': metrics['f1'].iloc[0],
                        'test_ppv_best_BA_singel_model': metrics['ppv'].iloc[0],
                        'test_npv_best_BA_singel_model': metrics['npv'].iloc[0],
                        'test_total_loss_best_BA_singel_model': metrics['total_loss'].iloc[0],
@@ -270,59 +273,62 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
                              device_index=model_options.device, in_channels=model_options.in_channels,
                              out_channels=model_options.out_channels, f_maps=model_options.f_maps,
                              layer_order=model_options.layer_order, num_groups=model_options.num_groups,
-                             num_levels=model_options.num_levels)
+                             num_levels=model_options.num_levels, num_class=model_options.num_class)
     elif model_options.model == 'ResidualUNet3D':
         print('********** init ResidualUNet3D model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                              device_index=model_options.device, in_channels=model_options.in_channels,
                              out_channels=model_options.out_channels, f_maps=model_options.f_maps,
                              layer_order=model_options.layer_order, num_groups=model_options.num_groups,
-                             num_levels=model_options.num_levels)
+                             num_levels=model_options.num_levels, num_class=model_options.num_class)
     elif model_options.model == 'UNet3D_add_more_fc':
         print('********** init UNet3D_add_more_fc model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                              device_index=model_options.device, in_channels=model_options.in_channels,
                              out_channels=model_options.out_channels, f_maps=model_options.f_maps,
                              layer_order=model_options.layer_order, num_groups=model_options.num_groups,
-                             num_levels=model_options.num_levels)
+                             num_levels=model_options.num_levels, num_class=model_options.num_class)
     elif model_options.model == 'ResidualUNet3D_add_more_fc':
         print('********** init ResidualUNet3D_add_more_fc model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                              device_index=model_options.device, in_channels=model_options.in_channels,
                              out_channels=model_options.out_channels, f_maps=model_options.f_maps,
                              layer_order=model_options.layer_order, num_groups=model_options.num_groups,
-                             num_levels=model_options.num_levels)
+                             num_levels=model_options.num_levels, num_class=model_options.num_class)
     elif model_options.model == 'VoxCNN':
         print('********** init VoxCNN model for test! **********')
-        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
+        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
+                             num_class=model_options.num_class)
     elif model_options.model == 'ConvNet3D':
         print('********** init ConvNet3D model for test! **********')
-        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
+        model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
+                             num_class=model_options.num_class)
     elif 'gcn' in model_options.model:
         print('********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
         model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
-                             gnn_type=model_options.gnn_type, 
-                             gnn_dropout=model_options.gnn_dropout, 
+                             gnn_type=model_options.gnn_type,
+                             gnn_dropout=model_options.gnn_dropout,
                              gnn_dropout_adj=model_options.gnn_dropout_adj,
-                             gnn_non_linear=model_options.gnn_non_linear, 
-                             gnn_undirected=model_options.gnn_undirected, 
+                             gnn_non_linear=model_options.gnn_non_linear,
+                             gnn_undirected=model_options.gnn_undirected,
                              gnn_self_loop=model_options.gnn_self_loop,
-                             gnn_threshold = model_options.gnn_threshold,)
+                             gnn_threshold=model_options.gnn_threshold, num_class=model_options.num_class)
     elif model_options.model == 'ROI_GCN':
         print('********** init ROI_GCN model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
                              gnn_type=model_options.gnn_type,
-                             gnn_dropout=model_options.gnn_dropout, 
+                             gnn_dropout=model_options.gnn_dropout,
                              gnn_dropout_adj=model_options.gnn_dropout_adj,
-                             gnn_non_linear=model_options.gnn_non_linear, 
-                             gnn_undirected=model_options.gnn_undirected, 
+                             gnn_non_linear=model_options.gnn_non_linear,
+                             gnn_undirected=model_options.gnn_undirected,
                              gnn_self_loop=model_options.gnn_self_loop,
-                             gnn_threshold = model_options.gnn_threshold,
+                             gnn_threshold=model_options.gnn_threshold,
                              nodel_vetor_layer=model_options.nodel_vetor_layer,
                              classify_layer=model_options.classify_layer,
                              num_node_features=model_options.num_node_features, num_class=model_options.num_class,
                              roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
-                             gnn_pooling_layers=model_options.gnn_pooling_layers, global_sort_pool_k=model_options.global_sort_pool_k,
+                             gnn_pooling_layers=model_options.gnn_pooling_layers,
+                             global_sort_pool_k=model_options.global_sort_pool_k,
                              layers=model_options.layers,
                              shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
                              dropout=model_options.dropout,
@@ -330,24 +336,24 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
     elif model_options.model == 'SwinTransformer3d':
         print('********** init SwinTransformer3d model for test! **********')
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
-                        device_index=model_options.device, 
-                        sw_patch_size=model_options.sw_patch_size, 
-                        window_size = model_options.window_size,
-                        mlp_ratio = model_options.mlp_ratio,
-                        drop_rate = model_options.drop_rate,
-                        attn_drop_rate = model_options.attn_drop_rate,
-                        drop_path_rate = model_options.drop_path_rate,
-                        qk_scale = model_options.qk_scale,
-                        embed_dim = model_options.embed_dim,
-                        depths = model_options.depths,
-                        num_heads = model_options.num_heads,
-                        qkv_bias = model_options.qkv_bias,
-                        ape = model_options.ape,
-                        patch_norm = model_options.patch_norm,
-                        )
+                             device_index=model_options.device,
+                             sw_patch_size=model_options.sw_patch_size,
+                             window_size=model_options.window_size,
+                             mlp_ratio=model_options.mlp_ratio,
+                             drop_rate=model_options.drop_rate,
+                             attn_drop_rate=model_options.attn_drop_rate,
+                             drop_path_rate=model_options.drop_path_rate,
+                             qk_scale=model_options.qk_scale,
+                             embed_dim=model_options.embed_dim,
+                             depths=model_options.depths,
+                             num_heads=model_options.num_heads,
+                             qkv_bias=model_options.qkv_bias,
+                             ape=model_options.ape,
+                             patch_norm=model_options.patch_norm,
+                             num_class=model_options.num_class)
     else:
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
-                             device_index=model_options.device,)
+                             device_index=model_options.device, num_class=model_options.num_class)
     test_transformations = get_transforms(model_options, is_training=False)
 
     # Define loss and optimizer

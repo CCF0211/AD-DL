@@ -23,6 +23,8 @@ from .batchgenerators.transforms.noise_transforms import RicianNoiseTransform, G
 from .batchgenerators.transforms.spatial_transforms import Rot90Transform, MirrorTransform, SpatialTransform
 from .batchgenerators.transforms.abstract_transforms import Compose
 from .batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
+from .data_tool import hilbert_2dto3d_cut, hilbert_3dto2d_cut, hilbert_2dto3d, hilbert_3dto2d, linear_2dto3d_cut, \
+    linear_3dto2d_cut, linear_2dto3d, linear_3dto2d
 
 
 #################################
@@ -42,7 +44,7 @@ class MRIDataset(Dataset):
             'AD': 1,
             'sMCI': 0,
             'pMCI': 1,
-            'MCI': 1,
+            'MCI': 2,
             'unlabeled': -1}
         self.preprocessing = preprocessing
         self.num_fake_mri = 0
@@ -82,6 +84,71 @@ class MRIDataset(Dataset):
                                    'deeplearning_prepare_data', '%s_based' % mode, 't1_linear',
                                    participant + '_' + session
                                    + FILENAME_TYPE['cropped'] + '.pt')
+            origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
+                                        't1_linear', participant + '_' + session
+                                        + FILENAME_TYPE['cropped'] + '.nii.gz')
+            # temp_path = path.join(self.caps_directory, 'subjects', participant, session,
+            #                       't1_linear')
+            # for file in os.listdir(temp_path):
+            #     if file.find('_run-01_') != '-1':
+            #         new_name = file.replace('_run-01_', '_')
+            #         os.rename(os.path.join(temp_path, file), os.path.join(temp_path, new_name))
+            #         print('rename {} to {}'.format(os.path.join(temp_path, file), os.path.join(temp_path, new_name)))
+
+            if fake_caps_path is not None:
+                fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                            'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
+                                            participant + '_' + session
+                                            + FILENAME_TYPE['cropped'] + '.pt')
+                fake_nii_path = path.join(fake_caps_path, 'subjects', participant, session,
+                                          't1_linear', participant + '_' + session
+                                          + FILENAME_TYPE['cropped'] + '.nii.gz')
+
+                # first use fake image, because some image lacked in tsv but have in caps
+                if os.path.exists(fake_image_path):
+                    image_path = fake_image_path
+                    self.num_fake_mri = self.num_fake_mri + 1
+                elif os.path.exists(fake_nii_path):
+                    image_array = nib.load(fake_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(fake_caps_path, 'subjects', participant, session,
+                                         'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), fake_image_path)
+                    print('save fake image: {}'.format(fake_image_path))
+                    self.num_fake_mri = self.num_fake_mri + 1
+                    image_path = fake_image_path
+                elif os.path.exists(image_path):  # exist real pt file
+                    None
+                elif os.path.exists(origin_nii_path):  # exist real nii file
+                    image_array = nib.load(origin_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                         'deeplearning_prepare_data', '%s_based' % mode, 't1_spm')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    print(
+                        'Can not find:{} and {} and {} in both real and fake folder'.format(image_path, fake_image_path,
+                                                                                            fake_nii_path))
+
+            else:
+                if os.path.exists(image_path):  # exist real pt file
+                    None
+                elif os.path.exists(origin_nii_path):  # exist real pt file
+                    image_array = nib.load(origin_nii_path).get_fdata()
+                    image_tensor = torch.from_numpy(image_array).unsqueeze(0).float()
+                    save_dir = path.join(self.caps_directory, 'subjects', participant, session,
+                                         'deeplearning_prepare_data', '%s_based' % mode, 't1_linear')
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+                    torch.save(image_tensor.clone(), image_path)
+                    print('save {}'.format(image_path))
+                else:
+                    print('Can not find:{}'.format(image_path))
         elif self.preprocessing == "t1-extensive":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
                                    'deeplearning_prepare_data', '%s_based' % mode, 't1_extensive',
@@ -95,6 +162,13 @@ class MRIDataset(Dataset):
             origin_nii_path = path.join(self.caps_directory, 'subjects', participant, session,
                                         't1', 'spm', 'segmentation', 'normalized_space', participant + '_' + session
                                         + FILENAME_TYPE['segm-graymatter'] + '.nii.gz')
+            temp_path = path.join(self.caps_directory, 'subjects', participant, session,
+                                  't1', 'spm', 'segmentation', 'normalized_space')
+            # for file in os.listdir(temp_path):
+            #     if file.find('_run-01_') != '-1':
+            #         new_name = file.replace('_run-01_', '_')
+            #         os.rename(os.path.join(temp_path, file), os.path.join(temp_path, new_name))
+            #         print('rename {} to {}'.format(os.path.join(temp_path, file), os.path.join(temp_path, new_name)))
             if fake_caps_path is not None:
                 fake_image_path = path.join(fake_caps_path, 'subjects', participant, session,
                                             'deeplearning_prepare_data', '%s_based' % mode, 't1_spm',
@@ -131,10 +205,11 @@ class MRIDataset(Dataset):
                     torch.save(image_tensor.clone(), image_path)
                     print('save {}'.format(image_path))
                 else:
-                    print('Can not find:{} in both real and fake folder'.format(image_path))
+                    print(
+                        'Can not find:{} and {} and {} in both real and fake folder'.format(image_path, fake_image_path,
+                                                                                            fake_nii_path))
 
             else:
-
                 if os.path.exists(image_path):  # exist real pt file
                     None
                 elif os.path.exists(origin_nii_path):  # exist real pt file
@@ -148,6 +223,7 @@ class MRIDataset(Dataset):
                     print('save {}'.format(image_path))
                 else:
                     print('Can not find:{}'.format(image_path))
+                    print('Can not find:{}'.format(origin_nii_path))
 
         elif self.preprocessing == "t1-spm-whitematter":
             image_path = path.join(self.caps_directory, 'subjects', participant, session,
@@ -338,7 +414,7 @@ class MRIDatasetImage(MRIDataset):
     def __init__(self, caps_directory, data_file,
                  preprocessing='t1-linear', transformations=None, crop_padding_to_128=False, resample_size=None,
                  fake_caps_path=None, roi=False, roi_size=32, model=None, data_preprocess='MinMax',
-                 data_Augmentation=False):
+                 data_Augmentation=False, method_2d=None):
         """
         Args:
             caps_directory (string): Directory of all the images.
@@ -357,6 +433,7 @@ class MRIDatasetImage(MRIDataset):
         self.fake_caps_path = fake_caps_path
         self.roi = roi
         self.roi_size = roi_size
+        self.method_2d = method_2d
         # if self.roi:
         #     if socket.gethostname() == 'zkyd':
         #         aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
@@ -369,16 +446,6 @@ class MRIDatasetImage(MRIDataset):
     def __getitem__(self, idx):
         participant, session, _, label = self._get_meta_data(idx)
         image_path = self._get_path(participant, session, "image", fake_caps_path=self.fake_caps_path)
-        roi_image_path = image_path.replace('image_based', 'AAL_roi_based_{}'.format(self.roi_size))
-        if os.path.exists(roi_image_path) and self.roi:
-            try:
-                ROI_image = torch.load(roi_image_path)
-            except:
-                print('Wrong file:{}'.format(roi_image_path))
-            sample = {'image': ROI_image, 'label': label, 'participant_id': participant,
-                      'session_id': session,
-                      'image_path': roi_image_path, 'num_fake_mri': self.num_fake_mri}
-            return sample
 
         if self.preprocessing == 't1-linear':
             ori_name = 't1_linear'
@@ -386,27 +453,148 @@ class MRIDatasetImage(MRIDataset):
             ori_name = 't1_spm'
         resampled_image_path = image_path.replace(ori_name, '{}_{}_resample_{}'.format(ori_name, self.data_preprocess,
                                                                                        self.resample_size))
+        CNN2020_DEEPCNN_image_path = image_path.replace(ori_name,
+                                                        '{}_{}_model_{}'.format(ori_name, self.data_preprocess,
+                                                                                self.model))
 
-        if os.path.exists(resampled_image_path) and self.model not in ["ConvNet3D",
-                                                                       "ConvNet3D_gcn",
-                                                                       "VoxCNN",
-                                                                       "Conv5_FC3",
-                                                                       'DeepCNN',
-                                                                       'CNN2020',
-                                                                       'CNN2020_gcn',
-                                                                       "VoxCNN_gcn",
-                                                                       'DeepCNN_gcn',
-                                                                       "ConvNet3D_v2",
-                                                                       "ConvNet3D_ori",
-                                                                       "Dynamic2D_net_Alex",
-                                                                       "Dynamic2D_net_Res34",
-                                                                       "Dynamic2D_net_Res18",
-                                                                       "Dynamic2D_net_Vgg16",
-                                                                       "Dynamic2D_net_Vgg11",
-                                                                       "Dynamic2D_net_Mobile",
-                                                                       'ROI_GCN']:
+        roi_image_path = resampled_image_path.replace('image_based',
+                                                      'AAL_roi_based_{}'.format(self.roi_size))
+        # delate_image_path = image_path.replace('image_based',
+        #                                        'AAL_roi_based_{}'.format(self.roi_size))
+        # if os.path.exists(delate_image_path):
+        #     os.remove(delate_image_path)
+        #     print('delating:{}'.format(delate_image_path))
+        if os.path.exists(roi_image_path) and self.roi:
+            try:
+                ROI_image = torch.load(roi_image_path)
+                # print('loading:{}'.format(roi_image_path))
+            except:
+                print('Wrong file:{}'.format(roi_image_path))
+            if os.path.exists(resampled_image_path):
+                try:
+                    resampled_image = torch.load(resampled_image_path)
+                    # print('loading:{}'.format(roi_image_path))
+                except:
+                    print('Wrong file:{}'.format(resampled_image_path))
+            else:
+                image = torch.load(image_path)
+                if self.transformations:
+                    dict = {}
+                    dict['data'] = image
+                    resampled_image = self.transformations(begin_trans_indx=0, **dict)
+                resampled_data = resampled_image.squeeze()  # [128, 128, 128]
+                try:
+                    resampled_image = resampled_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                except:
+                    resampled_image = np.expand_dims(resampled_data, 0)
+                dir, file = os.path.split(resampled_image_path)
+                if not os.path.exists(dir):
+                    try:
+                        os.makedirs(dir)
+                    except OSError:
+                        pass
+                torch.save(resampled_image, resampled_image_path)
+                print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
 
-            resampled_image = torch.load(resampled_image_path)
+            sample = {'image': ROI_image, 'label': label, 'participant_id': participant,
+                      'session_id': session, 'all_image': resampled_image,
+                      'image_path': roi_image_path, 'num_fake_mri': self.num_fake_mri}
+            return sample
+        if os.path.exists(CNN2020_DEEPCNN_image_path) and self.model in ["CNN2020", "DeepCNN"]:
+            CNN2020_DEEPCNN_image_image = torch.load(CNN2020_DEEPCNN_image_path)
+            if self.data_Augmentation and self.transformations:
+                dict = {}
+                dict['data'] = CNN2020_DEEPCNN_image_image
+                begin_trans_indx = 0
+                for i in range(len(self.transformations.transforms)):
+                    if self.transformations.transforms[i].__class__.__name__ in ['ItensityNormalizeNonzeorVolume',
+                                                                                 'ItensityNormalizeNonzeorVolume',
+                                                                                 'MinMaxNormalization']:
+                        begin_trans_indx = i + 1
+                CNN2020_DEEPCNN_image_image = self.transformations(begin_trans_indx=begin_trans_indx, **dict)
+            sample = {'image': CNN2020_DEEPCNN_image_image, 'label': label, 'participant_id': participant,
+                      'session_id': session,
+                      'image_path': CNN2020_DEEPCNN_image_path, 'num_fake_mri': self.num_fake_mri}
+            return sample
+
+        if self.method_2d is not None:
+            path, file = os.path.split(resampled_image_path)
+            file_2d = file.split('.')[0] + '_' + self.method_2d + '.' + file.split('.')[1]
+            path_2d = os.path.join(path, file_2d)
+            if os.path.exists(path_2d):
+                try:
+                    data_2d = torch.load(path_2d)
+                except:
+                    print('Wrong file:{}'.format(path_2d))
+            else:
+                if os.path.exists(resampled_image_path):
+                    try:
+                        resampled_image = torch.load(resampled_image_path)
+                        # print('loading:{}'.format(roi_image_path))
+                    except:
+                        print('Wrong file:{}'.format(resampled_image_path))
+                else:
+                    image = torch.load(image_path)
+                    if self.transformations:
+                        dict = {}
+                        dict['data'] = image
+                        resampled_image = self.transformations(begin_trans_indx=0, **dict)
+                    resampled_data = resampled_image.squeeze()  # [128, 128, 128]
+                    try:
+                        resampled_image = resampled_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                    except:
+                        resampled_image = np.expand_dims(resampled_data, 0)
+                    dir, file = os.path.split(resampled_image_path)
+                    if not os.path.exists(dir):
+                        try:
+                            os.makedirs(dir)
+                        except OSError:
+                            pass
+                    torch.save(resampled_image, resampled_image_path)
+                    print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
+                if self.method_2d == 'hilbert_cut':
+                    data_2d = hilbert_3dto2d_cut(resampled_image)
+                    torch.save(data_2d.clone(), path_2d)
+                    print('saving:{}'.format(path_2d))
+                elif self.method_2d == 'linear_cut':
+                    data_2d = linear_3dto2d_cut(resampled_image)
+                    torch.save(data_2d.clone(), path_2d)
+                    print('saving:{}'.format(path_2d))
+                elif self.method_2d == 'hilbert_downsampling':
+                    data_low = self.__resize_data__(resampled_image.squeeze(), target_size=[64, 64, 64])
+                    data_low = torch.from_numpy(data_low)
+                    data_2d = hilbert_3dto2d(data_low)
+                    data_2d = data_2d.unsqueeze(0)  # [1,512,512]
+                    torch.save(data_2d.clone(), path_2d)
+                    print('saving:{}'.format(path_2d))
+                elif self.method_2d == 'linear_downsampling':
+                    data_low = self.__resize_data__(resampled_image.squeeze(), target_size=[64, 64, 64])
+                    data_low = torch.from_numpy(data_low)
+                    data_2d = linear_3dto2d(data_low)
+                    data_2d = data_2d.unsqueeze(0)  # [1,512,512]
+                    torch.save(data_2d.clone(), path_2d)
+                    print('saving:{}'.format(path_2d))
+            sample = {'image': data_2d.squeeze(), 'label': label, 'participant_id': participant,
+                      'session_id': session,
+                      'image_path': path_2d, 'num_fake_mri': self.num_fake_mri}
+            return sample
+        if os.path.exists(resampled_image_path) and self.model not in [
+            "Conv5_FC3",
+            'DeepCNN',
+            'CNN2020',
+            'CNN2020_gcn',
+            'DeepCNN_gcn',
+            "Dynamic2D_net_Alex",
+            "Dynamic2D_net_Res34",
+            "Dynamic2D_net_Res18",
+            "Dynamic2D_net_Vgg16",
+            "Dynamic2D_net_Vgg11",
+            "Dynamic2D_net_Mobile",
+            'ROI_GCN']:
+            try:
+                resampled_image = torch.load(resampled_image_path)
+            except:
+                raise FileExistsError('file error:{}'.format(resampled_image_path))
             if self.data_Augmentation and self.transformations:
                 dict = {}
                 dict['data'] = resampled_image
@@ -515,8 +703,29 @@ class MRIDatasetImage(MRIDataset):
 
         if self.roi:
             # image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
-            data = self.roi_extract(data, roi_size=self.roi_size)
+            if os.path.exists(resampled_image_path):
+                try:
+                    resampled_image = torch.load(resampled_image_path)
+                    # print('loading:{}'.format(roi_image_path))
+                except:
+                    print('Wrong file:{}'.format(resampled_image_path))
+            else:
+                try:
+                    resampled_image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                except:
+                    resampled_image = np.expand_dims(data, 0)
+                dir, file = os.path.split(resampled_image_path)
+                if not os.path.exists(dir):
+                    try:
+                        os.makedirs(dir)
+                    except OSError:
+                        pass
+                torch.save(resampled_image, resampled_image_path)
+                print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
+            data = self.roi_extract(data, roi_size=self.roi_size, sub_id=participant, preprocessing=self.preprocessing,
+                                    session=session, save_nii=False)
             ROI_image = data.unsqueeze(dim=0)  # [1, num_roi, 128, 128, 128]
+
             # sample = {'image': image, 'roi_image': ROI_image, 'label': label, 'participant_id': participant,
             #           'session_id': session,
             #           'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
@@ -525,23 +734,36 @@ class MRIDatasetImage(MRIDataset):
                 os.makedirs(dir)
             torch.save(ROI_image, roi_image_path)
             print('Save roi image: {}'.format(roi_image_path))
-            sample = {'image': ROI_image, 'label': label, 'participant_id': participant,
+            sample = {'image': ROI_image, 'all_image': resampled_image, 'label': label, 'participant_id': participant,
                       'session_id': session,
                       'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
-
+        # elif self.method_2d is not None:
+        #
         else:
             try:
                 image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
             except:
                 image = np.expand_dims(data, 0)
-            if not self.data_Augmentation:
+            if not self.data_Augmentation and self.model not in ["CNN2020", "DeepCNN"]:
                 dir, file = os.path.split(resampled_image_path)
                 if not os.path.exists(dir):
-                    os.makedirs(dir)
+                    try:
+                        os.makedirs(dir)
+                    except OSError:
+                        pass
                 torch.save(image, resampled_image_path)
                 print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
+            elif not self.data_Augmentation and self.model in ["CNN2020", "DeepCNN"]:
+                dir, file = os.path.split(CNN2020_DEEPCNN_image_path)
+                if not os.path.exists(dir):
+                    try:
+                        os.makedirs(dir)
+                    except OSError:
+                        pass
+                torch.save(image, CNN2020_DEEPCNN_image_path)
+                print('Save resampled {} image: {}'.format(self.resample_size, CNN2020_DEEPCNN_image_path))
             sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
-                      'image_path': resampled_image_path, 'num_fake_mri': self.num_fake_mri}
+                      'image_path': CNN2020_DEEPCNN_image_path, 'num_fake_mri': self.num_fake_mri}
 
         return sample
 
@@ -550,12 +772,17 @@ class MRIDatasetImage(MRIDataset):
         Cut off the invalid area
         """
         zero_value = volume[0, 0, 0]
+        # print('zero:{}'.format(zero_value))
         non_zeros_idx = np.where(volume != zero_value)
+        # print('zero idx:{}'.format(non_zeros_idx))
+        try:
+            [max_z, max_h, max_w] = np.max(np.array(non_zeros_idx), axis=1)
+            [min_z, min_h, min_w] = np.min(np.array(non_zeros_idx), axis=1)
+        except:
+            print(zero_value)
+            print(non_zeros_idx)
 
-        [max_z, max_h, max_w] = np.max(np.array(non_zeros_idx), axis=1)
-        [min_z, min_h, min_w] = np.min(np.array(non_zeros_idx), axis=1)
-
-        return volume[min_z:max_z, min_h:max_h, min_w:max_w]
+        return volume[min_z:max_z + 1, min_h:max_h + 1, min_w:max_w + 1]
 
     def __resize_data__(self, data, input_W, input_H, input_D):
         """
@@ -590,15 +817,15 @@ class MRIDatasetImage(MRIDataset):
     def num_elem_per_image(self):
         return 1
 
-    def roi_extract(self, MRI, roi_size=32):
+    def roi_extract(self, MRI, roi_size=32, sub_id=None, preprocessing=None, session=None, save_nii=False):
         roi_data_list = []
         roi_label_list = []
         if 'slave' in socket.gethostname():
-            aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_128.npy'
+            aal_mask_dict_dir = '/root/Downloads/atlas/aal_mask_dict_right.npy'
         elif socket.gethostname() == 'tian-W320-G10':
-            aal_mask_dict_dir = '/home/tian/pycharm_project/MRI_GNN/atlas/aal_mask_dict_128.npy'
+            aal_mask_dict_dir = '/home/tian/pycharm_project/MRI_GNN/atlas/aal_mask_dict_right.npy'
         elif socket.gethostname() == 'zkyd':
-            aal_mask_dict_dir = '/data/fanchenchen/atlas/aal_mask_dict_128.npy'
+            aal_mask_dict_dir = '/data/fanchenchen/atlas/aal_mask_dict_right.npy'
         self.aal_mask_dict = np.load(aal_mask_dict_dir, allow_pickle=True).item()  # 116; (181,217,181)
         for i, key in enumerate(self.aal_mask_dict.keys()):
             # useful_data = self.__drop_invalid_range__(self.aal_mask_dict[key])
@@ -606,15 +833,53 @@ class MRIDatasetImage(MRIDataset):
             # useful_data = useful_data[np.newaxis, np.newaxis, :, :, :]  # 1,1,128,128,128
             # roi_batch_data = MRI.cpu().numpy() * useful_data  # batch, 1, 128,128,128
             mask = self.aal_mask_dict[key]
-            roi_data = MRI * mask.squeeze()  # batch, 1, 128,128,128
-            roi_label_list.append(key)
+            # print('mask min:{}'.format(mask.min()))
+            # print('mask max:{}'.format(mask.max()))
+            # print('mask:{}'.format(mask))
+            ww, hh, dd = MRI.shape
 
-            roi_data = self.__drop_invalid_range__(roi_data)  # xx,xx,xx
+            MRI = self.__resize_data__(MRI, 181, 217, 181)
+            # MRI = (MRI - MRI.min()) / (MRI.max() - MRI.min())
+            roi_data = MRI * mask.squeeze()  # batch, 1, 128,128,128
+            # print('roi_data min:{}'.format(roi_data.min()))
+            # print('roi_data max:{}'.format(roi_data.max()))
+            roi_label_list.append(key)
+            # save nii to Visualization
+            # print(image_np.max())
+            # print(image_np.min())
+            # print(roi_data.shape)
+            if save_nii:
+                image_nii = nib.Nifti1Image(roi_data, np.eye(4))
+                MRI_path = '/data/fanchenchen/atlas/{}_{}_{}_ori_roi_{}.nii.gz'.format(sub_id, session,
+                                                                                       preprocessing, i)
+                nib.save(image_nii, MRI_path)
+            try:
+                roi_data = self.__drop_invalid_range__(roi_data)  # xx,xx,xx
+            except:
+                print(sub_id)
+                print(session)
+                assert True
+            # roi_data = self.__drop_invalid_range__(mask.squeeze())  # xx,xx,xx
+            if save_nii:
+                image_nii = nib.Nifti1Image(roi_data, np.eye(4))
+                MRI_path = '/data/fanchenchen/atlas/{}_{}_{}_drop_invalid_roi_{}.nii.gz'.format(sub_id, session,
+                                                                                                preprocessing, i)
+                nib.save(image_nii, MRI_path)
+            # print(roi_data.shape)
             roi_data = self.__resize_data__(roi_data, roi_size, roi_size, roi_size)  # roi_size, roi_size, roi_size
+            # print(roi_data.shape)
             roi_data = torch.from_numpy(roi_data)
             roi_data_list.append(roi_data)  # roi_size, roi_size, roi_size
+            # save nii to Visualization
+            if save_nii:
+                image_np = roi_data.numpy()
+                image_nii = nib.Nifti1Image(image_np, np.eye(4))
+                MRI_path = '/data/fanchenchen/atlas/{}_{}_{}_resize_roi_{}.nii.gz'.format(sub_id, session,
+                                                                                          preprocessing, i)
+                nib.save(image_nii, MRI_path)
             if i >= 89:
                 break
+
         roi_batch = torch.stack(roi_data_list).type(torch.float32)  # num_roi, roi_size, roi_size, roi_size
         return roi_batch
 
@@ -895,11 +1160,13 @@ def return_dataset(mode, input_dir, data_df, preprocessing,
             crop_padding_to_128=params.crop_padding_to_128,
             resample_size=params.resample_size,
             fake_caps_path=params.fake_caps_path,
+            # only_use_fake=params.only_use_fake,
             roi=use_roi,
             roi_size=params.roi_size,
             model=params.model,
             data_preprocess=params.data_preprocess,
             data_Augmentation=params.data_Augmentation,
+            method_2d=params.method_2d
         )
     if mode == "patch":
         return MRIDatasetPatch(
@@ -1051,13 +1318,21 @@ class CropPpadding128(object):
 
     def __call__(self, **data_dict):
         image = data_dict['data']
-        assert image.shape[1] == 121 and image.shape[2] == 145 and image.shape[
-            3] == 121, "image shape must be 1*121*145*122, but given shape:{}".format(image.shape)
-        image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
-        image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
-        pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
-        image = pad(image)  # [1, 1, 128, 128, 128]
-        image = image.squeeze(0)  # [1, 128, 128, 128]
+
+        if image.shape[1] == 121 and image.shape[2] == 145 and image.shape[
+            3] == 121:
+
+            image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
+            image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
+            pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
+            image = pad(image)  # [1, 1, 128, 128, 128]
+            image = image.squeeze(0)  # [1, 128, 128, 128]
+        elif image.shape[1] == 128 and image.shape[2] == 128 and image.shape[
+            3] == 128:
+            pass
+        else:
+            assert image.shape[1] == 121 and image.shape[2] == 145 and image.shape[
+                3] == 121, "image shape must be 1*121*145*122 or 1*128*128*128, but given shape:{}".format(image.shape)
 
         data_dict['data'] = image
         return data_dict
@@ -1073,7 +1348,7 @@ class Resize(torch.nn.Module):
 
     def __init__(self, resample_size):
         super().__init__()
-        assert resample_size > 0, 'resample_size should be a int positive number'
+        # assert resample_size > 0, 'resample_size should be a int positive number'
         self.resample_size = resample_size
 
     def forward(self, **data_dict):
@@ -1264,7 +1539,7 @@ def get_transforms(params, is_training=True):
 ################################
 
 def load_data(train_val_path, diagnoses_list,
-              split, n_splits=None, baseline=True, fake_caps_path=None):
+              split, n_splits=None, baseline=True, fake_caps_path=None, only_use_fake=False):
     train_df = pd.DataFrame()
     valid_df = pd.DataFrame()
     if n_splits is None:
@@ -1304,7 +1579,7 @@ def load_data(train_val_path, diagnoses_list,
 
     train_df.reset_index(inplace=True, drop=True)
     valid_df.reset_index(inplace=True, drop=True)
-    if fake_caps_path is not None:
+    if fake_caps_path is not None and not baseline:
         path_list = os.listdir(fake_caps_path)
         for t in range(len(path_list)):
             if path_list[t] != 'subjects':
@@ -1324,14 +1599,25 @@ def load_data(train_val_path, diagnoses_list,
                 diagnosis = filted_df_train.loc[0]["diagnosis"]
                 filted_fake_df['diagnosis'] = diagnosis
                 train_fake_df = train_fake_df.append(filted_fake_df).drop_duplicates().reset_index(drop=True)
-        print('use {} fake images for train!'.format(len(train_fake_df)))
-        train_df = train_df.append(train_fake_df).drop_duplicates().reset_index(drop=True)
+        if only_use_fake:
+            print('*** [Only] use {} fake images for train!'.format(len(train_fake_df)))
+            train_df = train_fake_df
+        else:
+            print('use {} fake images for train!'.format(len(train_fake_df)))
+            train_df = train_df.append(train_fake_df).drop_duplicates().reset_index(drop=True)
         saved_tsv_path = os.path.join(train_path, fake_caps_path.split('/')[-1])
         save_path_train = os.path.join(saved_tsv_path, 'train_real_and_fake_' + "_".join(diagnoses_list) + '.tsv')
         if not os.path.exists(saved_tsv_path):
             os.makedirs(saved_tsv_path)
         train_df.to_csv(save_path_train, sep='\t', index=False)
         print('save: {}'.format(save_path_train))
+        print('train fake df:{}'.format(train_fake_df))
+        print('train real and fake df:{}'.format(train_df))
+        print('valid df:{}'.format(valid_df))
+    else:
+        print('only train real df:{}'.format(train_df))
+        print('valid df:{}'.format(valid_df))
+
     return train_df, valid_df
 
 

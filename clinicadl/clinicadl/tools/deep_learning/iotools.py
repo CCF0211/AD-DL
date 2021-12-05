@@ -65,6 +65,7 @@ class Parameters:
             resample_size: int = None,
             drop_last: bool = False,
             fake_caps_path: str = None,
+            only_use_fake: bool = False,
             pretrain_resnet_path: str = None,
             new_layer_names: str = [],
             gnn_type: str = '3gcn',
@@ -126,6 +127,7 @@ class Parameters:
             optimizer_eps: float = 1e-8,
             optimizer_betas: str = (0.9, 0.999),
             optimizer_momentum: float = 0.9,
+            method_2d: str = None,
 
     ):
         """
@@ -205,6 +207,7 @@ class Parameters:
         self.resample_size = resample_size
         self.drop_last = drop_last
         self.fake_caps_path = fake_caps_path
+        self.only_use_fake = only_use_fake
         self.pretrain_resnet_path = pretrain_resnet_path
         self.new_layer_names = new_layer_names
         self.gnn_type = gnn_type
@@ -266,6 +269,7 @@ class Parameters:
         self.optimizer_eps = optimizer_eps
         self.optimizer_betas = optimizer_betas
         self.optimizer_momentum = optimizer_momentum
+        self.method_2d = method_2d
 
 
 def check_and_clean(d):
@@ -463,6 +467,7 @@ def cpuStats():
     py = psutil.Process(pid)
     memoryUse = py.memory_info()[0] / 2. ** 30  # memory use in GB...I think
     print('memory GB:', memoryUse)
+
 
 def print_commandline(commandline):
     """

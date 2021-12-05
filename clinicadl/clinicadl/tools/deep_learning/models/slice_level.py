@@ -14,7 +14,6 @@ __maintainer__ = "Junhao Wen"
 __email__ = "junhao.wen89@gmail.com"
 __status__ = "Development"
 
-
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth'
 }
@@ -29,7 +28,7 @@ def resnet18_2d(**kwargs):
     """
     model = ResNetDesigner(BasicBlock, [2, 2, 2, 2], **kwargs)
     try:
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet18']), strict=False)
     except Exception as err:
         print("Error is:", err)
         # raise ConnectionError('The URL %s may not be functional anymore. Check if it still exists or '
@@ -57,7 +56,7 @@ class ResNetDesigner(nn.Module):
     def __init__(self, block, layers, num_classes=1000, **kwargs):
         self.inplanes = 64
         super(ResNetDesigner, self).__init__()
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
+        self.conv1 = nn.Conv2d(8, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
@@ -67,7 +66,7 @@ class ResNetDesigner(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(7, stride=1)
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(51200, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

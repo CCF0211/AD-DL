@@ -24,90 +24,95 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
                                  device_index=model_options.device, in_channels=model_options.in_channels,
                                  out_channels=model_options.out_channels, f_maps=model_options.f_maps,
                                  layer_order=model_options.layer_order, num_groups=model_options.num_groups,
-                                 num_levels=model_options.num_levels)
+                                 num_levels=model_options.num_levels, num_class=model_options.num_class)
         elif model_options.model == 'ResidualUNet3D':
             print('********** init ResidualUNet3D model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                                  device_index=model_options.device, in_channels=model_options.in_channels,
                                  out_channels=model_options.out_channels, f_maps=model_options.f_maps,
                                  layer_order=model_options.layer_order, num_groups=model_options.num_groups,
-                                 num_levels=model_options.num_levels)
+                                 num_levels=model_options.num_levels, num_class=model_options.num_class)
         elif model_options.model == 'UNet3D_add_more_fc':
             print('********** init UNet3D_add_more_fc model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                                  device_index=model_options.device, in_channels=model_options.in_channels,
                                  out_channels=model_options.out_channels, f_maps=model_options.f_maps,
                                  layer_order=model_options.layer_order, num_groups=model_options.num_groups,
-                                 num_levels=model_options.num_levels)
+                                 num_levels=model_options.num_levels, num_class=model_options.num_class)
         elif model_options.model == 'ResidualUNet3D_add_more_fc':
             print('********** init ResidualUNet3D_add_more_fc model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                                  device_index=model_options.device, in_channels=model_options.in_channels,
                                  out_channels=model_options.out_channels, f_maps=model_options.f_maps,
                                  layer_order=model_options.layer_order, num_groups=model_options.num_groups,
-                                 num_levels=model_options.num_levels)
+                                 num_levels=model_options.num_levels, num_class=model_options.num_class)
         elif model_options.model == 'VoxCNN':
             print('********** init VoxCNN model for test! **********')
-            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
+            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
+                                 num_class=model_options.num_class)
         elif model_options.model == 'ConvNet3D':
             print('********** init ConvNet3D model for test! **********')
-            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device)
+            model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
+                                 num_class=model_options.num_class)
         elif 'gcn' in model_options.model:
             print(
                 '********** init {}-{} model for test! **********'.format(model_options.model, model_options.gnn_type))
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
-                                gnn_type=model_options.gnn_type,
-                                gnn_dropout=model_options.gnn_dropout, 
-                                gnn_dropout_adj=model_options.gnn_dropout_adj,
-                                gnn_non_linear=model_options.gnn_non_linear, 
-                                gnn_undirected=model_options.gnn_undirected, 
-                                gnn_self_loop=model_options.gnn_self_loop,
-                                gnn_threshold = model_options.gnn_threshold,)
+                                 gnn_type=model_options.gnn_type,
+                                 gnn_dropout=model_options.gnn_dropout,
+                                 gnn_dropout_adj=model_options.gnn_dropout_adj,
+                                 gnn_non_linear=model_options.gnn_non_linear,
+                                 gnn_undirected=model_options.gnn_undirected,
+                                 gnn_self_loop=model_options.gnn_self_loop,
+                                 gnn_threshold=model_options.gnn_threshold,
+                                 num_class=model_options.num_class)
         elif model_options.model == 'ROI_GCN':
             print('********** init ROI_GCN model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, device_index=model_options.device,
-                                gnn_type=model_options.gnn_type,
-                                gnn_dropout=model_options.gnn_dropout, 
-                                gnn_dropout_adj=model_options.gnn_dropout_adj,
-                                gnn_non_linear=model_options.gnn_non_linear, 
-                                gnn_undirected=model_options.gnn_undirected, 
-                                gnn_self_loop=model_options.gnn_self_loop,
-                                gnn_threshold = model_options.gnn_threshold,
-                                nodel_vetor_layer=model_options.nodel_vetor_layer,
-                                classify_layer=model_options.classify_layer,
-                                num_node_features=model_options.num_node_features, num_class=model_options.num_class,
-                                roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
-                                gnn_pooling_layers=model_options.gnn_pooling_layers, global_sort_pool_k=model_options.global_sort_pool_k,
-                                layers=model_options.layers,
-                                shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
-                                dropout=model_options.dropout,
-                                device=model_options.device)
+                                 gnn_type=model_options.gnn_type,
+                                 gnn_dropout=model_options.gnn_dropout,
+                                 gnn_dropout_adj=model_options.gnn_dropout_adj,
+                                 gnn_non_linear=model_options.gnn_non_linear,
+                                 gnn_undirected=model_options.gnn_undirected,
+                                 gnn_self_loop=model_options.gnn_self_loop,
+                                 gnn_threshold=model_options.gnn_threshold,
+                                 nodel_vetor_layer=model_options.nodel_vetor_layer,
+                                 classify_layer=model_options.classify_layer,
+                                 num_node_features=model_options.num_node_features, num_class=model_options.num_class,
+                                 roi_size=model_options.roi_size, num_nodes=model_options.num_nodes,
+                                 gnn_pooling_layers=model_options.gnn_pooling_layers,
+                                 global_sort_pool_k=model_options.global_sort_pool_k,
+                                 layers=model_options.layers,
+                                 shortcut_type=model_options.shortcut_type, use_nl=model_options.use_nl,
+                                 dropout=model_options.dropout,
+                                 device=model_options.device)
         elif model_options.model == 'SwinTransformer3d':
             print('********** init SwinTransformer3d model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
-                            device_index=model_options.device, 
-                            sw_patch_size=model_options.sw_patch_size, 
-                            window_size = model_options.window_size,
-                            mlp_ratio = model_options.mlp_ratio,
-                            drop_rate = model_options.drop_rate,
-                            attn_drop_rate = model_options.attn_drop_rate,
-                            drop_path_rate = model_options.drop_path_rate,
-                            qk_scale = model_options.qk_scale,
-                            embed_dim = model_options.embed_dim,
-                            depths = model_options.depths,
-                            num_heads = model_options.num_heads,
-                            qkv_bias = model_options.qkv_bias,
-                            ape = model_options.ape,
-                            patch_norm = model_options.patch_norm,
-                            )
+                                 device_index=model_options.device,
+                                 sw_patch_size=model_options.sw_patch_size,
+                                 window_size=model_options.window_size,
+                                 mlp_ratio=model_options.mlp_ratio,
+                                 drop_rate=model_options.drop_rate,
+                                 attn_drop_rate=model_options.attn_drop_rate,
+                                 drop_path_rate=model_options.drop_path_rate,
+                                 qk_scale=model_options.qk_scale,
+                                 embed_dim=model_options.embed_dim,
+                                 depths=model_options.depths,
+                                 num_heads=model_options.num_heads,
+                                 qkv_bias=model_options.qkv_bias,
+                                 ape=model_options.ape,
+                                 patch_norm=model_options.patch_norm,
+                                 num_class=model_options.num_class)
         else:
             print('********** init model for test! **********')
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
-                                 device_index=model_options.device)
+                                 device_index=model_options.device, num_class=model_options.num_class)
         model, best_epoch = load_model(model, os.path.join(output_dir, 'fold-%i' % split, 'models', selection),
                                        gpu=gpu, filename='model_best.pth.tar', device_index=model_options.device)
         results_df, metrics = test(model, data_loader, gpu, criterion, model_options.mode,
-                                   device_index=model_options.device, train_begin_time=train_begin_time, model_options=model_options, fi=split)
+                                   device_index=model_options.device, train_begin_time=train_begin_time,
+                                   model_options=model_options, fi=split)
         print("[%s]: %s level balanced accuracy is %f" % (
             timeSince(train_begin_time), model_options.mode, metrics['balanced_accuracy']))
         print('[{}]: {}_{}_result_df:'.format(timeSince(train_begin_time), subset_name, selection))
@@ -117,6 +122,10 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
                    '{}_balanced_accuracy_{}_singel_model'.format(subset_name, selection): metrics['balanced_accuracy'],
                    '{}_sensitivity_{}_singel_model'.format(subset_name, selection): metrics['sensitivity'],
                    '{}_specificity_{}_singel_model'.format(subset_name, selection): metrics['specificity'],
+                   '{}_precision_{}_singel_model'.format(subset_name, selection): metrics['precision'],
+                   '{}_recall_{}_singel_model'.format(subset_name, selection): metrics['recall'],
+                   '{}_f1_{}_singel_model'.format(subset_name, selection): metrics['f1'],
+                   # '{}_roc_auc_{}_singel_model'.format(subset_name, selection): metrics['roc_auc'],
                    '{}_ppv_{}_singel_model'.format(subset_name, selection): metrics['ppv'],
                    '{}_npv_{}_singel_model'.format(subset_name, selection): metrics['npv'],
                    '{}_total_loss_{}_singel_model'.format(subset_name, selection): metrics['total_loss'],
@@ -134,6 +143,10 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, model_optio
                                 'balanced_accuracy'],
                             '{}_sensitivity_{}_singel_model'.format(subset_name, selection): metrics['sensitivity'],
                             '{}_specificity_{}_singel_model'.format(subset_name, selection): metrics['specificity'],
+                            '{}_precision_{}_singel_model'.format(subset_name, selection): metrics['precision'],
+                            '{}_recall_{}_singel_model'.format(subset_name, selection): metrics['recall'],
+                            '{}_f1_{}_singel_model'.format(subset_name, selection): metrics['f1'],
+                            # '{}_roc_auc_{}_singel_model'.format(subset_name, selection): metrics['roc_auc'],
                             '{}_ppv_{}_singel_model'.format(subset_name, selection): metrics['ppv'],
                             '{}_npv_{}_singel_model'.format(subset_name, selection): metrics['npv'],
                             '{}_total_loss_{}_singel_model'.format(subset_name, selection): metrics['total_loss'],
