@@ -29,7 +29,6 @@ parser.add_argument("--num_workers", '-w', default=1, type=int,
 
 
 def main(options):
-
     options = read_json(options)
 
     if options.evaluation_steps % options.accumulation_steps != 0 and options.evaluation_steps != 1:
@@ -47,8 +46,10 @@ def main(options):
     training_tsv, valid_tsv = load_data(options.diagnosis_path, options.diagnoses,
                                         options.split, options.n_splits, options.baseline)
 
-    data_train = MRIDataset(options.input_dir, training_tsv, transform=transformations, preprocessing=options.preprocessing)
-    data_valid = MRIDataset(options.input_dir, valid_tsv, transform=transformations, preprocessing=options.preprocessing)
+    data_train = MRIDataset(options.input_dir, training_tsv, transform=transformations,
+                            preprocessing=options.preprocessing)
+    data_valid = MRIDataset(options.input_dir, valid_tsv, transform=transformations,
+                            preprocessing=options.preprocessing)
 
     # Use argument load to distinguish training and testing
     train_loader = DataLoader(data_train,
@@ -71,20 +72,28 @@ def main(options):
     print('Initialization of the model')
     if options.model == 'UNet3D':
         print('********** init UNet3D model for test! **********')
-        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
-                out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device,
+                             in_channels=options.in_channels,
+                             out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order,
+                             num_groups=options.num_groups, num_levels=options.num_levels)
     elif options.model == 'ResidualUNet3D':
         print('********** init ResidualUNet3D model for test! **********')
-        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
-                out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device,
+                             in_channels=options.in_channels,
+                             out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order,
+                             num_groups=options.num_groups, num_levels=options.num_levels)
     elif options.model == 'UNet3D_add_more_fc':
         print('********** init UNet3D_add_more_fc model for test! **********')
-        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
-                out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device,
+                             in_channels=options.in_channels,
+                             out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order,
+                             num_groups=options.num_groups, num_levels=options.num_levels)
     elif options.model == 'ResidualUNet3D_add_more_fc':
         print('********** init ResidualUNet3D_add_more_fc model for test! **********')
-        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device, in_channels=options.in_channels,
-                out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order, num_groups=options.num_groups, num_levels=options.num_levels)
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device,
+                             in_channels=options.in_channels,
+                             out_channels=options.out_channels, f_maps=options.f_maps, layer_order=options.layer_order,
+                             num_groups=options.num_groups, num_levels=options.num_levels)
     elif options.model == 'VoxCNN':
         print('********** init VoxCNN model for test! **********')
         model = create_model(options.model, gpu=options.gpu, device_index=options.device)
@@ -94,49 +103,53 @@ def main(options):
     elif 'gcn' in options.model:
         print('********** init {}-{} model for test! **********'.format(options.model, options.gnn_type))
         model = create_model(options.model, gpu=options.gpu, device_index=options.device, gnn_type=options.gnn_type,
-                                gnn_dropout=options.gnn_dropout, 
-                                gnn_dropout_adj=options.gnn_dropout_adj,
-                                gnn_non_linear=options.gnn_non_linear, 
-                                gnn_undirected=options.gnn_undirected, 
-                                gnn_self_loop=options.gnn_self_loop,
-                                gnn_threshold = options.gnn_threshold,)
+                             gnn_dropout=options.gnn_dropout,
+                             gnn_dropout_adj=options.gnn_dropout_adj,
+                             gnn_non_linear=options.gnn_non_linear,
+                             gnn_undirected=options.gnn_undirected,
+                             gnn_self_loop=options.gnn_self_loop,
+                             gnn_threshold=options.gnn_threshold, )
     elif options.model == 'ROI_GCN':
         print('********** init ROI_GCN model for test! **********')
         model = create_model(options.model, gpu=options.gpu, device_index=options.device,
-                                gnn_type=options.gnn_type,
-                                gnn_dropout=options.gnn_dropout, 
-                                gnn_dropout_adj=options.gnn_dropout_adj,
-                                gnn_non_linear=options.gnn_non_linear, 
-                                gnn_undirected=options.gnn_undirected, 
-                                gnn_self_loop=options.gnn_self_loop,
-                                gnn_threshold = options.gnn_threshold,
-                                nodel_vetor_layer=options.nodel_vetor_layer,
-                                classify_layer=options.classify_layer,
-                                num_node_features=options.num_node_features, num_class=options.num_class,
-                                roi_size=options.roi_size, num_nodes=options.num_nodes,
-                                gnn_pooling_layers=options.gnn_pooling_layers, global_sort_pool_k=options.global_sort_pool_k,
-                                layers=options.layers,
-                                shortcut_type=options.shortcut_type, use_nl=options.use_nl,
-                                dropout=options.dropout,
-                                device=options.device)
+                             gnn_type=options.gnn_type,
+                             gnn_dropout=options.gnn_dropout,
+                             gnn_dropout_adj=options.gnn_dropout_adj,
+                             gnn_non_linear=options.gnn_non_linear,
+                             gnn_undirected=options.gnn_undirected,
+                             gnn_self_loop=options.gnn_self_loop,
+                             gnn_threshold=options.gnn_threshold,
+                             nodel_vetor_layer=options.nodel_vetor_layer,
+                             classify_layer=options.classify_layer,
+                             num_node_features=options.num_node_features, num_class=options.num_class,
+                             roi_size=options.roi_size, num_nodes=options.num_nodes,
+                             gnn_pooling_layers=options.gnn_pooling_layers,
+                             global_sort_pool_k=options.global_sort_pool_k,
+                             layers=options.layers,
+                             shortcut_type=options.shortcut_type, use_nl=options.use_nl,
+                             dropout=options.dropout,
+                             device=options.device)
     elif options.model == 'SwinTransformer3d':
         print('********** init SwinTransformer3d model for test! **********')
         model = create_model(options.model, gpu=options.gpu, dropout=options.dropout,
-                        device_index=options.device, 
-                        sw_patch_size=options.sw_patch_size, 
-                        window_size = options.window_size,
-                        mlp_ratio = options.mlp_ratio,
-                        drop_rate = options.drop_rate,
-                        attn_drop_rate = options.attn_drop_rate,
-                        drop_path_rate = options.drop_path_rate,
-                        qk_scale = options.qk_scale,
-                        embed_dim = options.embed_dim,
-                        depths = options.depths,
-                        num_heads = options.num_heads,
-                        qkv_bias = options.qkv_bias,
-                        ape = options.ape,
-                        patch_norm = options.patch_norm,
-                        )
+                             device_index=options.device,
+                             sw_patch_size=options.sw_patch_size,
+                             window_size=options.window_size,
+                             mlp_ratio=options.mlp_ratio,
+                             drop_rate=options.drop_rate,
+                             attn_drop_rate=options.attn_drop_rate,
+                             drop_path_rate=options.drop_path_rate,
+                             qk_scale=options.qk_scale,
+                             embed_dim=options.embed_dim,
+                             depths=options.depths,
+                             num_heads=options.num_heads,
+                             qkv_bias=options.qkv_bias,
+                             ape=options.ape,
+                             patch_norm=options.patch_norm,
+                             )
+    elif options.model == 'vit':
+        model = create_model(options.model, gpu=options.gpu, dropout=options.dropout,
+                             device_index=options.device, num_class=options.num_class, args=options, )
     else:
         model = create_model(options.model, gpu=options.gpu, dropout=options.dropout, device_index=options.device)
     model_dir = path.join(options.model_path, "best_model_dir", "CNN", "fold_" + str(options.split))

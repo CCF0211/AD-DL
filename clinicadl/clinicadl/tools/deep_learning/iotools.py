@@ -128,6 +128,8 @@ class Parameters:
             optimizer_betas: str = (0.9, 0.999),
             optimizer_momentum: float = 0.9,
             method_2d: str = None,
+            VIT_model_name: str = None,
+            reduce_method: str = None,
 
     ):
         """
@@ -270,6 +272,8 @@ class Parameters:
         self.optimizer_betas = optimizer_betas
         self.optimizer_momentum = optimizer_momentum
         self.method_2d = method_2d
+        self.VIT_model_name = VIT_model_name
+        self.reduce_method = reduce_method
 
 
 def check_and_clean(d):

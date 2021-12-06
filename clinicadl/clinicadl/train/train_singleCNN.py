@@ -19,7 +19,6 @@ from .criterion import return_criterion
 from .lr_scheduler import return_scheduler
 
 
-
 def train_single_cnn(params):
     """
     Trains a single CNN and writes:
@@ -175,7 +174,9 @@ def train_single_cnn(params):
                                gnn_self_loop=params.gnn_self_loop,
                                gnn_threshold=params.gnn_threshold,
                                num_class=params.num_class)
-
+        elif params.model == 'vit':
+            model = init_model(params.model, gpu=params.gpu, dropout=params.dropout,
+                               device_index=params.device, num_class=params.num_class, args=params, )
         else:
             model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device,
                                pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names,

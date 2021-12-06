@@ -4,19 +4,73 @@ import torch.utils.model_zoo as model_zoo
 from torchvision.models.resnet import BasicBlock
 from torch import nn
 import math
+import timm
+import urllib
+from PIL import Image
+from timm.data import resolve_data_config
+from timm.data.transforms_factory import create_transform
+import torch.nn.functional as F
 
-__author__ = "Junhao Wen"
-__copyright__ = "Copyright 2018 The Aramis Lab Team"
-__credits__ = ["Junhao Wen"]
-__license__ = "See LICENSE.txt file"
-__version__ = "0.1.0"
-__maintainer__ = "Junhao Wen"
-__email__ = "junhao.wen89@gmail.com"
-__status__ = "Development"
+__all__ = ['resnet18_2d', 'vit']
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth'
 }
+
+
+def vit(args, **kwargs):
+    model = timm.create_model(args.VIT_model_name, pretrained=True, num_classes=args.num_class)
+    return VitDesigner(model, args.VIT_model_name, args.reduce_method)
+
+
+class interpolate(nn.Module):
+    def __init__(self, target_size):
+        super(interpolate, self).__init__()
+        self.target_size = target_size
+
+    def forward(self, x):
+        return F.interpolate(x, size=self.target_size)
+
+
+def size_reduce(target_size=384, method='conv_avgpool'):
+    if method == 'conv_avgpool':
+        block = nn.Sequential(
+            nn.Conv2d(8, 3, kernel_size=3, stride=512 // target_size, padding=1),
+            nn.AdaptiveAvgPool2d(output_size=target_size)
+        )
+    elif method == 'conv_maxpool':
+        block = nn.Sequential(
+            nn.Conv2d(8, 3, kernel_size=3, stride=512 // target_size, padding=1),
+            nn.AdaptiveMaxPool2d(output_size=target_size),
+        )
+    elif method == 'interpolate':
+        block = nn.Sequential(
+            nn.Conv2d(8, 3, kernel_size=3, stride=1, padding=1),
+            interpolate(target_size=target_size)
+        )
+    return block
+
+
+class VitDesigner(nn.Module):
+    def __init__(self, Vit, model_name, reduce_method='conv_avgpool'):
+        super(VitDesigner, self).__init__()
+        self.Vit = Vit
+        self.model_name = model_name
+        if '224' in self.model_name:
+            self.reduce_block = size_reduce(target_size=224, method=reduce_method)
+        elif '384' in self.model_name:
+            self.reduce_block = size_reduce(target_size=384, method=reduce_method)
+        else:
+            self.reduce_block = nn.Identity()
+        # config = resolve_data_config({}, model=self.Vit)
+        # self.transform = create_transform(**config)
+
+    def forward(self, x):  # B, 8, 512, 512
+        x = self.reduce_block(x)  # B, 3, target_size, target_size
+        # x = Image.fromarray(x).convert('RGB')
+        # x = self.transform(x).unsqueeze(0)
+        out = self.Vit(x)
+        return out
 
 
 def resnet18_2d(**kwargs):

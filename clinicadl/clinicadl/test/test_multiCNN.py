@@ -105,6 +105,11 @@ def test_cnn(output_dir, data_loader, subset_name, split, criterion, cnn_index, 
                                  ape=model_options.ape,
                                  patch_norm=model_options.patch_norm,
                                  )
+        elif model_options.model == 'vit':
+            model = create_model(model_options.model, gpu=model_options.gpu,
+                                 dropout=model_options.dropout,
+                                 device_index=model_options.device, num_class=model_options.num_class,
+                                 args=model_options, )
         else:
             model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                                  device_index=model_options.device)

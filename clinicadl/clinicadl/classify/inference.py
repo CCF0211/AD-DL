@@ -22,7 +22,8 @@ def classify(caps_dir,
              no_labels=False,
              gpu=True,
              prepare_dl=True,
-             device=0):
+             device=0,
+             save_threshold=0.8):
     """
     This function verify the input folders, and the existance of the json file
     then it launch the inference stage from a specific model.
@@ -77,7 +78,8 @@ def classify(caps_dir,
         no_labels,
         gpu,
         prepare_dl,
-        device_index=device)
+        device_index=device,
+        save_threshold=save_threshold)
 
 
 def inference_from_model(caps_dir,
@@ -88,7 +90,8 @@ def inference_from_model(caps_dir,
                          no_labels=False,
                          gpu=True,
                          prepare_dl=False,
-                         device_index=0):
+                         device_index=0,
+                         save_threshold=0.8):
     """
     Inference from previously trained model.
 
@@ -252,6 +255,9 @@ def inference_from_model(caps_dir,
         print('wandb has no init!')
     for keys, values in mean_matric_dict.items():
         print('{}:{}'.format(keys, values))
+    if mean_matric_dict['mean_test_balanced_accuracy_best_BA_singel_model'] < save_threshold:
+        print(model_path)
+        # os.remove()
 
 
 def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
@@ -351,6 +357,9 @@ def inference_from_model_generic(caps_dir, tsv_path, model_path, model_options,
                              ape=model_options.ape,
                              patch_norm=model_options.patch_norm,
                              num_class=model_options.num_class)
+    elif model_options.model == 'vit':
+        model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
+                             device_index=model_options.device, num_class=model_options.num_class, args=model_options, )
     else:
         model = create_model(model_options.model, gpu=model_options.gpu, dropout=model_options.dropout,
                              device_index=model_options.device, num_class=model_options.num_class)

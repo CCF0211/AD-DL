@@ -2,7 +2,7 @@ from .autoencoder import AutoEncoder, initialize_other_autoencoder, transfer_lea
 from .iotools import load_model, load_optimizer, save_checkpoint
 from .image_level import * 
 from .patch_level import Conv4_FC3
-from .slice_level import resnet18_2d
+from .slice_level import *
 import torch
 from torch import nn
 

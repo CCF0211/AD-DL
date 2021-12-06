@@ -149,6 +149,9 @@ def train_multi_cnn(params):
                                 ape = params.ape,
                                 patch_norm = params.patch_norm,
                                 )
+            elif params.model == 'vit':
+                model = init_model(params.model, gpu=params.gpu, dropout=params.dropout,
+                                     device_index=params.device, num_class=params.num_class,args=params )
             else:
                 model = init_model(params.model, gpu=params.gpu, dropout=params.dropout, device_index=params.device, pretrain_resnet_path=params.pretrain_resnet_path, new_layer_names=params.new_layer_names)
             model = transfer_learning(model, fi, source_path=params.transfer_learning_path,

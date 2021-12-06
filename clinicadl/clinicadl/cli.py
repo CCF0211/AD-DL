@@ -241,7 +241,9 @@ def train_func(args):
                 optimizer_eps=args.optimizer_eps,
                 optimizer_betas=args.optimizer_betas,
                 optimizer_momentum=args.optimizer_momentum,
-                method_2d=args.method_2d
+                method_2d=args.method_2d,
+                VIT_model_name=args.VIT_model_name,
+                reduce_method=args.reduce_method,
 
             )
             train_single_cnn(train_params_cnn)

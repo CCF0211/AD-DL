@@ -464,69 +464,9 @@ class MRIDatasetImage(MRIDataset):
         # if os.path.exists(delate_image_path):
         #     os.remove(delate_image_path)
         #     print('delating:{}'.format(delate_image_path))
-        if os.path.exists(roi_image_path) and self.roi:
-            try:
-                ROI_image = torch.load(roi_image_path)
-                # print('loading:{}'.format(roi_image_path))
-            except:
-                print('Wrong file:{}'.format(roi_image_path))
-            if os.path.exists(resampled_image_path):
-                try:
-                    resampled_image = torch.load(resampled_image_path)
-                    # print('loading:{}'.format(roi_image_path))
-                except:
-                    print('Wrong file:{}'.format(resampled_image_path))
-            else:
-                image = torch.load(image_path)
-                if self.transformations:
-                    dict = {}
-                    dict['data'] = image
-                    resampled_image = self.transformations(begin_trans_indx=0, **dict)
-                resampled_data = resampled_image.squeeze()  # [128, 128, 128]
-                try:
-                    resampled_image = resampled_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
-                except:
-                    resampled_image = np.expand_dims(resampled_data, 0)
-                dir, file = os.path.split(resampled_image_path)
-                if not os.path.exists(dir):
-                    try:
-                        os.makedirs(dir)
-                    except OSError:
-                        pass
-                torch.save(resampled_image, resampled_image_path)
-                print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
-
-            sample = {'image': ROI_image, 'label': label, 'participant_id': participant,
-                      'session_id': session, 'all_image': resampled_image,
-                      'image_path': roi_image_path, 'num_fake_mri': self.num_fake_mri}
-            return sample
-        if os.path.exists(CNN2020_DEEPCNN_image_path) and self.model in ["CNN2020", "DeepCNN"]:
-            CNN2020_DEEPCNN_image_image = torch.load(CNN2020_DEEPCNN_image_path)
-            if self.data_Augmentation and self.transformations:
-                dict = {}
-                dict['data'] = CNN2020_DEEPCNN_image_image
-                begin_trans_indx = 0
-                for i in range(len(self.transformations.transforms)):
-                    if self.transformations.transforms[i].__class__.__name__ in ['ItensityNormalizeNonzeorVolume',
-                                                                                 'ItensityNormalizeNonzeorVolume',
-                                                                                 'MinMaxNormalization']:
-                        begin_trans_indx = i + 1
-                CNN2020_DEEPCNN_image_image = self.transformations(begin_trans_indx=begin_trans_indx, **dict)
-            sample = {'image': CNN2020_DEEPCNN_image_image, 'label': label, 'participant_id': participant,
-                      'session_id': session,
-                      'image_path': CNN2020_DEEPCNN_image_path, 'num_fake_mri': self.num_fake_mri}
-            return sample
-
-        if self.method_2d is not None:
-            path, file = os.path.split(resampled_image_path)
-            file_2d = file.split('.')[0] + '_' + self.method_2d + '.' + file.split('.')[1]
-            path_2d = os.path.join(path, file_2d)
-            if os.path.exists(path_2d):
-                try:
-                    data_2d = torch.load(path_2d)
-                except:
-                    print('Wrong file:{}'.format(path_2d))
-            else:
+        if not self.data_Augmentation:  # No data_Augmentation, 1. check local disk whether have saved data. 2. If not, process data and save to desk
+            if self.roi and 'ROI' in self.model:
+                # Get resampled_image
                 if os.path.exists(resampled_image_path):
                     try:
                         resampled_image = torch.load(resampled_image_path)
@@ -552,208 +492,330 @@ class MRIDatasetImage(MRIDataset):
                             pass
                     torch.save(resampled_image, resampled_image_path)
                     print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
+                # Get roi image
+                if os.path.exists(roi_image_path):
+                    try:
+                        ROI_image = torch.load(roi_image_path)
+                        # print('loading:{}'.format(roi_image_path))
+                    except:
+                        print('Wrong file:{}'.format(roi_image_path))
+                else:
+                    image = torch.load(image_path)
+                    if self.transformations:
+                        dict = {}
+                        dict['data'] = image
+                        image = self.transformations(begin_trans_indx=0, **dict)
+                    data = image.squeeze()  # [128, 128, 128]
+                    data = self.roi_extract(data, roi_size=self.roi_size, sub_id=participant,
+                                            preprocessing=self.preprocessing,
+                                            session=session, save_nii=False)
+                    ROI_image = data.unsqueeze(dim=0)  # [1, num_roi, 128, 128, 128]
+
+                    # sample = {'image': image, 'roi_image': ROI_image, 'label': label, 'participant_id': participant,
+                    #           'session_id': session,
+                    #           'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+                    dir, file = os.path.split(roi_image_path)
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    torch.save(ROI_image, roi_image_path)
+                    print('Save roi image: {}'.format(roi_image_path))
+
+                sample = {'image': ROI_image, 'label': label, 'participant_id': participant,
+                          'session_id': session, 'all_image': resampled_image,
+                          'image_path': roi_image_path, 'num_fake_mri': self.num_fake_mri}
+            elif self.model in ["CNN2020", "DeepCNN"]:
+                if os.path.exists(CNN2020_DEEPCNN_image_path):
+                    CNN2020_DEEPCNN_image_image = torch.load(CNN2020_DEEPCNN_image_path)
+                else:
+                    image = torch.load(image_path)
+                    if self.transformations:
+                        dict = {}
+                        dict['data'] = image
+                        image = self.transformations(begin_trans_indx=0, **dict)
+                    data = image.squeeze()  # [128, 128, 128]
+                    try:
+                        CNN2020_DEEPCNN_image_image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                    except:
+                        CNN2020_DEEPCNN_image_image = np.expand_dims(data, 0)
+                    dir, file = os.path.split(CNN2020_DEEPCNN_image_path)
+                    if not os.path.exists(dir):
+                        try:
+                            os.makedirs(dir)
+                        except OSError:
+                            pass
+                    torch.save(image, CNN2020_DEEPCNN_image_path)
+                    print('Save resampled {} image: {}'.format(self.resample_size, CNN2020_DEEPCNN_image_path))
+                sample = {'image': CNN2020_DEEPCNN_image_image, 'label': label, 'participant_id': participant,
+                          'session_id': session,
+                          'image_path': CNN2020_DEEPCNN_image_path, 'num_fake_mri': self.num_fake_mri}
+            elif self.method_2d is not None:
+                path, file = os.path.split(resampled_image_path)
+                file_2d = file.split('.')[0] + '_' + self.method_2d + '.' + file.split('.')[1]
+                path_2d = os.path.join(path, file_2d)
+                if os.path.exists(path_2d):
+                    try:
+                        data_2d = torch.load(path_2d)
+                    except:
+                        print('Wrong file:{}'.format(path_2d))
+                else:
+                    if os.path.exists(resampled_image_path):
+                        try:
+                            resampled_image = torch.load(resampled_image_path)
+                            # print('loading:{}'.format(roi_image_path))
+                        except:
+                            print('Wrong file:{}'.format(resampled_image_path))
+                    else:
+                        image = torch.load(image_path)
+                        if self.transformations:
+                            dict = {}
+                            dict['data'] = image
+                            resampled_image = self.transformations(begin_trans_indx=0, **dict)
+                        resampled_data = resampled_image.squeeze()  # [128, 128, 128]
+                        try:
+                            resampled_image = resampled_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                        except:
+                            resampled_image = np.expand_dims(resampled_data, 0)
+                        dir, file = os.path.split(resampled_image_path)
+                        if not os.path.exists(dir):
+                            try:
+                                os.makedirs(dir)
+                            except OSError:
+                                pass
+                        torch.save(resampled_image, resampled_image_path)
+                        print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
+                    if self.method_2d == 'hilbert_cut':
+                        data_2d = hilbert_3dto2d_cut(resampled_image)
+                        torch.save(data_2d.clone(), path_2d)
+                        print('saving:{}'.format(path_2d))
+                    elif self.method_2d == 'linear_cut':
+                        data_2d = linear_3dto2d_cut(resampled_image)
+                        torch.save(data_2d.clone(), path_2d)
+                        print('saving:{}'.format(path_2d))
+                    elif self.method_2d == 'hilbert_downsampling':
+                        data_low = self.__resize_data__(resampled_image.squeeze(), target_size=[64, 64, 64])
+                        data_low = torch.from_numpy(data_low)
+                        data_2d = hilbert_3dto2d(data_low)
+                        data_2d = data_2d.unsqueeze(0)  # [1,512,512]
+                        torch.save(data_2d.clone(), path_2d)
+                        print('saving:{}'.format(path_2d))
+                    elif self.method_2d == 'linear_downsampling':
+                        data_low = self.__resize_data__(resampled_image.squeeze(), target_size=[64, 64, 64])
+                        data_low = torch.from_numpy(data_low)
+                        data_2d = linear_3dto2d(data_low)
+                        data_2d = data_2d.unsqueeze(0)  # [1,512,512]
+                        torch.save(data_2d.clone(), path_2d)
+                        print('saving:{}'.format(path_2d))
+                sample = {'image': data_2d.squeeze(), 'label': label, 'participant_id': participant,
+                          'session_id': session,
+                          'image_path': path_2d, 'num_fake_mri': self.num_fake_mri}
+            elif self.model not in [
+                "Conv5_FC3",
+                'DeepCNN',
+                'CNN2020',
+                'CNN2020_gcn',
+                'DeepCNN_gcn',
+                "Dynamic2D_net_Alex",
+                "Dynamic2D_net_Res34",
+                "Dynamic2D_net_Res18",
+                "Dynamic2D_net_Vgg16",
+                "Dynamic2D_net_Vgg11",
+                "Dynamic2D_net_Mobile",
+                'ROI_GCN']:
+                if os.path.exists(resampled_image_path):
+                    try:
+                        resampled_image = torch.load(resampled_image_path)
+                    except:
+                        raise FileExistsError('file error:{}'.format(resampled_image_path))
+                    # if self.data_Augmentation and self.transformations:
+                    #     dict = {}
+                    #     dict['data'] = resampled_image
+                    #     begin_trans_indx = 0
+                    #     for i in range(len(self.transformations.transforms)):
+                    #         if self.transformations.transforms[i].__class__.__name__ in ['ItensityNormalizeNonzeorVolume',
+                    #                                                                      'ItensityNormalizeNonzeorVolume',
+                    #                                                                      'MinMaxNormalization']:
+                    #             begin_trans_indx = i + 1
+                    #     resampled_image = self.transformations(begin_trans_indx=begin_trans_indx, **dict)
+                else:
+                    image = torch.load(image_path)
+                    if self.transformations:
+                        dict = {}
+                        dict['data'] = image
+                        resampled_image = self.transformations(begin_trans_indx=0, **dict)
+                    resampled_data = resampled_image.squeeze()  # [128, 128, 128]
+                    try:
+                        resampled_image = resampled_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                    except:
+                        resampled_image = np.expand_dims(resampled_data, 0)
+                    dir, file = os.path.split(resampled_image_path)
+                    if not os.path.exists(dir):
+                        try:
+                            os.makedirs(dir)
+                        except OSError:
+                            pass
+                    torch.save(image, resampled_image_path)
+                    print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
+
+                sample = {'image': resampled_image, 'label': label, 'participant_id': participant,
+                          'session_id': session,
+                          'image_path': resampled_image_path, 'num_fake_mri': self.num_fake_mri}
+            elif self.model in ["Dynamic2D_net_Alex", "Dynamic2D_net_Res34", "Dynamic2D_net_Res18",
+                                "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
+                image = torch.load(image_path)
+                if self.transformations:
+                    dict = {}
+                    dict['data'] = image
+                    resampled_image = self.transformations(begin_trans_indx=0, **dict)
+                resampled_data = resampled_image.squeeze()  # [128, 128, 128]
+                image_np = np.array(resampled_data)
+                image_np = np.expand_dims(image_np, 0)  # 0,w,h,d
+                image_np = np.swapaxes(image_np, 0, 3)  # w,h,d,0
+                im = get_dynamic_image(image_np)
+                im = np.expand_dims(im, 0)
+                im = np.concatenate([im, im, im], 0)
+                im = torch.from_numpy(im)
+                im = im.float()
+                sample = {'image': im, 'label': label, 'participant_id': participant, 'session_id': session,
+                          'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+                return sample
+            return sample
+        else:  # Use data_Augmentation, 1. Just load original data and process it
+            # 1. load original data
+            image = torch.load(image_path)
+            if self.transformations:  # Augmentation
+                dict = {}
+                dict['data'] = image
+                image = self.transformations(begin_trans_indx=0, **dict)
+            augmentation_data = image.squeeze()  # [128, 128, 128]
+            # print(self.transformations)
+            # print(self.transformations[0])
+            # if self.crop_padding_to_128 and image.shape[1] != 128:
+            #     image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
+            #     image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
+            #     pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
+            #     image = pad(image)  # [1, 1, 128, 128, 128]
+            #     image = image.squeeze(0)  # [1, 128, 128, 128]
+            # if self.resample_size is not None:
+            #     assert self.resample_size > 0, 'resample_size should be a int positive number'
+            #     image = image.unsqueeze(0)
+            #     image = F.interpolate(image,
+            #                           size=self.resample_size)  # resize to resample_size * resample_size * resample_size
+            #     print('resample before trans shape:{}'.format(image.shape))
+            #     print('resample before trans mean:{}'.format(image.mean()))
+            #     print('resample before trans std:{}'.format(image.std()))
+            #     print('resample before trans max:{}'.format(image.max()))
+            #     print('resample before trans min:{}'.format(image.min()))
+            #     # image = self.transformations(image)
+            #     # print('resample after trans shape:{}'.format(image.shape))
+            #     # print('resample after trans mean:{}'.format(image.mean()))
+            #     # print('resample after trans std:{}'.format(image.std()))
+            #     # print('resample after trans max:{}'.format(image.max()))
+            #     # print('resample after trans min:{}'.format(image.min()))
+            #     image = image.squeeze(0)
+            #
+            # if self.model in ['DeepCNN', 'DeepCNN_gcn']:
+            #     image = image.unsqueeze(0)
+            #     image = F.interpolate(image, size=[49, 39, 38])
+            #     image = image.squeeze(0)
+            # elif self.model in ['CNN2020', 'CNN2020_gcn']:
+            #     image = image.unsqueeze(0)
+            #     image = F.interpolate(image, size=[139, 177, 144])
+            #     image = image.squeeze(0)
+            # # preprocessing data
+            # data = image.squeeze()  # [128, 128, 128]
+            # # print(data.shape)
+            # input_W, input_H, input_D = data.shape
+            # if self.model not in ["ConvNet3D", "ConvNet3D_gcn", "VoxCNN", "Conv5_FC3", 'DeepCNN', 'CNN2020', 'CNN2020_gcn',
+            #                       "VoxCNN_gcn", 'DeepCNN_gcn', "ConvNet3D_v2", "ConvNet3D_ori", "Dynamic2D_net_Alex",
+            #                       "Dynamic2D_net_Res34", "Dynamic2D_net_Res18", "Dynamic2D_net_Vgg16",
+            #                       "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
+            #     # drop out the invalid range
+            #     # if self.preprocessing in ['t1-spm-graymatter', 't1-spm-whitematter', 't1-spm-csf']:
+            #     data = self.__drop_invalid_range__(data)
+            #     print('drop_invalid_range shape:{}'.format(data.shape))
+            #     print('drop_invalid_range mean:{}'.format(data.mean()))
+            #     print('drop_invalid_range std:{}'.format(data.std()))
+            #     print('drop_invalid_range max:{}'.format(data.max()))
+            #     print('drop_invalid_range min:{}'.format(data.min()))
+            #     # resize data
+            #     data = self.__resize_data__(data, input_W, input_H, input_D)
+            #     print('resize_data shape:{}'.format(data.shape))
+            #     print('resize_data mean:{}'.format(data.mean()))
+            #     print('resize_data std:{}'.format(data.std()))
+            #     print('resize_data max:{}'.format(data.max()))
+            #     print('resize_data min:{}'.format(data.min()))
+            #     # normalization datas
+            #     data = np.array(data)
+            #     data = self.__itensity_normalize_one_volume__(data)
+            #     print('itensity_normalize shape:{}'.format(data.shape))
+            #     print('itensity_normalize mean:{}'.format(data.mean()))
+            #     print('itensity_normalize std:{}'.format(data.std()))
+            #     print('itensity_normalize max:{}'.format(data.max()))
+            #     print('itensity_normalize min:{}'.format(data.min()))
+            #     # if self.transformations and self.model in ["ConvNet3D", "VoxCNN"]:
+            #     #     data = self.transformations(data)
+            #     data = torch.from_numpy(data)
+            # if self.model in ['CNN2020', 'CNN2020_gcn']:
+            #     data = np.array(data)
+            #     data = self.__itensity_normalize_one_volume__(data, normalize_all=True)
+            #     data = torch.from_numpy(data)
+            if self.model in ["Dynamic2D_net_Alex", "Dynamic2D_net_Res34", "Dynamic2D_net_Res18",
+                              "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
+                image_np = np.array(augmentation_data)
+                image_np = np.expand_dims(image_np, 0)  # 0,w,h,d
+                image_np = np.swapaxes(image_np, 0, 3)  # w,h,d,0
+                im = get_dynamic_image(image_np)
+                im = np.expand_dims(im, 0)
+                im = np.concatenate([im, im, im], 0)
+                im = torch.from_numpy(im)
+                im = im.float()
+                sample = {'image': im, 'label': label, 'participant_id': participant, 'session_id': session,
+                          'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+                return sample
+
+            if self.roi and 'ROI' in self.model:
+                try:
+                    resampled_image = augmentation_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                except:
+                    resampled_image = np.expand_dims(augmentation_data, 0)
+                augmentation_data = self.roi_extract(augmentation_data, roi_size=self.roi_size, sub_id=participant,
+                                                     preprocessing=self.preprocessing,
+                                                     session=session, save_nii=False)
+                ROI_image = augmentation_data.unsqueeze(dim=0)  # [1, num_roi, 128, 128, 128]
+                sample = {'image': ROI_image, 'all_image': resampled_image, 'label': label,
+                          'participant_id': participant,
+                          'session_id': session,
+                          'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+            elif self.method_2d is not None:
+                path, file = os.path.split(resampled_image_path)
+                file_2d = file.split('.')[0] + '_' + self.method_2d + '.' + file.split('.')[1]
+                path_2d = os.path.join(path, file_2d)
+                try:
+                    resampled_image = augmentation_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                except:
+                    resampled_image = np.expand_dims(augmentation_data, 0)
                 if self.method_2d == 'hilbert_cut':
                     data_2d = hilbert_3dto2d_cut(resampled_image)
-                    torch.save(data_2d.clone(), path_2d)
-                    print('saving:{}'.format(path_2d))
                 elif self.method_2d == 'linear_cut':
                     data_2d = linear_3dto2d_cut(resampled_image)
-                    torch.save(data_2d.clone(), path_2d)
-                    print('saving:{}'.format(path_2d))
                 elif self.method_2d == 'hilbert_downsampling':
                     data_low = self.__resize_data__(resampled_image.squeeze(), target_size=[64, 64, 64])
                     data_low = torch.from_numpy(data_low)
                     data_2d = hilbert_3dto2d(data_low)
                     data_2d = data_2d.unsqueeze(0)  # [1,512,512]
-                    torch.save(data_2d.clone(), path_2d)
-                    print('saving:{}'.format(path_2d))
                 elif self.method_2d == 'linear_downsampling':
                     data_low = self.__resize_data__(resampled_image.squeeze(), target_size=[64, 64, 64])
                     data_low = torch.from_numpy(data_low)
                     data_2d = linear_3dto2d(data_low)
                     data_2d = data_2d.unsqueeze(0)  # [1,512,512]
-                    torch.save(data_2d.clone(), path_2d)
-                    print('saving:{}'.format(path_2d))
-            sample = {'image': data_2d.squeeze(), 'label': label, 'participant_id': participant,
-                      'session_id': session,
-                      'image_path': path_2d, 'num_fake_mri': self.num_fake_mri}
-            return sample
-        if os.path.exists(resampled_image_path) and self.model not in [
-            "Conv5_FC3",
-            'DeepCNN',
-            'CNN2020',
-            'CNN2020_gcn',
-            'DeepCNN_gcn',
-            "Dynamic2D_net_Alex",
-            "Dynamic2D_net_Res34",
-            "Dynamic2D_net_Res18",
-            "Dynamic2D_net_Vgg16",
-            "Dynamic2D_net_Vgg11",
-            "Dynamic2D_net_Mobile",
-            'ROI_GCN']:
-            try:
-                resampled_image = torch.load(resampled_image_path)
-            except:
-                raise FileExistsError('file error:{}'.format(resampled_image_path))
-            if self.data_Augmentation and self.transformations:
-                dict = {}
-                dict['data'] = resampled_image
-                begin_trans_indx = 0
-                for i in range(len(self.transformations.transforms)):
-                    if self.transformations.transforms[i].__class__.__name__ in ['ItensityNormalizeNonzeorVolume',
-                                                                                 'ItensityNormalizeNonzeorVolume',
-                                                                                 'MinMaxNormalization']:
-                        begin_trans_indx = i + 1
-                resampled_image = self.transformations(begin_trans_indx=begin_trans_indx, **dict)
-            sample = {'image': resampled_image, 'label': label, 'participant_id': participant,
-                      'session_id': session,
-                      'image_path': resampled_image_path, 'num_fake_mri': self.num_fake_mri}
-            return sample
-        image = torch.load(image_path)
-        if self.transformations:
-            dict = {}
-            dict['data'] = image
-            image = self.transformations(begin_trans_indx=0, **dict)
-        data = image.squeeze()  # [128, 128, 128]
-        # print(self.transformations)
-        # print(self.transformations[0])
-        # if self.crop_padding_to_128 and image.shape[1] != 128:
-        #     image = image[:, :, 8:-9, :]  # [1, 121, 128, 121]
-        #     image = image.unsqueeze(0)  # [1, 1, 121, 128, 121]
-        #     pad = torch.nn.ReplicationPad3d((4, 3, 0, 0, 4, 3))
-        #     image = pad(image)  # [1, 1, 128, 128, 128]
-        #     image = image.squeeze(0)  # [1, 128, 128, 128]
-        # if self.resample_size is not None:
-        #     assert self.resample_size > 0, 'resample_size should be a int positive number'
-        #     image = image.unsqueeze(0)
-        #     image = F.interpolate(image,
-        #                           size=self.resample_size)  # resize to resample_size * resample_size * resample_size
-        #     print('resample before trans shape:{}'.format(image.shape))
-        #     print('resample before trans mean:{}'.format(image.mean()))
-        #     print('resample before trans std:{}'.format(image.std()))
-        #     print('resample before trans max:{}'.format(image.max()))
-        #     print('resample before trans min:{}'.format(image.min()))
-        #     # image = self.transformations(image)
-        #     # print('resample after trans shape:{}'.format(image.shape))
-        #     # print('resample after trans mean:{}'.format(image.mean()))
-        #     # print('resample after trans std:{}'.format(image.std()))
-        #     # print('resample after trans max:{}'.format(image.max()))
-        #     # print('resample after trans min:{}'.format(image.min()))
-        #     image = image.squeeze(0)
-        #
-        # if self.model in ['DeepCNN', 'DeepCNN_gcn']:
-        #     image = image.unsqueeze(0)
-        #     image = F.interpolate(image, size=[49, 39, 38])
-        #     image = image.squeeze(0)
-        # elif self.model in ['CNN2020', 'CNN2020_gcn']:
-        #     image = image.unsqueeze(0)
-        #     image = F.interpolate(image, size=[139, 177, 144])
-        #     image = image.squeeze(0)
-        # # preprocessing data
-        # data = image.squeeze()  # [128, 128, 128]
-        # # print(data.shape)
-        # input_W, input_H, input_D = data.shape
-        # if self.model not in ["ConvNet3D", "ConvNet3D_gcn", "VoxCNN", "Conv5_FC3", 'DeepCNN', 'CNN2020', 'CNN2020_gcn',
-        #                       "VoxCNN_gcn", 'DeepCNN_gcn', "ConvNet3D_v2", "ConvNet3D_ori", "Dynamic2D_net_Alex",
-        #                       "Dynamic2D_net_Res34", "Dynamic2D_net_Res18", "Dynamic2D_net_Vgg16",
-        #                       "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
-        #     # drop out the invalid range
-        #     # if self.preprocessing in ['t1-spm-graymatter', 't1-spm-whitematter', 't1-spm-csf']:
-        #     data = self.__drop_invalid_range__(data)
-        #     print('drop_invalid_range shape:{}'.format(data.shape))
-        #     print('drop_invalid_range mean:{}'.format(data.mean()))
-        #     print('drop_invalid_range std:{}'.format(data.std()))
-        #     print('drop_invalid_range max:{}'.format(data.max()))
-        #     print('drop_invalid_range min:{}'.format(data.min()))
-        #     # resize data
-        #     data = self.__resize_data__(data, input_W, input_H, input_D)
-        #     print('resize_data shape:{}'.format(data.shape))
-        #     print('resize_data mean:{}'.format(data.mean()))
-        #     print('resize_data std:{}'.format(data.std()))
-        #     print('resize_data max:{}'.format(data.max()))
-        #     print('resize_data min:{}'.format(data.min()))
-        #     # normalization datas
-        #     data = np.array(data)
-        #     data = self.__itensity_normalize_one_volume__(data)
-        #     print('itensity_normalize shape:{}'.format(data.shape))
-        #     print('itensity_normalize mean:{}'.format(data.mean()))
-        #     print('itensity_normalize std:{}'.format(data.std()))
-        #     print('itensity_normalize max:{}'.format(data.max()))
-        #     print('itensity_normalize min:{}'.format(data.min()))
-        #     # if self.transformations and self.model in ["ConvNet3D", "VoxCNN"]:
-        #     #     data = self.transformations(data)
-        #     data = torch.from_numpy(data)
-        # if self.model in ['CNN2020', 'CNN2020_gcn']:
-        #     data = np.array(data)
-        #     data = self.__itensity_normalize_one_volume__(data, normalize_all=True)
-        #     data = torch.from_numpy(data)
-        if self.model in ["Dynamic2D_net_Alex", "Dynamic2D_net_Res34", "Dynamic2D_net_Res18",
-                          "Dynamic2D_net_Vgg16", "Dynamic2D_net_Vgg11", "Dynamic2D_net_Mobile"]:
-            image_np = np.array(data)
-            image_np = np.expand_dims(image_np, 0)  # 0,w,h,d
-            image_np = np.swapaxes(image_np, 0, 3)  # w,h,d,0
-            im = get_dynamic_image(image_np)
-            im = np.expand_dims(im, 0)
-            im = np.concatenate([im, im, im], 0)
-            im = torch.from_numpy(im)
-            im = im.float()
-            sample = {'image': im, 'label': label, 'participant_id': participant, 'session_id': session,
-                      'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
-            return sample
-
-        if self.roi:
-            # image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
-            if os.path.exists(resampled_image_path):
+                sample = {'image': data_2d.squeeze(), 'label': label, 'participant_id': participant,
+                          'session_id': session,
+                          'image_path': path_2d, 'num_fake_mri': self.num_fake_mri}
+            elif self.model in ["CNN2020", "DeepCNN"]:
                 try:
-                    resampled_image = torch.load(resampled_image_path)
-                    # print('loading:{}'.format(roi_image_path))
+                    CNN2020_DEEPCNN_image_image = augmentation_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
                 except:
-                    print('Wrong file:{}'.format(resampled_image_path))
-            else:
-                try:
-                    resampled_image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
-                except:
-                    resampled_image = np.expand_dims(data, 0)
-                dir, file = os.path.split(resampled_image_path)
-                if not os.path.exists(dir):
-                    try:
-                        os.makedirs(dir)
-                    except OSError:
-                        pass
-                torch.save(resampled_image, resampled_image_path)
-                print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
-            data = self.roi_extract(data, roi_size=self.roi_size, sub_id=participant, preprocessing=self.preprocessing,
-                                    session=session, save_nii=False)
-            ROI_image = data.unsqueeze(dim=0)  # [1, num_roi, 128, 128, 128]
-
-            # sample = {'image': image, 'roi_image': ROI_image, 'label': label, 'participant_id': participant,
-            #           'session_id': session,
-            #           'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
-            dir, file = os.path.split(roi_image_path)
-            if not os.path.exists(dir):
-                os.makedirs(dir)
-            torch.save(ROI_image, roi_image_path)
-            print('Save roi image: {}'.format(roi_image_path))
-            sample = {'image': ROI_image, 'all_image': resampled_image, 'label': label, 'participant_id': participant,
-                      'session_id': session,
-                      'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
-        # elif self.method_2d is not None:
-        #
-        else:
-            try:
-                image = data.unsqueeze(dim=0)  # [1, 128, 128, 128]
-            except:
-                image = np.expand_dims(data, 0)
-            if not self.data_Augmentation and self.model not in ["CNN2020", "DeepCNN"]:
-                dir, file = os.path.split(resampled_image_path)
-                if not os.path.exists(dir):
-                    try:
-                        os.makedirs(dir)
-                    except OSError:
-                        pass
-                torch.save(image, resampled_image_path)
-                print('Save resampled {} image: {}'.format(self.resample_size, resampled_image_path))
-            elif not self.data_Augmentation and self.model in ["CNN2020", "DeepCNN"]:
+                    CNN2020_DEEPCNN_image_image = np.expand_dims(augmentation_data, 0)
                 dir, file = os.path.split(CNN2020_DEEPCNN_image_path)
                 if not os.path.exists(dir):
                     try:
@@ -762,10 +824,20 @@ class MRIDatasetImage(MRIDataset):
                         pass
                 torch.save(image, CNN2020_DEEPCNN_image_path)
                 print('Save resampled {} image: {}'.format(self.resample_size, CNN2020_DEEPCNN_image_path))
-            sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
-                      'image_path': CNN2020_DEEPCNN_image_path, 'num_fake_mri': self.num_fake_mri}
+                sample = {'image': CNN2020_DEEPCNN_image_image, 'label': label, 'participant_id': participant,
+                          'session_id': session,
+                          'image_path': CNN2020_DEEPCNN_image_path, 'num_fake_mri': self.num_fake_mri}
 
-        return sample
+            else:
+                try:
+                    image = augmentation_data.unsqueeze(dim=0)  # [1, 128, 128, 128]
+                except:
+                    image = np.expand_dims(augmentation_data, 0)
+
+                sample = {'image': image, 'label': label, 'participant_id': participant, 'session_id': session,
+                          'image_path': image_path, 'num_fake_mri': self.num_fake_mri}
+
+            return sample
 
     def __drop_invalid_range__(self, volume):
         """
